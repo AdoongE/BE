@@ -1,0 +1,52 @@
+spring:
+
+  # .env import
+  config:
+    import: optional:file:.env[.properties]
+
+  # Database
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    url: ${DB_URL}
+
+  # Spring Data JPA
+  jpa:
+    show-sql: 'false'
+    hibernate:
+      ddl-auto: update
+    open-in-view: 'false'
+    database-platform: org.hibernate.dialect.MySQLDialect
+    properties:
+      hibernate:
+        format_sql: true # SQL ???
+        highlight_sql: true # ANSI ??? ?? ????
+        use_sql_comments: true # SQL ??? /* */ ?? ??
+
+# logging
+logging:
+  level:
+    org:
+      springframework:
+        core:
+          LocalVariableTableParameterNameDiscoverer: error
+      hibernate:
+        sql: debug
+        type.descriptor.sql: trace # ???? ? ??
+        sql.results.internal.ResultsHelper: INFO # OneToMany ?? ?? ?? ??
+    p6spy:
+
+# p6spy log
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: false
+
+# Swagger ?? ??
+springdoc:
+  show-login-endpoint: true
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v1/api-docs
