@@ -65,7 +65,7 @@ public class ApiResponse<T> {
         @JsonInclude(Include.NON_NULL) // 값이 설정되지 않으면 JSON 응답에서 제외
         private Pageable pageable;
         @JsonInclude(Include.NON_NULL)
-        private boolean hasNext;
+        private Boolean hasNext;
 
         // 일반 리스트/단일 결과용 메타데이터 생성자
         public Metadata(int resultCount) {
