@@ -1,0 +1,56 @@
+package com.adoonge.seedzip.auth.controller;
+
+import com.adoonge.seedzip.auth.dto.request.LoginRequest;
+import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
+import com.adoonge.seedzip.auth.service.AuthService;
+import com.adoonge.seedzip.auth.util.CustomUserDetails;
+import com.adoonge.seedzip.global.dto.response.ApiResponse;
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.member.domain.Member;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
+@Tag(name = "AuthController", description = "회원 인증 관련 API")
+public class AuthController {
+    private final AuthService authService;
+
+    @PostMapping("/login")
+    @Operation(summary = "로그인 API", description = "로그인 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
+    public ApiResponse<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+
+        authService.login(loginRequest, response);
+
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @PostMapping("/signup")
+    @Operation(summary = "회원가입 API", description = "회원가입을 진행하는 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
+    public ApiResponse<Void> signUp(@RequestBody SignUpRequest signUpRequest, HttpServletResponse response) {
+
+        authService.signUp(signUpRequest, response);
+
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @GetMapping("/test")
+    @Operation(summary = "로그인 테스트 API", description = "로그인 여부를 확인할 수 있는 API입니다. 회원의 닉네임을 리턴합니다.")
+    public ApiResponse<String> test(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Member member = customUserDetails.getMember();
+
+        String result = member.getNickname();
+        return new ApiResponse<>(result);
+    }
+}
