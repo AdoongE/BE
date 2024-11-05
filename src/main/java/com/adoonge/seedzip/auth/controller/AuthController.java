@@ -27,22 +27,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
     private final AuthService authService;
 
+    /**
+     * 로그인
+     */
+
     @PostMapping("/login")
-    @Operation(summary = "로그인 API", description = "기본 로그인 API입니다.")
-    public ApiResponse<Void> login(@RequestBody String code, HttpServletResponse response) {
-
-        authService.login(code, SocialType.BASIC, response);
-
-        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    @Operation(summary = "로그인 API", description = "테스트용 기본 로그인 API입니다.")
+    public ApiResponse<LoginResponse> login(@RequestParam String code, HttpServletResponse response) {
+        return authService.login(code, SocialType.BASIC, response);
     }
 
-    @PostMapping("/signup")
-    @Operation(summary = "회원가입 API", description = "회원가입을 진행하는 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
-    public ApiResponse<Void> signUp(@RequestBody SignUpRequest signUpRequest, HttpServletResponse response) {
-
-        authService.signUp(signUpRequest, response);
-
-        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    @PostMapping("login/kakao")
+    @Operation(summary = "카카오 로그인 API", description = "카카오 인가코드를 받고 JWT 토큰을 리턴합니다.")
+    ApiResponse<LoginResponse> loginKakao(@RequestParam String code, HttpServletResponse response) {
+        return authService.login(code, SocialType.KAKAO, response);
     }
 
     @GetMapping("/test")
@@ -54,9 +52,14 @@ public class AuthController {
         return new ApiResponse<>(result);
     }
 
-    @GetMapping("login/kakao")
-    ApiResponse<LoginResponse> loginKakao(@RequestParam String code, HttpServletResponse response) {
+    @PostMapping("/signup")
+    @Operation(summary = "회원가입 API", description = "회원가입을 진행하는 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
+    public ApiResponse<Void> signUp(@RequestBody SignUpRequest signUpRequest, HttpServletResponse response) {
 
-        return authService.login(code, SocialType.KAKAO, response);
+        authService.signUp(signUpRequest, response);
+
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
+
+
 }
