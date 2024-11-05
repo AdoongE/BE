@@ -1,7 +1,8 @@
 package com.adoonge.seedzip.auth.controller;
 
-import com.adoonge.seedzip.auth.dto.request.LoginRequest;
+import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
+import com.adoonge.seedzip.auth.dto.response.LoginResponse;
 import com.adoonge.seedzip.auth.service.AuthService;
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
@@ -10,14 +11,13 @@ import com.adoonge.seedzip.member.domain.Member;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,10 +28,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    @Operation(summary = "로그인 API", description = "로그인 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
-    public ApiResponse<Void> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    @Operation(summary = "로그인 API", description = "기본 로그인 API입니다.")
+    public ApiResponse<Void> login(@RequestBody String code, HttpServletResponse response) {
 
-        authService.login(loginRequest, response);
+        authService.login(code, SocialType.BASIC, response);
 
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
@@ -52,5 +52,11 @@ public class AuthController {
 
         String result = member.getNickname();
         return new ApiResponse<>(result);
+    }
+
+    @GetMapping("login/kakao")
+    ApiResponse<LoginResponse> loginKakao(@RequestParam String code, HttpServletResponse response) {
+
+        return authService.login(code, SocialType.KAKAO, response);
     }
 }
