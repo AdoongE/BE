@@ -42,12 +42,12 @@ public class AuthService {
         String loginId = oauthService.getLoginId(accessToken);
 
         if (!isMemberRegistered(loginId)) {
-            return new ApiResponse<>(LoginResponse.builder().result(accessToken).build(), ErrorCode.MEMBER_NOT_FOUND);
+            return new ApiResponse<>(LoginResponse.builder().result(accessToken).socialType(socialType).build(), ErrorCode.MEMBER_NOT_FOUND);
         }
 
         generateToken(loginId, response);
 
-        return new ApiResponse<>(LoginResponse.builder().result("").build(), ErrorCode.REQUEST_OK);
+        return new ApiResponse<>(LoginResponse.builder().result("").socialType(socialType).build(), ErrorCode.REQUEST_OK);
     }
 
     @Transactional
