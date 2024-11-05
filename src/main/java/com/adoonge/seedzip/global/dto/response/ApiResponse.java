@@ -28,6 +28,11 @@ public class ApiResponse<T> {
         this.results = List.of(data);
     }
 
+    public ApiResponse(T data, ErrorCode errorCode) {
+        this.results = List.of(data);
+        this.status = new Status(errorCode);
+    }
+
     // 리스트 결과 생성자
     public ApiResponse(List<T> results) {
         this.status = new Status(ErrorCode.REQUEST_OK);
