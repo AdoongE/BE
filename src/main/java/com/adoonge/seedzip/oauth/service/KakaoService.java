@@ -9,11 +9,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 public class KakaoService implements OAuthService {
 
-    private Map<String, Object> getUserAttributesByToken(String accessToken){
+    private Map<String, Object> getUserAttributesByToken(String accessCode){
         return WebClient.create()
                 .get()
                 .uri("https://kapi.kakao.com/v2/user/me")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
+                .headers(httpHeaders -> httpHeaders.setBearerAuth(accessCode))
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
                 .block();
@@ -25,8 +25,8 @@ public class KakaoService implements OAuthService {
     }
 
     @Override
-    public String getProfileImageUrl(String accessToken) {
-        Map<String, Object> kakaoAccount = (Map<String, Object>) getUserAttributesByToken(accessToken).get("kakao_account");
+    public String getProfileImageUrl(String accessCode) {
+        Map<String, Object> kakaoAccount = (Map<String, Object>) getUserAttributesByToken(accessCode).get("kakao_account");
         if(kakaoAccount != null) {
             Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
             if(profile != null) {

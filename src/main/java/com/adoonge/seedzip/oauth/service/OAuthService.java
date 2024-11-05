@@ -5,6 +5,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface OAuthService {
-    String getLoginId(String socialAccessToken);
-    String getProfileImageUrl(String socialAccessToken);
+    String getLoginId(String socialAccessCode);
+    String getProfileImageUrl(String socialAccessCode);
 }
