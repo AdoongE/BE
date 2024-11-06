@@ -2,7 +2,7 @@ spring:
 
   # .env import
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:./.env[.properties]
 
   # Database
   datasource:
