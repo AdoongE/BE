@@ -55,10 +55,6 @@ jobs:
           push: true
           platforms: linux/amd64
           tags: ${{ env.DOCKER_HUB_REPOSITORY }}:latest
-          build-args:
-            DB_HOST: ${{ secrets.DB_HOST }}
-            DB_USER: ${{ secrets.DB_USER }}
-            DB_PASS: ${{ secrets.DB_PASS }}
 
   docker-pull-and-run:
     runs-on: ubuntu-latest
