@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -33,9 +34,9 @@ public class Category extends Serializers.Base {
 	private String name;
 
 	@Enumerated(EnumType.STRING)
-	private Visibility isPublic;
+	private Visibility visibility;
 
-	@ManyToOne
-	@JoinColumn(name = "memberId")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
 	private Member member;
 }
