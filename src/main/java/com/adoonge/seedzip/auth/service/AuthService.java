@@ -1,7 +1,9 @@
 package com.adoonge.seedzip.auth.service;
 
-import com.adoonge.seedzip.auth.dto.request.LoginRequest;
+import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
+import com.adoonge.seedzip.auth.dto.response.LoginResponse;
+import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -31,16 +33,49 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public void login(LoginRequest request, HttpServletResponse response) {
+    public ApiResponse<LoginResponse> login(String code, SocialType socialType, HttpServletResponse response) {
+
+        OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
+
+        String accessToken = oauthService.getAccessToken(code);
+
+        String loginId = oauthService.getLoginId(accessToken);
+
+        if (!isMemberRegistered(loginId)) {
+            return new ApiResponse<>(LoginResponse.builder().result(accessToken).socialType(socialType).build(), ErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        generateToken(loginId, response);
+
+        return new ApiResponse<>(LoginResponse.builder().result("").socialType(socialType).build(), ErrorCode.REQUEST_OK);
+    }
+
+    @Transactional
+    public void signUp(SignUpRequest request, HttpServletResponse response) {
 
         OAuthService oauthService = oauthServiceFactory.getOAuthService(request.getSocialType());
 
-        String loginId = oauthService.getLoginId(request.getSocialAccessToken());
+        String accessToken = request.getAccessToken();
 
-        if(!isMemberRegistered(loginId)) {
-            throw SeedzipException.from(ErrorCode.MEMBER_NOT_FOUND);
+        String loginId = oauthService.getLoginId(accessToken);
+
+        String profileImageUrl = oauthService.getProfileImageUrl(accessToken);
+
+        if (isMemberRegistered(loginId)) {
+            throw SeedzipException.from(ErrorCode.ACCOUNT_USERNAME_EXIST);
         }
 
+        String encodedPassword = passwordEncoder.encode("default");
+
+        Member member = request.toEntity(loginId ,encodedPassword, profileImageUrl);
+
+        memberRepository.save(member);
+        memberRepository.flush();
+
+       generateToken(loginId, response);
+    }
+
+    private void generateToken(String loginId, HttpServletResponse response) {
         // 1. username + password 를 기반으로 Authentication 객체 생성
         // 이때 authentication 은 인증 여부를 확인하는 authenticated 값이 false
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -51,34 +86,5 @@ public class AuthService {
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
 
         jwtTokenService.generateToken(authentication, response);
-    }
-
-    @Transactional
-    public void signUp(SignUpRequest request, HttpServletResponse response) {
-
-        OAuthService oauthService = oauthServiceFactory.getOAuthService(request.getSocialType());
-
-        String loginId = oauthService.getLoginId(request.getSocialAccessToken());
-
-        String profileImageUrl = oauthService.getProfileImageUrl(request.getSocialAccessToken());
-
-        if(isMemberRegistered(loginId)) {
-            throw SeedzipException.from(ErrorCode.ACCOUNT_USERNAME_EXIST);
-        }
-
-        String encodedPassword = passwordEncoder.encode("default");
-
-        Member member = request.toEntity(loginId, encodedPassword, profileImageUrl);
-
-        memberRepository.save(member);
-        memberRepository.flush();
-
-        //토큰 생성
-        LoginRequest loginRequest = LoginRequest.builder()
-                .socialType(request.getSocialType())
-                .socialAccessToken(request.getSocialAccessToken())
-                .build();
-
-        login(loginRequest, response);
     }
 }

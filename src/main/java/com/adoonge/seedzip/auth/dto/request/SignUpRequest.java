@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SignUpRequest {
     private SocialType socialType;
-    private String socialAccessToken;
+    private String accessToken;
     private String nickname;
     private LocalDate birthday;
     private Gender gender;
