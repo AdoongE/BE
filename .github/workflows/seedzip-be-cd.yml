@@ -58,8 +58,8 @@ jobs:
 
   docker-pull-and-run:
     runs-on: ubuntu-latest
-    if: ${{ needs.backend-docker-build-and-push.result == 'success' }}
-    needs: [backend-docker-build-and-push]
+    if: ${{ needs.docker-build-and-push.result == 'success' }}
+    needs: [docker-build-and-push]
     steps:
       - name: ✨ EC2 서버에 SSH로 접속하여 배포 스크립트 실행
         uses: appleboy/ssh-action@v0.1.7
