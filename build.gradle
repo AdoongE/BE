@@ -57,6 +57,10 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+bootJar {
+	archiveFileName = 'seedzip.jar'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
