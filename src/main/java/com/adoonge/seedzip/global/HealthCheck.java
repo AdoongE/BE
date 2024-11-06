@@ -19,7 +19,7 @@ public class HealthCheck {
     @GetMapping("/test")
     @Operation(summary = "CI/CD API", description = "CI/CD 테스트 API")
     public String cicd() {
-        return "test";
+        return "test2 06:46";
     }
 
 }
