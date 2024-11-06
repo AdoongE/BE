@@ -16,4 +16,10 @@ public class HealthCheck {
     @Operation(summary = "헬스 체크 API", description = "서버가 정상 작동하는지 확인합니다.")
     public String check() { return "OK";}
 
+    @GetMapping("/test")
+    @Operation(summary = "CI/CD API", description = "CI/CD 테스트 API")
+    public String cicd() {
+        return "test";
+    }
+
 }
