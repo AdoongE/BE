@@ -1,6 +1,8 @@
 package com.adoonge.seedzip.category.service;
 
-import org.hibernate.Hibernate;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.adoonge.seedzip.category.domain.Category;
@@ -46,5 +48,25 @@ public class CategoryService {
 		}
 
 		return CategoryResponse.fromEntity(category);
+	}
+
+	public List<CategoryResponse> getCategories(Member member){
+		List<Category> categories = categoryRepository.findByMemberId(member.getId());
+
+		return categories.stream()
+			.map(CategoryResponse::fromEntity)
+			.collect(Collectors.toList());
+	}
+
+	public void deleteCategory(Long id, Member member){
+		Category category = categoryRepository.findById(id)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
+
+		// 카테고리 소유자 검증
+		if (!category.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
+		}
+
+		categoryRepository.delete(category);
 	}
 }

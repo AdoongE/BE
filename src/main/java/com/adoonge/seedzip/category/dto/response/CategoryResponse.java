@@ -2,13 +2,10 @@ package com.adoonge.seedzip.category.dto.response;
 
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.category.domain.Visibility;
-import com.adoonge.seedzip.member.domain.Member;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
