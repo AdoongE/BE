@@ -58,6 +58,7 @@ public class CategoryService {
 			.collect(Collectors.toList());
 	}
 
+	@Transactional
 	public void deleteCategory(Long id, Member member){
 		Category category = categoryRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
