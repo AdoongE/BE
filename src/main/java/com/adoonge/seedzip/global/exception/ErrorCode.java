@@ -43,7 +43,16 @@ public enum ErrorCode {
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "올바르지 않은 요청입니다."),
     NOT_ENOUGH_PERMISSION(HttpStatus.FORBIDDEN, "해당 권한이 없습니다."),
     INTERNAL_SEVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 에러가 발생하였습니다. 관리자에게 문의해 주세요."),
-    FOR_TEST_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "테스트용 에러입니다.");
+    FOR_TEST_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "테스트용 에러입니다."),
+
+    // category
+    CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다."),
+    CATEGORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 동일한 이름의 카테고리가 존재합니다."),
+    CATEGORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 카테고리에 대한 접근 권한이 없습니다."),
+    CATEGORY_BOOKMARK_NOT_ALLOWED(HttpStatus.FORBIDDEN, "이 카테고리는 북마크할 수 없습니다."),
+    CATEGORY_INVALID_VISIBILITY(HttpStatus.BAD_REQUEST, "유효하지 않은 공개 설정 값입니다."),
+    CATEGORY_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 업데이트 중 오류가 발생했습니다."),
+    CATEGORY_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 삭제 중 오류가 발생했습니다.");
 
     private final HttpStatus status;
     private final String message;
