@@ -1,6 +1,9 @@
 package com.adoonge.seedzip.category.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,13 +12,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.category.dto.request.AddCategoryRequest;
+import com.adoonge.seedzip.category.dto.request.UpdateCategoryRequest;
+import com.adoonge.seedzip.category.dto.response.CategoryResponse;
 import com.adoonge.seedzip.category.service.CategoryService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
+import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.member.domain.Member;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/v1/category")
@@ -26,11 +33,23 @@ public class CategoryController {
 
 	@PostMapping
 	@Operation(summary = "카테고리 생성 API", description = "카테고리 생성 API입니다.")
-	public ApiResponse<Category> createCategory(@RequestBody AddCategoryRequest request,
+	public ApiResponse<CategoryResponse> createCategory(@RequestBody AddCategoryRequest request,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		Member member = customUserDetails.getMember();
-		Category createdCategory = categoryService.createCategory(request, member);
+		CategoryResponse createdCategory = categoryService.createCategory(request, member);
+
 		return new ApiResponse<>(createdCategory);
+	}
+
+	@PatchMapping("/{id}")
+	@Operation(summary = "카테고리 수정 API", description = "카테고리 수정 API입니다.")
+	public ApiResponse<CategoryResponse> updateCategory(@PathVariable Long id, @RequestBody UpdateCategoryRequest request,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+		Member member = customUserDetails.getMember();
+		CategoryResponse updatedCategory = categoryService.updateCategory(id, request, member);
+
+		return new ApiResponse<>(updatedCategory);
 	}
 }

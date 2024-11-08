@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.category.domain;
 
+import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
 import com.fasterxml.jackson.databind.ser.Serializers;
 
@@ -25,7 +26,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "category")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Category extends Serializers.Base {
+public class Category extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,4 +40,8 @@ public class Category extends Serializers.Base {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
+
+	public void updateCategory(String name) {
+		this.name = name;
+	}
 }
