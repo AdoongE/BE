@@ -31,7 +31,10 @@ spring:
       token:
         expiration: ${JWT_ACCESS_TOKEN_EXPIRATION}
 
-
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
 
 # logging
 logging:
@@ -65,3 +68,18 @@ kakao:
     key: ${KAKAO_API_KEY}
   redirect:
     uri: ${KAKAO_REDIRECT_URI}
+
+cloud:
+  aws:
+    credentials:
+      accessKey: ${ACCESS_KEY}
+      secretKey: ${SECRET_KEY}
+    region:
+      static: ${REGION}
+    s3:
+      docBucket: ${DOC_BUCKET}
+      imgBucket: ${IMG_BUCKET}
+
+server:
+  tomcat:
+    max-swallow-size: 50MB
