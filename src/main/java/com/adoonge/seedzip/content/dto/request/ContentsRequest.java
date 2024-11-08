@@ -51,6 +51,7 @@ public class ContentsRequest {
     public static class linkContentsRequest {
         private ContentsDataType dataType;
         private String contentName; // 없으면 null
+        private String[] contentLinks;
         private String[] boardCategory;
         private String[] tags;
         private LocalDate dDay; // 없으면 null

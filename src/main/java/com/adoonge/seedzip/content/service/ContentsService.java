@@ -5,11 +5,13 @@ import com.adoonge.seedzip.category.domain.Visibility;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.content.domain.Document;
+import com.adoonge.seedzip.content.domain.Link;
 import com.adoonge.seedzip.content.domain.Tag;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
+import com.adoonge.seedzip.content.dto.response.ContentsLinkResponse;
 import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.member.domain.Member;
 import jakarta.transaction.Transactional;
@@ -47,6 +49,9 @@ public class ContentsService {
     private final CategoryContentRepository categoryContentRepository;
 
     @Autowired
+    private LinkRepository linkRepository;
+
+    @Autowired
     private final S3Service s3Service;
 
     @Transactional
@@ -60,8 +65,6 @@ public class ContentsService {
         if(Objects.isNull(request.getContentDetail())){
             request.setContentDetail(null);
         }
-
-        System.out.println(request);
 
         Contents contents = contentsRepository.save(request.toContentEntity(member));
 
@@ -116,5 +119,62 @@ public class ContentsService {
             }
         }
         return ContentsDocResponse.fromEntity("문서를 저장했습니다!", contents);
+    }
+
+    public ContentsLinkResponse createLinkContents(ContentsRequest.linkContentsRequest request, Member member) {
+        if(Objects.isNull(request.getContentName())){
+            request.setContentName(null);
+        }
+        if(Objects.isNull(request.getDDay())){
+            request.setDDay(null);
+        }
+        if(Objects.isNull(request.getContentDetail())){
+            request.setContentDetail(null);
+        }
+
+        Contents contents = contentsRepository.save(request.toContentEntity(member));
+
+        for (String links : request.getContentLinks()) {
+            Link link = Link.builder()
+                    .link(links)
+                    .contents(contents)
+                    .build();
+            linkRepository.save(link);
+        }
+
+        // 태그 저장
+        for (String tagName : request.getTags()) {
+            Tag tag = tagRepository.findByTagName(tagName)
+                    .orElseGet(() -> {
+                        Tag newTag = Tag.builder()
+                                .tagName(tagName)
+                                .build();
+                        return tagRepository.save(newTag); // 존재하지 않으면 태그 생성
+                    });
+
+            // ContentTag 엔티티 생성 후 저장
+            ContentTag contentTag = new ContentTag();
+            contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+            contentTag.setTag(tag);
+            contentTagRepository.save(contentTag);
+        }
+
+        if(Objects.isNull(request.getBoardCategory())){
+            Category category = categoryRepository.findByName("default");
+            request.setBoardCategory(new String[] {"default"});
+        }
+        else{
+            // 카테고리 저장
+            for (String categoryName : request.getBoardCategory()) {
+                Category category = categoryRepository.findByName(categoryName);
+
+                // CategoryContent 엔티티 생성 후 저장
+                CategoryContent categoryContent = new CategoryContent();
+                categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                categoryContent.setCategory(category);
+                categoryContentRepository.save(categoryContent);
+            }
+        }
+        return ContentsLinkResponse.fromEntity("링크를 저장했습니다!", contents);
     }
 }
