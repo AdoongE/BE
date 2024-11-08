@@ -8,14 +8,14 @@ import lombok.Getter;
 @Getter
 @Builder
 @AllArgsConstructor
-public class ContentsResponse {
+public class ContentsDocResponse {
 
     private String msg;
     private Long contentId;
     private Long memberId;
 
-    public static ContentsResponse fromEntity(String msg, Contents contents) {
-        return ContentsResponse.builder()
+    public static ContentsDocResponse fromEntity(String msg, Contents contents) {
+        return ContentsDocResponse.builder()
                 .msg(msg)
                 .contentId(contents.getContentsId())
                 .memberId(contents.getMember().getId())

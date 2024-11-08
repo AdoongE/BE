@@ -9,7 +9,7 @@ import com.adoonge.seedzip.content.domain.Tag;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
-import com.adoonge.seedzip.content.dto.response.ContentsResponse;
+import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
 import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.member.domain.Member;
 import jakarta.transaction.Transactional;
@@ -50,7 +50,7 @@ public class ContentsService {
     private final S3Service s3Service;
 
     @Transactional
-    public ContentsResponse createDocContents(ContentsRequest.docContentsRequest request, List<MultipartFile> files, Member member) {
+    public ContentsDocResponse createDocContents(ContentsRequest.docContentsRequest request, List<MultipartFile> files, Member member) {
         if(Objects.isNull(request.getContentName())){
             request.setContentName(null);
         }
@@ -115,6 +115,6 @@ public class ContentsService {
                 return null;
             }
         }
-        return ContentsResponse.fromEntity("문서를 저장했습니다!", contents);
+        return ContentsDocResponse.fromEntity("문서를 저장했습니다!", contents);
     }
 }
