@@ -3,6 +3,7 @@ package com.adoonge.seedzip.content.controller;
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
+import com.adoonge.seedzip.content.dto.response.ContentsImageResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsLinkResponse;
 import com.adoonge.seedzip.content.service.ContentsService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
@@ -65,8 +66,29 @@ public class ContentsController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         Member member = customUserDetails.getMember();
-        ContentsLinkResponse createdlinkContents = contentsService.createLinkContents(request, member);
+        ContentsLinkResponse createdLinkContents = contentsService.createLinkContents(request, member);
 
-        return new ApiResponse<>(createdlinkContents);
+        return new ApiResponse<>(createdLinkContents);
+    }
+
+    @PostMapping(value="/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "콘텐츠(이미지) 생성 API", description = "콘텐츠(이미지) 생성 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ContentsImageResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<ContentsImageResponse> createImageContents(
+            @Parameter(description = "업로드할 파일 리스트", content = @Content(mediaType = "application/octet-stream"))
+            @RequestParam("file") List<MultipartFile> files,
+            @Parameter(description = "JSON 요청 데이터", content = @Content(mediaType = "application/json"))
+            @RequestPart("request") ContentsRequest.imageContentsRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+        ContentsImageResponse createdImageContents = contentsService.createImageContents(request, files, member);
+
+        return new ApiResponse<>(createdImageContents);
     }
 }
