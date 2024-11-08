@@ -71,21 +71,18 @@ public class ContentsService {
         Contents contents = contentsRepository.save(request.toContentEntity(member));
 
         // 태그 저장
-        for (String tagName : request.getTags()) {
-            Tag tag = tagRepository.findByTagName(tagName)
-                    .orElseGet(() -> {
-                        Tag newTag = Tag.builder()
-                                .tagName(tagName)
-                                .build();
-                        return tagRepository.save(newTag); // 존재하지 않으면 태그 생성
-                    });
-
-            // ContentTag 엔티티 생성 후 저장
-            ContentTag contentTag = new ContentTag();
-            contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-            contentTag.setTag(tag);
-            contentTagRepository.save(contentTag);
-        }
+        Arrays.stream(request.getTags())
+                .map(tagName -> tagRepository.findByTagName(tagName)
+                        .orElseGet(() -> tagRepository.save(
+                                Tag.builder()
+                                        .tagName(tagName)
+                                        .build())))
+                .forEach(tag -> {
+                    ContentTag contentTag = new ContentTag();
+                    contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                    contentTag.setTag(tag);
+                    contentTagRepository.save(contentTag);
+                });
 
         if(Objects.isNull(request.getBoardCategory())){
             Category category = categoryRepository.findByName("default");
@@ -93,20 +90,19 @@ public class ContentsService {
         }
         else{
             // 카테고리 저장
-            for (String categoryName : request.getBoardCategory()) {
-                Category category = categoryRepository.findByName(categoryName);
-
-                // CategoryContent 엔티티 생성 후 저장
-                CategoryContent categoryContent = new CategoryContent();
-                categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                categoryContent.setCategory(category);
-                categoryContentRepository.save(categoryContent);
-            }
+            Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
+                    .map(categoryName -> categoryRepository.findByName(categoryName))
+                    .forEach(category -> {
+                        CategoryContent categoryContent = new CategoryContent();
+                        categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                        categoryContent.setCategory(category);
+                        categoryContentRepository.save(categoryContent);
+                    });
         }
 
         List<String> fileUrls = new ArrayList<>();
 
-        for (MultipartFile file : files) {
+        files.stream().forEach(file -> {
             try {
                 // S3에 파일 업로드 및 URL 가져오기
                 String fileUrl = s3Service.uploadDocFile(file);
@@ -114,12 +110,10 @@ public class ContentsService {
 
                 // URL 저장
                 Document document = documentRepository.save(request.toDocEntity(contents, fileUrl));
-            }
-            catch (IOException e){
+            } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
-        }
+        });
         return ContentsDocResponse.fromEntity("문서를 저장했습니다!", contents);
     }
 
@@ -137,30 +131,26 @@ public class ContentsService {
 
         Contents contents = contentsRepository.save(request.toContentEntity(member));
 
-        for (String links : request.getContentLinks()) {
-            Link link = Link.builder()
-                    .link(links)
-                    .contents(contents)
-                    .build();
-            linkRepository.save(link);
-        }
+        Arrays.stream(request.getContentLinks())
+                .map(links -> Link.builder()
+                        .link(links)
+                        .contents(contents)
+                        .build())
+                .forEach(link -> linkRepository.save(link));
 
         // 태그 저장
-        for (String tagName : request.getTags()) {
-            Tag tag = tagRepository.findByTagName(tagName)
-                    .orElseGet(() -> {
-                        Tag newTag = Tag.builder()
-                                .tagName(tagName)
-                                .build();
-                        return tagRepository.save(newTag); // 존재하지 않으면 태그 생성
-                    });
-
-            // ContentTag 엔티티 생성 후 저장
-            ContentTag contentTag = new ContentTag();
-            contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-            contentTag.setTag(tag);
-            contentTagRepository.save(contentTag);
-        }
+        Arrays.stream(request.getTags())
+                .map(tagName -> tagRepository.findByTagName(tagName)
+                        .orElseGet(() -> tagRepository.save(
+                                Tag.builder()
+                                        .tagName(tagName)
+                                        .build())))
+                .forEach(tag -> {
+                    ContentTag contentTag = new ContentTag();
+                    contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                    contentTag.setTag(tag);
+                    contentTagRepository.save(contentTag);
+                });
 
         if(Objects.isNull(request.getBoardCategory())){
             Category category = categoryRepository.findByName("default");
@@ -168,15 +158,14 @@ public class ContentsService {
         }
         else{
             // 카테고리 저장
-            for (String categoryName : request.getBoardCategory()) {
-                Category category = categoryRepository.findByName(categoryName);
-
-                // CategoryContent 엔티티 생성 후 저장
-                CategoryContent categoryContent = new CategoryContent();
-                categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                categoryContent.setCategory(category);
-                categoryContentRepository.save(categoryContent);
-            }
+            Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
+                    .map(categoryName -> categoryRepository.findByName(categoryName))
+                    .forEach(category -> {
+                        CategoryContent categoryContent = new CategoryContent();
+                        categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                        categoryContent.setCategory(category);
+                        categoryContentRepository.save(categoryContent);
+                    });
         }
         return ContentsLinkResponse.fromEntity("링크를 저장했습니다!", contents);
     }
