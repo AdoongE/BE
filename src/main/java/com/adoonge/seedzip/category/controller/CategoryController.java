@@ -45,11 +45,11 @@ public class CategoryController {
 
 	@GetMapping
 	@Operation(summary = "카테고리 조회 API", description = "카테고리 조회 API입니다.")
-	public ApiResponse<List<CategoryResponse>> getCategories(
+	public ApiResponse<CategoryResponse> getCategories(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		List<CategoryResponse> categories = categoryService.getCategories(customUserDetails.getMember());
 
-		return new ApiResponse<List<CategoryResponse>>(categories);
+		return new ApiResponse<>(categories);
 	}
 
 	@PatchMapping("/{id}")
