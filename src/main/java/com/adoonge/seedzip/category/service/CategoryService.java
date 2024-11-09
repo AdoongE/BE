@@ -43,8 +43,8 @@ public class CategoryService {
 		}
 
 		// 요청에 이름이 있으면 카테고리 업데이트
-		if (request.getName() != null) {
-			category.updateCategory(request.getName());
+		if (request.name() != null) {
+			category.updateCategory(request.name());
 		}
 
 		return CategoryResponse.fromEntity(category);

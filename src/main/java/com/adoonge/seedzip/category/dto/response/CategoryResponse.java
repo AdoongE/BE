@@ -7,22 +7,19 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter
-@Builder
-@AllArgsConstructor
-public class CategoryResponse {
+public record CategoryResponse(
 
-	private Long categoryId;
-	private String name;
-	private Visibility visibility;
-	private Long memberId;
+	Long categoryId,
+	String name,
+	Visibility visibility,
+	Long memberId) {
 
 	public static CategoryResponse fromEntity(Category category) {
-		return CategoryResponse.builder()
-			.categoryId(category.getCategoryId())
-			.name(category.getName())
-			.visibility(category.getVisibility())
-			.memberId(category.getMember().getId())
-			.build();
+		return new CategoryResponse(
+			category.getCategoryId(),
+			category.getName(),
+			category.getVisibility(),
+			category.getMember().getId()
+		);
 	}
 }

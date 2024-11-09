@@ -1,13 +1,10 @@
 package com.adoonge.seedzip.bookmark.domain;
 
 import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.category.domain.Visibility;
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,7 +21,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @Entity
-@Table(name = "category")
+@Table(name = "bookmark")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Bookmark extends BaseEntity {
@@ -36,4 +33,9 @@ public class Bookmark extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id")
 	private Category category;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "member_id")
+	private Member member;
+
 }
