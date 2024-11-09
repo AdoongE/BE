@@ -50,6 +50,7 @@ public enum ErrorCode {
     CATEGORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 동일한 이름의 카테고리가 존재합니다."),
     CATEGORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 카테고리에 대한 접근 권한이 없습니다."),
     CATEGORY_BOOKMARK_NOT_ALLOWED(HttpStatus.FORBIDDEN, "이 카테고리는 북마크할 수 없습니다."),
+    CATEGORY_ALREADY_BOOKMARKED(HttpStatus.CONFLICT, "이미 북마크된 카테고리입니다."),
     CATEGORY_INVALID_VISIBILITY(HttpStatus.BAD_REQUEST, "유효하지 않은 공개 설정 값입니다."),
     CATEGORY_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 업데이트 중 오류가 발생했습니다."),
     CATEGORY_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 삭제 중 오류가 발생했습니다.");
