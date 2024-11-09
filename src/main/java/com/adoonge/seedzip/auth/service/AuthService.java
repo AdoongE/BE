@@ -3,6 +3,9 @@ package com.adoonge.seedzip.auth.service;
 import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
 import com.adoonge.seedzip.auth.dto.response.LoginResponse;
+import com.adoonge.seedzip.category.domain.Category;
+import com.adoonge.seedzip.category.domain.Visibility;
+import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
@@ -12,6 +15,7 @@ import com.adoonge.seedzip.oauth.service.OAuthService;
 import com.adoonge.seedzip.oauth.service.OAuthServiceFactory;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -27,6 +31,9 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final OAuthServiceFactory oauthServiceFactory;
     private final PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
 
     private Boolean isMemberRegistered(String loginId) {
         return memberRepository.existsByLoginId(loginId);
@@ -71,6 +78,15 @@ public class AuthService {
 
         memberRepository.save(member);
         memberRepository.flush();
+
+        // Category 자동 생성
+        Category defaultCategory = Category.builder()
+                .name("default")
+                .visibility(Visibility.PRIVATE)
+                .member(member)
+                .build();
+
+        categoryRepository.save(defaultCategory);
 
        generateToken(loginId, response);
     }
