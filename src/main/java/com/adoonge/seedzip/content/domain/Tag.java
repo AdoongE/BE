@@ -13,7 +13,7 @@ import lombok.*;
 public class Tag extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long tagId;
 
     @Column(nullable = false)
     private String tagName;

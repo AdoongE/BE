@@ -2,6 +2,7 @@ package com.adoonge.seedzip.content.controller;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsImageResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsLinkResponse;
@@ -90,5 +91,25 @@ public class ContentsController {
         ContentsImageResponse createdImageContents = contentsService.createImageContents(request, files, member);
 
         return new ApiResponse<>(createdImageContents);
+    }
+
+    @GetMapping("/")
+    @Operation(summary = "전체 콘텐츠 모아보기 API", description = "전체 콘텐츠를 홈화면에서 조회하느ㄴ API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ContentsLinkResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<ContentsAllResponse.getAllContents> getAllContents(
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+        List<ContentsAllResponse.contentsInfo> contentsInfo = contentsService.getAllContents(member);
+        ContentsAllResponse.getAllContents getAllContents = new ContentsAllResponse.getAllContents().builder()
+                .nickname(member.getNickname())
+                .contentsInfoList(contentsInfo)
+                .build();
+        return new ApiResponse<>(getAllContents);
     }
 }

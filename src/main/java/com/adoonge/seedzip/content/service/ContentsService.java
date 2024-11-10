@@ -1,16 +1,17 @@
 package com.adoonge.seedzip.content.service;
 
 import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.category.domain.Visibility;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.content.domain.*;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsImageResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsLinkResponse;
 import com.adoonge.seedzip.content.repository.*;
+import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.member.domain.Member;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -244,5 +243,61 @@ public class ContentsService {
         });
 
         return ContentsImageResponse.fromEntity("이미지를 저장했습니다!", contents);
+    }
+
+    @Transactional
+    public List<ContentsAllResponse.contentsInfo> getAllContents(Member member) {
+        List<Contents> contentsList = contentsRepository.findByMemberId(member.getId());
+
+        if (contentsList.isEmpty()) {
+            // 만약 콘텐츠 없다면
+            return null;
+        } else {
+            // 있다면
+            return contentsList.stream()
+                    .map(content -> {
+                        // contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
+                        String thumbnailUrl = null;
+                        if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
+                            Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(content.getContentsId(), true);
+                            if (thumbnailImage.isPresent()) {
+                                thumbnailUrl = thumbnailImage.get().getImgLink();
+                            }
+                        }
+
+                        // contentId에 해당하는 카테고리 리스트 조회
+                        List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
+                        List<String> categoryNames = categoryIds.stream()
+                                .map(categoryId -> categoryRepository.findById(categoryId)
+                                        .map(Category::getName)
+                                        .orElse(null))
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+
+                        // contentId에 해당하는 태그 리스트 조회
+                        // 4. ContentTag에서 tagId 리스트를 가져와서 해당 태그의 이름을 조회합니다.
+                        List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
+                        List<String> tagNames = tagIds.stream()
+                                .map(tagId -> tagRepository.findById(tagId)
+                                        .map(Tag::getTagName)
+                                        .orElse(null))
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toList());
+
+                        // ContentResponse 객체에 필요한 정보 담기
+                        return new ContentsAllResponse.contentsInfo(
+                                content.getContentsId(),
+                                content.getContentsName(),
+                                categoryIds,
+                                categoryNames,
+                                content.getContentsDataType(),
+                                thumbnailUrl, // IMAGE 아니면 null
+                                content.getUpdatedAt(),
+                                tagIds,
+                                tagNames
+                        );
+                    })
+                    .collect(Collectors.toList());
+        }
     }
 }
