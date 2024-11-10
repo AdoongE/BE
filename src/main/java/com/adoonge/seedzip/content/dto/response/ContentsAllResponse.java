@@ -23,6 +23,7 @@ public class ContentsAllResponse {
         LocalDateTime updatedDt;
         List<Long> tagId;
         List<String> tagName;
+        String dDay;
     }
 
     @Builder

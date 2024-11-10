@@ -21,6 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -112,6 +114,7 @@ public class ContentsService {
                 e.printStackTrace();
             }
         });
+
         return ContentsDocResponse.fromEntity("문서를 저장했습니다!", contents);
     }
 
@@ -272,6 +275,19 @@ public class ContentsService {
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
 
+                    // D-day 계산
+                    String dDayString = "day";
+                    if (content.getDDay() != null) {
+                        LocalDate today = LocalDate.now();
+                        long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
+
+                        if (daysBetween > 0) {
+                            dDayString = String.valueOf(daysBetween);
+                        } else if (daysBetween < 0) {
+                            dDayString = String.valueOf(daysBetween);
+                        }
+                    }
+
                     // ContentResponse 객체에 필요한 정보 담기
                     return new ContentsAllResponse.contentsInfo(
                             content.getContentsId(),
@@ -282,7 +298,9 @@ public class ContentsService {
                             thumbnailUrl, // IMAGE 아니면 null
                             content.getUpdatedAt(),
                             tagIds,
-                            tagNames
+                            tagNames,
+                            dDayString
+
                     );
                 })
                 .collect(Collectors.toList());
@@ -323,6 +341,19 @@ public class ContentsService {
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
 
+                    // D-day 계산
+                    String dDayString = "day";
+                    if (content.getDDay() != null) {
+                        LocalDate today = LocalDate.now();
+                        long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
+
+                        if (daysBetween > 0) {
+                            dDayString = String.valueOf(daysBetween);
+                        } else if (daysBetween < 0) {
+                            dDayString = String.valueOf(daysBetween);
+                        }
+                    }
+
                     // ContentResponse 객체에 필요한 정보 담기
                     return new ContentsAllResponse.contentsInfo(
                             content.getContentsId(),
@@ -333,7 +364,8 @@ public class ContentsService {
                             thumbnailUrl, // IMAGE 아니면 null
                             content.getUpdatedAt(),
                             tagIds,
-                            tagNames
+                            tagNames,
+                            dDayString
                     );
                 })
                 .collect(Collectors.toList());
