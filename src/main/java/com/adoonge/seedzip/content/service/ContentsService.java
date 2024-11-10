@@ -276,15 +276,15 @@ public class ContentsService {
                             .collect(Collectors.toList());
 
                     // D-day 계산
-                    String dDayString = "day";
+                    int dDayValue = 1;
                     if (content.getDDay() != null) {
                         LocalDate today = LocalDate.now();
                         long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
 
                         if (daysBetween > 0) {
-                            dDayString = String.valueOf(daysBetween);
-                        } else if (daysBetween < 0) {
-                            dDayString = String.valueOf(daysBetween);
+                            dDayValue = -(int) daysBetween;
+                        } else if (daysBetween == 0) {
+                            dDayValue = 0;
                         }
                     }
 
@@ -299,8 +299,7 @@ public class ContentsService {
                             content.getUpdatedAt(),
                             tagIds,
                             tagNames,
-                            dDayString
-
+                            dDayValue
                     );
                 })
                 .collect(Collectors.toList());
@@ -342,15 +341,15 @@ public class ContentsService {
                             .collect(Collectors.toList());
 
                     // D-day 계산
-                    String dDayString = "day";
+                    int dDayValue = 1;
                     if (content.getDDay() != null) {
                         LocalDate today = LocalDate.now();
                         long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
 
                         if (daysBetween > 0) {
-                            dDayString = String.valueOf(daysBetween);
-                        } else if (daysBetween < 0) {
-                            dDayString = String.valueOf(daysBetween);
+                            dDayValue = -(int) daysBetween;
+                        } else if (daysBetween == 0) {
+                            dDayValue = 0;
                         }
                     }
 
@@ -365,9 +364,16 @@ public class ContentsService {
                             content.getUpdatedAt(),
                             tagIds,
                             tagNames,
-                            dDayString
+                            dDayValue
                     );
                 })
                 .collect(Collectors.toList());
     }
+
+//    @Transactional
+//    public ContentsAllResponse.getLinkContents getContentsDetail(Long contentsId, Member member) {
+//        Contents contents = contentsRepository.findByContentsId(contentsId);
+//
+//
+//    }
 }
