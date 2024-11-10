@@ -87,17 +87,16 @@ public class ContentsService {
             Category category = categoryRepository.findByName("default");
             request.setBoardCategory(new String[] {"default"});
         }
-        else{
-            // 카테고리 저장
-            Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-                    .map(categoryName -> categoryRepository.findByName(categoryName))
-                    .forEach(category -> {
-                        CategoryContent categoryContent = new CategoryContent();
-                        categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                        categoryContent.setCategory(category);
-                        categoryContentRepository.save(categoryContent);
-                    });
-        }
+
+        // 카테고리 저장
+        Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
+                .map(categoryName -> categoryRepository.findByName(categoryName))
+                .forEach(category -> {
+                    CategoryContent categoryContent = new CategoryContent();
+                    categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                    categoryContent.setCategory(category);
+                    categoryContentRepository.save(categoryContent);
+                });
 
         List<String> fileUrls = new ArrayList<>();
 
@@ -155,17 +154,16 @@ public class ContentsService {
             Category category = categoryRepository.findByName("default");
             request.setBoardCategory(new String[] {"default"});
         }
-        else{
-            // 카테고리 저장
-            Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-                    .map(categoryName -> categoryRepository.findByName(categoryName))
-                    .forEach(category -> {
-                        CategoryContent categoryContent = new CategoryContent();
-                        categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                        categoryContent.setCategory(category);
-                        categoryContentRepository.save(categoryContent);
-                    });
-        }
+
+        Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
+                .map(categoryName -> categoryRepository.findByName(categoryName))
+                .forEach(category -> {
+                    CategoryContent categoryContent = new CategoryContent();
+                    categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                    categoryContent.setCategory(category);
+                    categoryContentRepository.save(categoryContent);
+                });
+
         return ContentsLinkResponse.fromEntity("링크를 저장했습니다!", contents);
     }
 
@@ -201,22 +199,20 @@ public class ContentsService {
             Category category = categoryRepository.findByName("default");
             request.setBoardCategory(new String[] {"default"});
         }
-        else{
-            // 카테고리 저장
-            Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-                    .map(categoryName -> categoryRepository.findByName(categoryName))
-                    .forEach(category -> {
-                        CategoryContent categoryContent = new CategoryContent();
-                        categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                        categoryContent.setCategory(category);
-                        categoryContentRepository.save(categoryContent);
-                    });
-        }
+        // 카테고리 저장
+        Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
+                .map(categoryName -> categoryRepository.findByName(categoryName))
+                .forEach(category -> {
+                    CategoryContent categoryContent = new CategoryContent();
+                    categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
+                    categoryContent.setCategory(category);
+                    categoryContentRepository.save(categoryContent);
+                });
 
         List<String> fileUrls = new ArrayList<>();
 
         AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
-        int thumbnailIndex = request.getThumbnailImage(); // imgThumbnail 인덱스 가져오기
+        int thumbnailIndex = request.getThumbnailImage();
 
         files.stream().forEach(file -> {
             try {
@@ -232,11 +228,9 @@ public class ContentsService {
                     image.setImgThumbnail(true);
                 }
 
-                // 저장
                 imageRepository.save(image);
-
-                // 인덱스 증가
                 index.getAndIncrement();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -264,7 +258,6 @@ public class ContentsService {
                                 thumbnailUrl = thumbnailImage.get().getImgLink();
                             }
                         }
-
                         // contentId에 해당하는 카테고리 리스트 조회
                         List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
                         List<String> categoryNames = categoryIds.stream()
@@ -275,7 +268,6 @@ public class ContentsService {
                                 .collect(Collectors.toList());
 
                         // contentId에 해당하는 태그 리스트 조회
-                        // 4. ContentTag에서 tagId 리스트를 가져와서 해당 태그의 이름을 조회합니다.
                         List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
                         List<String> tagNames = tagIds.stream()
                                 .map(tagId -> tagRepository.findById(tagId)
