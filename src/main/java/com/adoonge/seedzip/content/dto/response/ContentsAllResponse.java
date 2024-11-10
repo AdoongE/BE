@@ -22,7 +22,7 @@ public class ContentsAllResponse {
         String thumbnailImage; // 없으면 null
         LocalDateTime updatedDt;
         List<Long> tagId;
-        List<String> tags;
+        List<String> tagName;
     }
 
     @Builder

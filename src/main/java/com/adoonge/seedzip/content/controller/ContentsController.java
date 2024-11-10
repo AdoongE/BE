@@ -94,11 +94,11 @@ public class ContentsController {
     }
 
     @GetMapping("/")
-    @Operation(summary = "전체 콘텐츠 모아보기 API", description = "전체 콘텐츠를 홈화면에서 조회하느ㄴ API입니다.")
+    @Operation(summary = "전체 콘텐츠 모아보기 API", description = "전체 콘텐츠를 홈화면에서 조회하는 API입니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ContentsLinkResponse.class))),
+                            schema = @Schema(implementation = ContentsAllResponse.getAllContents.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<ContentsAllResponse.getAllContents> getAllContents(
@@ -106,6 +106,26 @@ public class ContentsController {
 
         Member member = customUserDetails.getMember();
         List<ContentsAllResponse.contentsInfo> contentsInfo = contentsService.getAllContents(member);
+        ContentsAllResponse.getAllContents getAllContents = new ContentsAllResponse.getAllContents().builder()
+                .nickname(member.getNickname())
+                .contentsInfoList(contentsInfo)
+                .build();
+        return new ApiResponse<>(getAllContents);
+    }
+
+    @GetMapping("/{categoryId}")
+    @Operation(summary = "카테고리 내 콘텐츠 모아보기 API", description = "카테고리에 해당하는 콘텐츠를 조회하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ContentsLinkResponse.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<ContentsAllResponse.getAllContents> getCategoryContents(@RequestParam("categoryId") Long categoryId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+        List<ContentsAllResponse.contentsInfo> contentsInfo = contentsService.getCategoryContents(categoryId, member);
         ContentsAllResponse.getAllContents getAllContents = new ContentsAllResponse.getAllContents().builder()
                 .nickname(member.getNickname())
                 .contentsInfoList(contentsInfo)

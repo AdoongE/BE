@@ -243,53 +243,99 @@ public class ContentsService {
     public List<ContentsAllResponse.contentsInfo> getAllContents(Member member) {
         List<Contents> contentsList = contentsRepository.findByMemberId(member.getId());
 
-        if (contentsList.isEmpty()) {
-            // 만약 콘텐츠 없다면
-            return null;
-        } else {
-            // 있다면
-            return contentsList.stream()
-                    .map(content -> {
-                        // contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
-                        String thumbnailUrl = null;
-                        if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
-                            Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(content.getContentsId(), true);
-                            if (thumbnailImage.isPresent()) {
-                                thumbnailUrl = thumbnailImage.get().getImgLink();
-                            }
+        if (contentsList.isEmpty()) return null;
+        return contentsList.stream()
+                .map(content -> {
+                    // contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
+                    String thumbnailUrl = null;
+                    if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
+                        Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(content.getContentsId(), true);
+                        if (thumbnailImage.isPresent()) {
+                            thumbnailUrl = thumbnailImage.get().getImgLink();
                         }
-                        // contentId에 해당하는 카테고리 리스트 조회
-                        List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
-                        List<String> categoryNames = categoryIds.stream()
-                                .map(categoryId -> categoryRepository.findById(categoryId)
-                                        .map(Category::getName)
-                                        .orElse(null))
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toList());
+                    }
+                    // contentId에 해당하는 카테고리 리스트 조회
+                    List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
+                    List<String> categoryNames = categoryIds.stream()
+                            .map(categoryId -> categoryRepository.findById(categoryId)
+                                    .map(Category::getName)
+                                    .orElse(null))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
 
-                        // contentId에 해당하는 태그 리스트 조회
-                        List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
-                        List<String> tagNames = tagIds.stream()
-                                .map(tagId -> tagRepository.findById(tagId)
-                                        .map(Tag::getTagName)
-                                        .orElse(null))
-                                .filter(Objects::nonNull)
-                                .collect(Collectors.toList());
+                    // contentId에 해당하는 태그 리스트 조회
+                    List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
+                    List<String> tagNames = tagIds.stream()
+                            .map(tagId -> tagRepository.findById(tagId)
+                                    .map(Tag::getTagName)
+                                    .orElse(null))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
 
-                        // ContentResponse 객체에 필요한 정보 담기
-                        return new ContentsAllResponse.contentsInfo(
-                                content.getContentsId(),
-                                content.getContentsName(),
-                                categoryIds,
-                                categoryNames,
-                                content.getContentsDataType(),
-                                thumbnailUrl, // IMAGE 아니면 null
-                                content.getUpdatedAt(),
-                                tagIds,
-                                tagNames
-                        );
-                    })
-                    .collect(Collectors.toList());
-        }
+                    // ContentResponse 객체에 필요한 정보 담기
+                    return new ContentsAllResponse.contentsInfo(
+                            content.getContentsId(),
+                            content.getContentsName(),
+                            categoryIds,
+                            categoryNames,
+                            content.getContentsDataType(),
+                            thumbnailUrl, // IMAGE 아니면 null
+                            content.getUpdatedAt(),
+                            tagIds,
+                            tagNames
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<ContentsAllResponse.contentsInfo> getCategoryContents(Long categoryId, Member member) {
+        List<Long> contentIds = categoryContentRepository.findContentIdsByCategoryId(categoryId);
+        if(Objects.isNull(contentIds)) return null;
+        List<Contents> contentsList = contentsRepository.findByContentsIdIn(contentIds);
+        if (contentsList.isEmpty()) return null;
+        // 있다면
+        return contentsList.stream()
+                .map(content -> {
+                    // contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
+                    String thumbnailUrl = null;
+                    if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
+                        Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(content.getContentsId(), true);
+                        if (thumbnailImage.isPresent()) {
+                            thumbnailUrl = thumbnailImage.get().getImgLink();
+                        }
+                    }
+                    // contentId에 해당하는 카테고리 리스트 조회
+                    List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
+                    List<String> categoryNames = categoryIds.stream()
+                            .map(categoryI -> categoryRepository.findById(categoryId)
+                                    .map(Category::getName)
+                                    .orElse(null))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    // contentId에 해당하는 태그 리스트 조회
+                    List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
+                    List<String> tagNames = tagIds.stream()
+                            .map(tagId -> tagRepository.findById(tagId)
+                                    .map(Tag::getTagName)
+                                    .orElse(null))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toList());
+
+                    // ContentResponse 객체에 필요한 정보 담기
+                    return new ContentsAllResponse.contentsInfo(
+                            content.getContentsId(),
+                            content.getContentsName(),
+                            categoryIds,
+                            categoryNames,
+                            content.getContentsDataType(),
+                            thumbnailUrl, // IMAGE 아니면 null
+                            content.getUpdatedAt(),
+                            tagIds,
+                            tagNames
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }

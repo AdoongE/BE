@@ -12,4 +12,7 @@ import java.util.List;
 public interface CategoryContentRepository extends JpaRepository<CategoryContent, Long>  {
     @Query("SELECT cc.category.categoryId FROM CategoryContent cc WHERE cc.contents.contentsId = :contentId")
     List<Long> findCategoryIdsByContentId(@Param("contentId") Long contentId);
+
+    @Query("SELECT cc.contents.contentsId FROM CategoryContent cc WHERE cc.category.categoryId = :categoryId")
+    List<Long> findContentIdsByCategoryId(@Param("categoryId") Long categoryId);
 }
