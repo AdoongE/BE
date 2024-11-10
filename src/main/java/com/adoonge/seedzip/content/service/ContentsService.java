@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -306,7 +307,7 @@ public class ContentsService {
     }
 
     @Transactional
-    public List<ContentsAllResponse.contentsInfo> getCategoryContents(Long categoryId, Member member) {
+    public List<ContentsAllResponse.contentsInfo> getCategoryContents(Long categoryId) {
         List<Long> contentIds = categoryContentRepository.findContentIdsByCategoryId(categoryId);
         if(Objects.isNull(contentIds)) return null;
         List<Contents> contentsList = contentsRepository.findByContentsIdIn(contentIds);
@@ -370,10 +371,53 @@ public class ContentsService {
                 .collect(Collectors.toList());
     }
 
-//    @Transactional
-//    public ContentsAllResponse.getLinkContents getContentsDetail(Long contentsId, Member member) {
-//        Contents contents = contentsRepository.findByContentsId(contentsId);
-//
-//
-//    }
+    @Transactional
+    public ContentsAllResponse.getContents getContentsDetail(Long contentsId) {
+        Contents contents = contentsRepository.findById(contentsId)
+                .orElseThrow(() -> new RuntimeException("Content not found"));        // 링크 조회
+
+        String contentLink = null;
+        // contentDataType이 LINK인 경우
+        if (ContentsDataType.LINK.equals(contents.getContentsDataType())) {
+            Optional<Link> linkEntity = linkRepository.findByContents_ContentsId(contents.getContentsId());
+            contentLink = linkEntity.map(Link::getLink).orElse(null);
+        }
+        // PDF나 IMAGE인 경우
+        List<MultipartFile> contentImage = null;
+        List<MultipartFile> contentDoc = null;
+        Long thumbnailImage = -1L;
+        List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(contentsId);
+        System.out.println(categoryIds);
+        List<String> categoryNames = categoryIds.stream()
+                .map(categoryId -> categoryRepository.findById(categoryId)
+                        .map(Category::getName)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        List<Long> tagIds = contentTagRepository.findTagIdsByContentId(contentsId);
+
+        // Step 4: tagId에 해당하는 tagName 리스트 가져오기
+        List<String> tagNames = tagIds.stream()
+                .map(tagId -> tagRepository.findById(tagId)
+                        .map(Tag::getTagName)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return new ContentsAllResponse.getContents(
+                contents.getContentsId(),
+                contents.getContentsDataType(),
+                contents.getContentsName(),
+                contentLink,
+                contentImage,
+                contentDoc,
+                thumbnailImage,
+                categoryNames,
+                tagNames,
+                contents.getDDay(),
+                contents.getContentsDetail()
+
+        );
+    }
 }
