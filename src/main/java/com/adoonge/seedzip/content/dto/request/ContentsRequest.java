@@ -19,10 +19,12 @@ public class ContentsRequest {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class docContentsRequest {
+    public static class allContentsRequest {
         private ContentsDataType dataType;
         private String contentName; // 없으면 null
         private String[] boardCategory;
+        private int thumbnailImage;
+        private String contentLink;
         private String[] tags;
         private LocalDate dDay; // 없으면 null
         private String contentDetail; // 없으면 null
@@ -41,54 +43,6 @@ public class ContentsRequest {
             return Document.builder()
                     .docLink(docLink)
                     .contents(contents)
-                    .build();
-        }
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class linkContentsRequest {
-        private ContentsDataType dataType;
-        private String contentName; // 없으면 null
-        private String contentLink;
-        private String[] boardCategory;
-        private String[] tags;
-        private LocalDate dDay; // 없으면 null
-        private String contentDetail; // 없으면 null
-
-        public Contents toContentEntity(Member member){
-            return Contents.builder()
-                    .contentsName(contentName)
-                    .dDay(dDay)
-                    .contentsDetail(contentDetail)
-                    .contentsDataType(dataType)
-                    .member(member)
-                    .build();
-        }
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class imageContentsRequest {
-        private ContentsDataType dataType;
-        private String contentName; // 없으면 null
-        private int thumbnailImage;
-        private String[] boardCategory;
-        private String[] tags;
-        private LocalDate dDay; // 없으면 null
-        private String contentDetail; // 없으면 null
-
-        public Contents toContentEntity(Member member){
-            return Contents.builder()
-                    .contentsName(contentName)
-                    .dDay(dDay)
-                    .contentsDetail(contentDetail)
-                    .contentsDataType(dataType)
-                    .member(member)
                     .build();
         }
 

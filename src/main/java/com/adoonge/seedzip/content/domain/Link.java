@@ -15,7 +15,7 @@ public class Link extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long linkId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String link;
 
     @ManyToOne(fetch = FetchType.LAZY)
