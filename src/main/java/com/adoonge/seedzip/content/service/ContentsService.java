@@ -133,12 +133,11 @@ public class ContentsService {
 
         Contents contents = contentsRepository.save(request.toContentEntity(member));
 
-        Arrays.stream(request.getContentLinks())
-                .map(links -> Link.builder()
-                        .link(links)
-                        .contents(contents)
-                        .build())
-                .forEach(link -> linkRepository.save(link));
+        Link link = Link.builder()
+                .link(request.getContentLink())
+                .contents(contents)
+                .build();
+        linkRepository.save(link);
 
         // 태그 저장
         Arrays.stream(request.getTags())
