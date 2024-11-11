@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.content.dto.response;
 
+import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.content.domain.ContentsDataType;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -53,5 +54,23 @@ public class ContentsAllResponse {
         List<String> tags;
         LocalDate dDay;
         String contentDetail;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class contentResponse{
+        private String msg;
+        private Long contentId;
+        private Long memberId;
+
+        public static contentResponse fromEntity(String msg, Contents contents) {
+            return contentResponse.builder()
+                    .msg(msg)
+                    .contentId(contents.getContentsId())
+                    .memberId(contents.getMember().getId())
+                    .build();
+        }
     }
 }

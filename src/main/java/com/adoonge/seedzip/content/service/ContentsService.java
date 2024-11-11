@@ -11,7 +11,6 @@ import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsImageResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsLinkResponse;
 import com.adoonge.seedzip.content.repository.*;
-import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.member.domain.Member;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -59,7 +57,7 @@ public class ContentsService {
     private ImageRepository imageRepository;
 
     @Transactional
-    public ContentsDocResponse createDocContents(ContentsRequest.docContentsRequest request, List<MultipartFile> files, Member member) {
+    public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request, List<MultipartFile> files, Member member) {
         if(Objects.isNull(request.getContentName())){
             request.setContentName(null);
         }
@@ -69,7 +67,6 @@ public class ContentsService {
         if(Objects.isNull(request.getContentDetail())){
             request.setContentDetail(null);
         }
-
         Contents contents = contentsRepository.save(request.toContentEntity(member));
 
         // 태그 저장
@@ -103,143 +100,58 @@ public class ContentsService {
 
         List<String> fileUrls = new ArrayList<>();
 
-        files.stream().forEach(file -> {
-            try {
-                // S3에 파일 업로드 및 URL 가져오기
-                String fileUrl = s3Service.uploadDocFile(file);
-                fileUrls.add(fileUrl);
+        if(request.getDataType().equals(ContentsDataType.PDF)){
+            // PDF
+            files.stream().forEach(file -> {
+                try {
+                    // S3에 파일 업로드 및 URL 가져오기
+                    String fileUrl = s3Service.uploadDocFile(file);
+                    fileUrls.add(fileUrl);
 
-                // URL 저장
-                Document document = documentRepository.save(request.toDocEntity(contents, fileUrl));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        return ContentsDocResponse.fromEntity("문서를 저장했습니다!", contents);
-    }
-
-    @Transactional
-    public ContentsLinkResponse createLinkContents(ContentsRequest.linkContentsRequest request, Member member) {
-        if(Objects.isNull(request.getContentName())){
-            request.setContentName(null);
-        }
-        if(Objects.isNull(request.getDDay())){
-            request.setDDay(null);
-        }
-        if(Objects.isNull(request.getContentDetail())){
-            request.setContentDetail(null);
-        }
-
-        Contents contents = contentsRepository.save(request.toContentEntity(member));
-
-        Link link = Link.builder()
-                .link(request.getContentLink())
-                .contents(contents)
-                .build();
-        linkRepository.save(link);
-
-        // 태그 저장
-        Arrays.stream(request.getTags())
-                .map(tagName -> tagRepository.findByTagName(tagName)
-                        .orElseGet(() -> tagRepository.save(
-                                Tag.builder()
-                                        .tagName(tagName)
-                                        .build())))
-                .forEach(tag -> {
-                    ContentTag contentTag = new ContentTag();
-                    contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                    contentTag.setTag(tag);
-                    contentTagRepository.save(contentTag);
-                });
-
-        if(Objects.isNull(request.getBoardCategory())){
-            Category category = categoryRepository.findByName("default");
-            request.setBoardCategory(new String[] {"default"});
-        }
-
-        Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-                .map(categoryName -> categoryRepository.findByName(categoryName))
-                .forEach(category -> {
-                    CategoryContent categoryContent = new CategoryContent();
-                    categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                    categoryContent.setCategory(category);
-                    categoryContentRepository.save(categoryContent);
-                });
-
-        return ContentsLinkResponse.fromEntity("링크를 저장했습니다!", contents);
-    }
-
-    @Transactional
-    public ContentsImageResponse createImageContents(ContentsRequest.imageContentsRequest request, List<MultipartFile> files, Member member) {
-        if(Objects.isNull(request.getContentName())){
-            request.setContentName(null);
-        }
-        if(Objects.isNull(request.getDDay())){
-            request.setDDay(null);
-        }
-        if(Objects.isNull(request.getContentDetail())){
-            request.setContentDetail(null);
-        }
-
-        Contents contents = contentsRepository.save(request.toContentEntity(member));
-
-        // 태그 저장
-        Arrays.stream(request.getTags())  // request.getTags()가 String[]일 때
-                .map(tagName -> tagRepository.findByTagName(tagName)
-                        .orElseGet(() -> tagRepository.save(
-                                Tag.builder()
-                                        .tagName(tagName)
-                                        .build())))
-                .forEach(tag -> {
-                    ContentTag contentTag = new ContentTag();
-                    contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                    contentTag.setTag(tag);
-                    contentTagRepository.save(contentTag);
-                });
-
-        if(Objects.isNull(request.getBoardCategory())){
-            Category category = categoryRepository.findByName("default");
-            request.setBoardCategory(new String[] {"default"});
-        }
-        // 카테고리 저장
-        Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-                .map(categoryName -> categoryRepository.findByName(categoryName))
-                .forEach(category -> {
-                    CategoryContent categoryContent = new CategoryContent();
-                    categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-                    categoryContent.setCategory(category);
-                    categoryContentRepository.save(categoryContent);
-                });
-
-        List<String> fileUrls = new ArrayList<>();
-
-        AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
-        int thumbnailIndex = request.getThumbnailImage();
-
-        files.stream().forEach(file -> {
-            try {
-                // S3에 파일 업로드 및 URL 가져오기
-                String fileUrl = s3Service.uploadImgFile(file);
-                fileUrls.add(fileUrl);
-
-                // Image 엔티티 생성
-                Image image = request.toImgEntity(contents, fileUrl);
-
-                // 인덱스가 thumbnailIndex와 일치하면 imgThumbnail을 true로 설정
-                if (index.get() == thumbnailIndex) {
-                    image.setImgThumbnail(true);
+                    // URL 저장
+                    Document document = documentRepository.save(request.toDocEntity(contents, fileUrl));
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+            });
 
-                imageRepository.save(image);
-                index.getAndIncrement();
+        }
+        else if(request.getDataType().equals(ContentsDataType.LINK)){
+            // LINK
+            Link link = Link.builder()
+                    .link(request.getContentLink())
+                    .contents(contents)
+                    .build();
+            linkRepository.save(link);
+        }
+        else if(request.getDataType().equals(ContentsDataType.IMAGE)){
+            // IMAGE
+            AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+            int thumbnailIndex = request.getThumbnailImage();
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
+            files.stream().forEach(file -> {
+                try {
+                    // S3에 파일 업로드 및 URL 가져오기
+                    String fileUrl = s3Service.uploadImgFile(file);
+                    fileUrls.add(fileUrl);
 
-        return ContentsImageResponse.fromEntity("이미지를 저장했습니다!", contents);
+                    // Image 엔티티 생성
+                    Image image = request.toImgEntity(contents, fileUrl);
+
+                    // 인덱스가 thumbnailIndex와 일치하면 imgThumbnail을 true로 설정
+                    if (index.get() == thumbnailIndex) {
+                        image.setImgThumbnail(true);
+                    }
+
+                    imageRepository.save(image);
+                    index.getAndIncrement();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 저장했습니다!", contents);
     }
 
     @Transactional
