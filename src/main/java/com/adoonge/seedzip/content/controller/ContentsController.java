@@ -118,18 +118,34 @@ public class ContentsController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = ContentsLinkResponse.class))),
+                            schema = @Schema(implementation = ContentsAllResponse.getAllContents.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<ContentsAllResponse.getAllContents> getCategoryContents(@RequestParam("categoryId") Long categoryId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         Member member = customUserDetails.getMember();
-        List<ContentsAllResponse.contentsInfo> contentsInfo = contentsService.getCategoryContents(categoryId, member);
+        List<ContentsAllResponse.contentsInfo> contentsInfo = contentsService.getCategoryContents(categoryId);
         ContentsAllResponse.getAllContents getAllContents = new ContentsAllResponse.getAllContents().builder()
                 .nickname(member.getNickname())
                 .contentsInfoList(contentsInfo)
                 .build();
         return new ApiResponse<>(getAllContents);
+    }
+
+    @GetMapping("/all/{contentsId}")
+    @Operation(summary = "콘텐츠 상세 보기 API", description = "콘텐츠 내용을 조회하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<ContentsAllResponse.getContents> getContentsDetail(@RequestParam("contentsId") Long contentsId,
+                                                                               @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+        ContentsAllResponse.getContents getContents = contentsService.getContentsDetail(contentsId);
+        return new ApiResponse<>(getContents);
     }
 }

@@ -21,6 +21,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -112,6 +115,7 @@ public class ContentsService {
                 e.printStackTrace();
             }
         });
+
         return ContentsDocResponse.fromEntity("문서를 저장했습니다!", contents);
     }
 
@@ -129,12 +133,11 @@ public class ContentsService {
 
         Contents contents = contentsRepository.save(request.toContentEntity(member));
 
-        Arrays.stream(request.getContentLinks())
-                .map(links -> Link.builder()
-                        .link(links)
-                        .contents(contents)
-                        .build())
-                .forEach(link -> linkRepository.save(link));
+        Link link = Link.builder()
+                .link(request.getContentLink())
+                .contents(contents)
+                .build();
+        linkRepository.save(link);
 
         // 태그 저장
         Arrays.stream(request.getTags())
@@ -272,6 +275,19 @@ public class ContentsService {
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
 
+                    // D-day 계산
+                    int dDayValue = 1;
+                    if (content.getDDay() != null) {
+                        LocalDate today = LocalDate.now();
+                        long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
+
+                        if (daysBetween > 0) {
+                            dDayValue = -(int) daysBetween;
+                        } else if (daysBetween == 0) {
+                            dDayValue = 0;
+                        }
+                    }
+
                     // ContentResponse 객체에 필요한 정보 담기
                     return new ContentsAllResponse.contentsInfo(
                             content.getContentsId(),
@@ -282,14 +298,15 @@ public class ContentsService {
                             thumbnailUrl, // IMAGE 아니면 null
                             content.getUpdatedAt(),
                             tagIds,
-                            tagNames
+                            tagNames,
+                            dDayValue
                     );
                 })
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public List<ContentsAllResponse.contentsInfo> getCategoryContents(Long categoryId, Member member) {
+    public List<ContentsAllResponse.contentsInfo> getCategoryContents(Long categoryId) {
         List<Long> contentIds = categoryContentRepository.findContentIdsByCategoryId(categoryId);
         if(Objects.isNull(contentIds)) return null;
         List<Contents> contentsList = contentsRepository.findByContentsIdIn(contentIds);
@@ -323,6 +340,19 @@ public class ContentsService {
                             .filter(Objects::nonNull)
                             .collect(Collectors.toList());
 
+                    // D-day 계산
+                    int dDayValue = 1;
+                    if (content.getDDay() != null) {
+                        LocalDate today = LocalDate.now();
+                        long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
+
+                        if (daysBetween > 0) {
+                            dDayValue = -(int) daysBetween;
+                        } else if (daysBetween == 0) {
+                            dDayValue = 0;
+                        }
+                    }
+
                     // ContentResponse 객체에 필요한 정보 담기
                     return new ContentsAllResponse.contentsInfo(
                             content.getContentsId(),
@@ -333,9 +363,60 @@ public class ContentsService {
                             thumbnailUrl, // IMAGE 아니면 null
                             content.getUpdatedAt(),
                             tagIds,
-                            tagNames
+                            tagNames,
+                            dDayValue
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ContentsAllResponse.getContents getContentsDetail(Long contentsId) {
+        Contents contents = contentsRepository.findById(contentsId)
+                .orElseThrow(() -> new RuntimeException("Content not found"));        // 링크 조회
+
+        String contentLink = null;
+        // contentDataType이 LINK인 경우
+        if (ContentsDataType.LINK.equals(contents.getContentsDataType())) {
+            Optional<Link> linkEntity = linkRepository.findByContents_ContentsId(contents.getContentsId());
+            contentLink = linkEntity.map(Link::getLink).orElse(null);
+        }
+        // PDF나 IMAGE인 경우
+        List<MultipartFile> contentImage = null;
+        List<MultipartFile> contentDoc = null;
+        Long thumbnailImage = -1L;
+        List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(contentsId);
+        System.out.println(categoryIds);
+        List<String> categoryNames = categoryIds.stream()
+                .map(categoryId -> categoryRepository.findById(categoryId)
+                        .map(Category::getName)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        List<Long> tagIds = contentTagRepository.findTagIdsByContentId(contentsId);
+
+        // Step 4: tagId에 해당하는 tagName 리스트 가져오기
+        List<String> tagNames = tagIds.stream()
+                .map(tagId -> tagRepository.findById(tagId)
+                        .map(Tag::getTagName)
+                        .orElse(null))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        return new ContentsAllResponse.getContents(
+                contents.getContentsId(),
+                contents.getContentsDataType(),
+                contents.getContentsName(),
+                contentLink,
+                contentImage,
+                contentDoc,
+                thumbnailImage,
+                categoryNames,
+                tagNames,
+                contents.getDDay(),
+                contents.getContentsDetail()
+
+        );
     }
 }
