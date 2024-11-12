@@ -2,6 +2,7 @@ package com.adoonge.seedzip.global.config;
 
 import com.adoonge.seedzip.auth.filter.JwtAuthenticationFilter;
 import com.adoonge.seedzip.auth.service.JwtTokenService;
+import com.adoonge.seedzip.global.filter.FilterExceptionHandler;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +48,7 @@ public class SecurityConfig {
                                 .anyRequest().authenticated())
                 // CORS 설정을 수동으로 추가
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .addFilterBefore(new FilterExceptionHandler(), UsernamePasswordAuthenticationFilter.class)
                 // JWT 인증을 위하여 직접 구현한 필터를 UsernamePasswordAuthenticationFilter 전에 실행
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenService), UsernamePasswordAuthenticationFilter.class)
                 .build();
