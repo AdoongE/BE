@@ -11,14 +11,14 @@ public record CategoryResponse(
 
 	Long categoryId,
 	String name,
-	Visibility visibility,
+	Boolean isPublic,
 	Long memberId) {
 
 	public static CategoryResponse fromEntity(Category category) {
 		return new CategoryResponse(
 			category.getCategoryId(),
 			category.getName(),
-			category.getVisibility(),
+			category.getVisibility() == Visibility.PUBLIC,
 			category.getMember().getId()
 		);
 	}
