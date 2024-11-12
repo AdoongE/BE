@@ -48,6 +48,7 @@ public class SecurityConfig {
                                 .anyRequest().authenticated())
                 // CORS 설정을 수동으로 추가
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                //모든 필터에서 발생하는 예외는 FilterExceptionHandler에 의해 먼저 처리
                 .addFilterBefore(new FilterExceptionHandler(), UsernamePasswordAuthenticationFilter.class)
                 // JWT 인증을 위하여 직접 구현한 필터를 UsernamePasswordAuthenticationFilter 전에 실행
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenService), UsernamePasswordAuthenticationFilter.class)
