@@ -54,8 +54,27 @@ public enum ErrorCode {
     CATEGORY_ALREADY_BOOKMARKED(HttpStatus.CONFLICT, "이미 북마크된 카테고리입니다."),
     CATEGORY_INVALID_VISIBILITY(HttpStatus.BAD_REQUEST, "유효하지 않은 공개 설정 값입니다."),
     CATEGORY_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 업데이트 중 오류가 발생했습니다."),
-    CATEGORY_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 삭제 중 오류가 발생했습니다.");
+    CATEGORY_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "카테고리 삭제 중 오류가 발생했습니다."),
+
+    //validation
+    NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "닉네임은 필수입니다."),
+    NICKNAME_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "닉네임은 한글, 영문, 숫자, 공백 포함 10자 이내로 작성해야 합니다."),
+    BIRTHDAY_REQUIRED(HttpStatus.BAD_REQUEST, "생년월일은 필수입니다."),
+    BIRTHDAY_INVALID(HttpStatus.BAD_REQUEST, "생년월일은 과거 또는 오늘 날짜여야 합니다."),
+    GENDER_REQUIRED(HttpStatus.BAD_REQUEST, "성별은 필수입니다."),
+    TERMS_OF_SERVICE_REQUIRED(HttpStatus.BAD_REQUEST, "서비스 이용 약관에 동의해야 합니다."),
+    PERSONAL_INFORMATION_CONSENT_REQUIRED(HttpStatus.BAD_REQUEST, "개인정보 수집 및 이용에 동의해야 합니다.");
 
     private final HttpStatus status;
     private final String message;
+
+    // 메시지를 기반으로 ErrorCode를 찾는 정적 메서드
+    public static ErrorCode fromMessage(String message) {
+        for (ErrorCode errorCode : ErrorCode.values()) {
+            if (errorCode.getMessage().equals(message)) {
+                return errorCode;
+            }
+        }
+        throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+    }
 }
