@@ -1,10 +1,7 @@
 package com.adoonge.seedzip.category.domain;
 
-import org.hibernate.annotations.ColumnDefault;
-
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
-import com.fasterxml.jackson.databind.ser.Serializers;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

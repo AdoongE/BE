@@ -1,5 +1,8 @@
 package com.adoonge.seedzip.bookmark.domain;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
@@ -32,6 +35,7 @@ public class Bookmark extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id")
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Category category;
 
 	@ManyToOne(fetch = FetchType.LAZY)
