@@ -47,8 +47,8 @@ public class ContentsAllResponse {
         ContentsDataType contentDateType;
         String contentName;
         String contentLink;
-        List<MultipartFile> contentImage;
-        List<MultipartFile> contentDoc;
+        List<String> contentImage;
+        List<String> contentDoc;
         Long thumbnailImage;
         List<String> boardCategory;
         List<String> tags;
