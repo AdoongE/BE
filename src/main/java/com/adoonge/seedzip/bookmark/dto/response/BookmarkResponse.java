@@ -8,7 +8,7 @@ public record BookmarkResponse(
 	Long bookmarkId,
 	Long categoryId,
 	String name,
-	Visibility visibility,
+	Boolean isPublic,
 	Long memberId
 ) {
 	public static BookmarkResponse fromEntity(Bookmark bookmark) {
@@ -17,7 +17,7 @@ public record BookmarkResponse(
 			bookmark.getBookmarkId(),
 			category.getCategoryId(),
 			category.getName(),
-			category.getVisibility(),
+			category.getVisibility() == Visibility.PUBLIC,
 			bookmark.getMember().getId()
 		);
 	}
