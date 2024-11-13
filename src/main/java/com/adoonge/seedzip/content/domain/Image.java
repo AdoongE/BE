@@ -1,5 +1,8 @@
 package com.adoonge.seedzip.content.domain;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,5 +27,6 @@ public class Image extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contents_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Contents contents;
 }

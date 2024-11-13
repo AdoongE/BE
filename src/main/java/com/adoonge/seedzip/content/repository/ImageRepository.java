@@ -4,7 +4,9 @@ import com.adoonge.seedzip.content.domain.Image;
 import com.adoonge.seedzip.content.domain.Link;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -16,6 +18,10 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     Optional<Image> findByContentsIdAndImgThumbnail(Long contentsId, boolean imgThumbnail);
 
     List<Image> findAllByContents_ContentsId(Long contentsId);
+
+    @Modifying
+    @Query("DELETE FROM Image i WHERE i.contents.contentsId = :contentsId")
+    void deleteByContentsId(@Param("contentsId") Long contentsId);
 
 
 }
