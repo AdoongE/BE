@@ -1,5 +1,8 @@
 package com.adoonge.seedzip.content.domain.mapping;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.global.entity.BaseEntity;
@@ -19,9 +22,11 @@ public class CategoryContent extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryId")
+    @OnDelete(action = OnDeleteAction.CASCADE)  //Category 삭제시 CategoryContent 삭제됨
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contentsId")
+    @OnDelete(action = OnDeleteAction.CASCADE)  //Content 삭제시 CategoryContent 삭제됨
     private Contents contents;
 }

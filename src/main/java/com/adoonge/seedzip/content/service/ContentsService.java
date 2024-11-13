@@ -8,6 +8,8 @@ import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.repository.*;
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 
 import jakarta.transaction.Transactional;
@@ -48,12 +50,12 @@ public class ContentsService {
 	private final CategoryContentRepository categoryContentRepository;
 
 	@Autowired
-	private LinkRepository linkRepository;
+	private final LinkRepository linkRepository;
 
 	@Autowired
 	private final S3Service s3Service;
 	@Autowired
-	private ImageRepository imageRepository;
+	private final ImageRepository imageRepository;
 
 	@Transactional
 	public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request,
@@ -363,5 +365,30 @@ public class ContentsService {
 			contents.getContentsDetail()
 
 		);
+	}
+
+	// 콘텐츠 삭제
+	@Transactional
+	public void deleteContent(Long id, Member member){
+		Contents contents = contentsRepository.findById(id)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.CONTENT_ACCESS_DENIED));
+
+		//콘텐츠 소유자 검증
+		if (!contents.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
+		}
+
+		//콘텐츠 삭제
+		contentsRepository.delete(contents);
+
+		//IMAGE
+		if (ContentsDataType.IMAGE.equals(contents.getContentsDataType())) {
+			// S3에서 삭제 코드 필요..
+		}
+		//PDF
+		if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
+			// S3에서 삭제 코드 필요..
+		}
+
 	}
 }
