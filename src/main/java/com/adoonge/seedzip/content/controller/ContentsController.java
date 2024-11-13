@@ -82,7 +82,7 @@ public class ContentsController {
                             schema = @Schema(implementation = ContentsAllResponse.getAllContents.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<ContentsAllResponse.getAllContents> getCategoryContents(@RequestParam("categoryId") Long categoryId,
+    public ApiResponse<ContentsAllResponse.getAllContents> getCategoryContents(@PathVariable("categoryId") Long categoryId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         Member member = customUserDetails.getMember();
@@ -102,7 +102,7 @@ public class ContentsController {
                             schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<ContentsAllResponse.getContents> getContentsDetail(@RequestParam("contentsId") Long contentsId,
+    public ApiResponse<ContentsAllResponse.getContents> getContentsDetail(@PathVariable("contentsId") Long contentsId,
                                                                                @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         Member member = customUserDetails.getMember();
