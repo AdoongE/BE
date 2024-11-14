@@ -44,7 +44,7 @@ public class ContentsAllResponse {
     @AllArgsConstructor
     public static class getContents{
         Long contentId;
-        ContentsDataType contentDateType;
+        ContentsDataType contentDataType;
         String contentName;
         String contentLink;
         List<String> contentImage;
