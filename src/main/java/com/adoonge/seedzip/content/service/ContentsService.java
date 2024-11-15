@@ -86,13 +86,13 @@ public class ContentsService {
 			});
 
 		if (Objects.isNull(request.getBoardCategory())) {
-			Category category = categoryRepository.findByName("default");
+			Category category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
 			request.setBoardCategory(new String[] {"default"});
 		}
 
 		// 카테고리 저장
 		Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-			.map(categoryName -> categoryRepository.findByName(categoryName))
+			.map(categoryName -> categoryRepository.findByMemberIdAndName(member.getId(), categoryName))
 			.forEach(category -> {
 				CategoryContent categoryContent = new CategoryContent();
 				categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
