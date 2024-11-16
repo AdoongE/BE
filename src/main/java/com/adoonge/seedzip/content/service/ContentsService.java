@@ -104,6 +104,10 @@ public class ContentsService {
 
 		if (request.getDataType().equals(ContentsDataType.PDF)) {
 			// PDF
+
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = request.getThumbnailImage();
+
 			files.stream().forEach(file -> {
 				try {
 					// S3에 파일 업로드 및 URL 가져오기
@@ -112,6 +116,14 @@ public class ContentsService {
 
 					// URL 저장
 					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl));
+
+					if (index.get() == thumbnailIndex) {
+						document.setDocThumbnail(true);
+					}
+
+					documentRepository.save(document);
+					index.getAndIncrement();
+
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
