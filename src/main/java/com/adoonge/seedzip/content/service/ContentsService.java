@@ -183,6 +183,13 @@ public class ContentsService {
 						thumbnailUrl = thumbnailImage.get().getImgLink();
 					}
 				}
+				else if(ContentsDataType.PDF.equals(content.getContentsDataType())) {
+					Optional<Document> thumbnailDoc = documentRepository.findByContentsIdAndDocThumbnail(
+							content.getContentsId(), true);
+					if (thumbnailDoc.isPresent()) {
+						thumbnailUrl = thumbnailDoc.get().getDocLink();
+					}
+				}
 				// contentId에 해당하는 카테고리 리스트 조회
 				List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
 				List<String> categoryNames = categoryIds.stream()
@@ -341,9 +348,16 @@ public class ContentsService {
 
 			List<Document> documentList = documentRepository.findAllByContents_ContentsId(contents.getContentsId());
 
+			int idx = 0;
 			for (Document document : documentList) {
 				// 이미지 URL 추가
 				contentDoc.add(document.getDocLink());
+
+				if (document.isDocThumbnail()) {
+					thumbnailImage = (long) idx;
+				}
+
+				idx++;
 			}
 		}
 

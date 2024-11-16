@@ -1,6 +1,7 @@
 package com.adoonge.seedzip.content.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.adoonge.seedzip.content.domain.Document;
 import com.adoonge.seedzip.content.domain.Image;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
+
+	@Query("SELECT i FROM Document i WHERE i.contents.contentsId = :contentsId AND i.docThumbnail = :docThumbnail")
+	Optional<Document> findByContentsIdAndDocThumbnail(Long contentsId, boolean docThumbnail);
 
 	List<Document> findAllByContents_ContentsId(Long contentsId);
 
