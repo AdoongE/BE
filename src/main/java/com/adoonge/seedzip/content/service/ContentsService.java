@@ -309,14 +309,17 @@ public class ContentsService {
 
 			List<Image> imageList = imageRepository.findAllByContents_ContentsId(contents.getContentsId());
 
+			int idx = 0;
 			for (Image image : imageList) {
 				// 이미지 URL 추가
 				contentImage.add(image.getImgLink());
 
 				// 썸네일 이미지인 경우 ID 저장
 				if (image.isImgThumbnail()) {
-					thumbnailImage = image.getImageId();
+					thumbnailImage = (long) idx;
 				}
+
+				idx++;
 			}
 		}
 
