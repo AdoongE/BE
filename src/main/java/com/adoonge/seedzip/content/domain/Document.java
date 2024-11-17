@@ -9,6 +9,7 @@ import lombok.*;
 
 @Getter
 @Builder
+@Setter
 @Entity
 @Table(name = "document")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -20,6 +21,9 @@ public class Document extends BaseEntity {
 
     @Column(nullable = false, length = 1000)
     private String docLink;
+
+    @Column(nullable = false)
+    private boolean docThumbnail = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "contents_id")

@@ -104,6 +104,10 @@ public class ContentsService {
 
 		if (request.getDataType().equals(ContentsDataType.PDF)) {
 			// PDF
+
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = request.getThumbnailImage();
+
 			files.stream().forEach(file -> {
 				try {
 					// S3에 파일 업로드 및 URL 가져오기
@@ -112,6 +116,14 @@ public class ContentsService {
 
 					// URL 저장
 					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl));
+
+					if (index.get() == thumbnailIndex) {
+						document.setDocThumbnail(true);
+					}
+
+					documentRepository.save(document);
+					index.getAndIncrement();
+
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -169,6 +181,13 @@ public class ContentsService {
 						content.getContentsId(), true);
 					if (thumbnailImage.isPresent()) {
 						thumbnailUrl = thumbnailImage.get().getImgLink();
+					}
+				}
+				else if(ContentsDataType.PDF.equals(content.getContentsDataType())) {
+					Optional<Document> thumbnailDoc = documentRepository.findByContentsIdAndDocThumbnail(
+							content.getContentsId(), true);
+					if (thumbnailDoc.isPresent()) {
+						thumbnailUrl = thumbnailDoc.get().getDocLink();
 					}
 				}
 				// contentId에 해당하는 카테고리 리스트 조회
@@ -329,9 +348,16 @@ public class ContentsService {
 
 			List<Document> documentList = documentRepository.findAllByContents_ContentsId(contents.getContentsId());
 
+			int idx = 0;
 			for (Document document : documentList) {
 				// 이미지 URL 추가
 				contentDoc.add(document.getDocLink());
+
+				if (document.isDocThumbnail()) {
+					thumbnailImage = (long) idx;
+				}
+
+				idx++;
 			}
 		}
 
