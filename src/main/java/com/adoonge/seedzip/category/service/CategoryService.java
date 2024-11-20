@@ -66,6 +66,11 @@ public class CategoryService {
 			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
 		}
 
+		// 디폴트 카테고리 삭제 불가
+		if (id == 1L) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_CANNOT_BE_DELETED);
+		}
+
 		categoryRepository.delete(category);
 	}
 }
