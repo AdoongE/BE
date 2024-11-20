@@ -15,24 +15,23 @@ import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 
 import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Service
 @Slf4j
+@Transactional
 public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
 
-	@Transactional
 	public CategoryResponse createCategory(AddCategoryRequest request, Member member) {
 		Category category = categoryRepository.save(request.toEntity(member));
 		return CategoryResponse.fromEntity(category);
 	}
 
-
-	@Transactional
 	public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request, Member member) {
 		Category category = categoryRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
@@ -50,7 +49,7 @@ public class CategoryService {
 		return CategoryResponse.fromEntity(category);
 	}
 
-	public List<CategoryResponse> getCategories(Member member){
+	public List<CategoryResponse> getCategories(Member member) {
 		List<Category> categories = categoryRepository.findByMemberId(member.getId());
 
 		return categories.stream()
@@ -58,8 +57,7 @@ public class CategoryService {
 			.collect(Collectors.toList());
 	}
 
-	@Transactional
-	public void deleteCategory(Long id, Member member){
+	public void deleteCategory(Long id, Member member) {
 		Category category = categoryRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
 
