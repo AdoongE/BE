@@ -10,6 +10,8 @@ import com.adoonge.seedzip.category.dto.request.AddCategoryRequest;
 import com.adoonge.seedzip.category.dto.request.UpdateCategoryRequest;
 import com.adoonge.seedzip.category.dto.response.CategoryResponse;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
+import com.adoonge.seedzip.content.domain.Contents;
+import com.adoonge.seedzip.content.repository.ContentsRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -26,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
+	private final ContentsRepository contentsRepository;
 
 	public CategoryResponse createCategory(AddCategoryRequest request, Member member) {
 		Category category = categoryRepository.save(request.toEntity(member));
@@ -71,6 +74,12 @@ public class CategoryService {
 			throw SeedzipException.from(ErrorCode.CATEGORY_CANNOT_BE_DELETED);
 		}
 
+		// category, category_content 삭제
 		categoryRepository.delete(category);
+		categoryRepository.flush();	// 실행 순서 보장
+
+		// 콘텐츠에서 참조되지 않는 항목을 삭제 (배치 처리)
+		contentsRepository.deleteUnreferencedContents();
+
 	}
 }
