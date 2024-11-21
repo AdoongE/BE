@@ -14,7 +14,11 @@ import jakarta.transaction.Transactional;
 @Repository
 public interface ContentsRepository extends JpaRepository<Contents, Long> {
     Contents findByContentsId(Long contentsId);
+
+    @Query("SELECT c FROM Contents c WHERE c.member.id = :memberId ORDER BY c.contentsId DESC")
     List<Contents> findByMemberId(Long memberId);
+
+    @Query("SELECT c FROM Contents c WHERE c.contentsId IN :contentIds ORDER BY c.contentsId DESC")
     List<Contents> findByContentsIdIn(List<Long> contentIds);
 
     @Transactional
