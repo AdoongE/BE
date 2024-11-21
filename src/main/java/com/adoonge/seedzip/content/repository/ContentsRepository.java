@@ -2,11 +2,14 @@ package com.adoonge.seedzip.content.repository;
 
 import com.adoonge.seedzip.content.domain.Contents;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.transaction.Transactional;
 
 @Repository
 public interface ContentsRepository extends JpaRepository<Contents, Long> {
@@ -17,4 +20,9 @@ public interface ContentsRepository extends JpaRepository<Contents, Long> {
 
     @Query("SELECT c FROM Contents c WHERE c.contentsId IN :contentIds ORDER BY c.contentsId DESC")
     List<Contents> findByContentsIdIn(List<Long> contentIds);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Contents c WHERE NOT EXISTS (SELECT 1 FROM CategoryContent cc WHERE cc.contents.contentsId = c.contentsId)")
+    void deleteUnreferencedContents();
 }

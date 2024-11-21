@@ -18,7 +18,6 @@ import jakarta.persistence.Table;
 import lombok.*;
 
 @Getter
-@Setter
 @Builder
 @Entity
 @Table(name = "category")
@@ -34,7 +33,7 @@ public class Category extends BaseEntity {
 	private String name;
 
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
+	@NonNull
 	private Visibility visibility;
 
 	@ManyToOne(fetch = FetchType.LAZY)

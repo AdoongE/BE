@@ -47,6 +47,7 @@ public enum ErrorCode {
 
     // category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "카테고리를 찾을 수 없습니다."),
+    CATEGORY_CANNOT_BE_DELETED(HttpStatus.BAD_REQUEST, "이 카테고리는 삭제할 수 없습니다."),
     CATEGORY_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 동일한 이름의 카테고리가 존재합니다."),
     CATEGORY_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 카테고리에 대한 접근 권한이 없습니다."),
     CATEGORY_BOOKMARK_NOT_ALLOWED(HttpStatus.FORBIDDEN, "이 카테고리는 북마크할 수 없습니다."),
