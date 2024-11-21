@@ -10,29 +10,31 @@ import com.adoonge.seedzip.category.dto.request.AddCategoryRequest;
 import com.adoonge.seedzip.category.dto.request.UpdateCategoryRequest;
 import com.adoonge.seedzip.category.dto.response.CategoryResponse;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
+import com.adoonge.seedzip.content.domain.Contents;
+import com.adoonge.seedzip.content.repository.ContentsRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 
 import jakarta.transaction.Transactional;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 @Service
 @Slf4j
+@Transactional
 public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
+	private final ContentsRepository contentsRepository;
 
-	@Transactional
 	public CategoryResponse createCategory(AddCategoryRequest request, Member member) {
 		Category category = categoryRepository.save(request.toEntity(member));
 		return CategoryResponse.fromEntity(category);
 	}
 
-
-	@Transactional
 	public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request, Member member) {
 		Category category = categoryRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
@@ -50,7 +52,7 @@ public class CategoryService {
 		return CategoryResponse.fromEntity(category);
 	}
 
-	public List<CategoryResponse> getCategories(Member member){
+	public List<CategoryResponse> getCategories(Member member) {
 		List<Category> categories = categoryRepository.findByMemberId(member.getId());
 
 		return categories.stream()
@@ -58,8 +60,7 @@ public class CategoryService {
 			.collect(Collectors.toList());
 	}
 
-	@Transactional
-	public void deleteCategory(Long id, Member member){
+	public void deleteCategory(Long id, Member member) {
 		Category category = categoryRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
 
@@ -68,6 +69,17 @@ public class CategoryService {
 			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
 		}
 
+		// 디폴트 카테고리 삭제 불가
+		if (id == 1L) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_CANNOT_BE_DELETED);
+		}
+
+		// category, category_content 삭제
 		categoryRepository.delete(category);
+		categoryRepository.flush();	// 실행 순서 보장
+
+		// 콘텐츠에서 참조되지 않는 항목을 삭제 (배치 처리)
+		contentsRepository.deleteUnreferencedContents();
+
 	}
 }
