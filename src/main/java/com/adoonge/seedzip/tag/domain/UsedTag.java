@@ -1,7 +1,8 @@
-package com.adoonge.seedzip.tag;
+package com.adoonge.seedzip.tag.domain;
 
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.tag.domain.Tag;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

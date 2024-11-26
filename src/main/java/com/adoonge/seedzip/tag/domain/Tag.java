@@ -6,10 +6,11 @@ import lombok.*;
 
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn // DTYPE 생성
+@DiscriminatorColumn	//DTYPE 생성
 public abstract class Tag extends BaseEntity {
 
     @Id
