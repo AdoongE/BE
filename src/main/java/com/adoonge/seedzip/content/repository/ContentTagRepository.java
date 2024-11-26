@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface ContentTagRepository extends JpaRepository<ContentTag, Long> {
-    @Query("SELECT ct.tag.tagId FROM ContentTag ct WHERE ct.contents.contentsId = :contentId")
+    @Query("SELECT ct.tag.id FROM ContentTag ct WHERE ct.contents.contentsId = :contentId")
     List<Long> findTagIdsByContentId(@Param("contentId") Long contentId);
 
     List<ContentTag> findAllByContents_ContentsId(Long contentId);
