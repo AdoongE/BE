@@ -80,7 +80,21 @@ public enum ErrorCode {
     CONTENT_TYPE_NOT_SUPPORTED(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 콘텐츠 형식입니다."),
     CONTENT_PERMISSION_REQUIRED(HttpStatus.FORBIDDEN, "콘텐츠를 보려면 추가 권한이 필요합니다."),
     CONTENT_NOT_PUBLISHED(HttpStatus.FORBIDDEN, "이 콘텐츠는 아직 게시되지 않았습니다."),
-    CONTENT_ARCHIVED(HttpStatus.GONE, "이 콘텐츠는 보관 처리되었습니다.");
+    CONTENT_ARCHIVED(HttpStatus.GONE, "이 콘텐츠는 보관 처리되었습니다."),
+
+    // tag
+    TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "태그를 찾을 수 없습니다."),
+    EMPTY_TAG(HttpStatus.OK, "태그가 존재하지 않습니다."),
+    TAG_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 태그입니다."),
+    TAG_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "태그 생성에 실패했습니다."),
+    TAG_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "태그 유효성 검사가 실패했습니다."),
+    TAG_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 태그에 대한 접근 권한이 없습니다."),
+    TAG_QUOTA_EXCEEDED(HttpStatus.PAYLOAD_TOO_LARGE, "태그 저장 한도를 초과했습니다."),
+    TAG_USAGE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "이 태그는 사용할 수 없습니다."),
+    TAG_ASSOCIATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "태그를 콘텐츠에 연결하는 데 실패했습니다."),
+    TAG_DISASSOCIATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "태그를 콘텐츠에서 제거하는 데 실패했습니다."),
+    TAG_PERMISSION_REQUIRED(HttpStatus.FORBIDDEN, "이 태그를 보려면 추가 권한이 필요합니다.");
+
 
     private final HttpStatus status;
     private final String message;
