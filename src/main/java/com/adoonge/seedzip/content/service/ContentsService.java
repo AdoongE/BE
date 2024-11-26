@@ -11,7 +11,8 @@ import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
-import com.adoonge.seedzip.tag.Tag;
+import com.adoonge.seedzip.tag.domain.Tag;
+import com.adoonge.seedzip.tag.repository.TagRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;

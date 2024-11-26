@@ -5,8 +5,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import com.adoonge.seedzip.content.domain.Contents;
-import com.adoonge.seedzip.tag.MemberTag;
-import com.adoonge.seedzip.tag.Tag;
+import com.adoonge.seedzip.tag.domain.MemberTag;
+import com.adoonge.seedzip.tag.domain.Tag;
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import jakarta.persistence.*;
 
