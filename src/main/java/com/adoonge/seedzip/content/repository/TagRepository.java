@@ -1,6 +1,6 @@
 package com.adoonge.seedzip.content.repository;
 
-import com.adoonge.seedzip.content.domain.Tag;
+import com.adoonge.seedzip.tag.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

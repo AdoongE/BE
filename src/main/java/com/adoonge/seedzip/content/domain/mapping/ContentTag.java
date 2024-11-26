@@ -5,7 +5,8 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import com.adoonge.seedzip.content.domain.Contents;
-import com.adoonge.seedzip.content.domain.Tag;
+import com.adoonge.seedzip.tag.MemberTag;
+import com.adoonge.seedzip.tag.Tag;
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import jakarta.persistence.*;
 
@@ -26,6 +27,10 @@ public class ContentTag extends BaseEntity {
     private Contents contents;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tagId")
+    @JoinColumn(name = "tag_id")
     private Tag tag;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_tag_id")
+    private MemberTag memberTag;
 }
