@@ -23,6 +23,9 @@ public class Image extends BaseEntity {
     private String imgLink;
 
     @Column(nullable = false)
+    private String imgName;
+
+    @Column(nullable = false)
     private boolean imgThumbnail = false;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -1,7 +1,6 @@
 package com.adoonge.seedzip.content.repository;
 
 import com.adoonge.seedzip.content.domain.Image;
-import com.adoonge.seedzip.content.domain.Link;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -22,6 +21,4 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     @Modifying
     @Query("DELETE FROM Image i WHERE i.contents.contentsId = :contentsId")
     void deleteByContentsId(@Param("contentsId") Long contentsId);
-
-
 }

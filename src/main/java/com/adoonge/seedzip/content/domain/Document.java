@@ -23,6 +23,9 @@ public class Document extends BaseEntity {
     private String docLink;
 
     @Column(nullable = false)
+    private String docName;
+
+    @Column(nullable = false)
     private boolean docThumbnail = false;
 
     @ManyToOne(fetch = FetchType.LAZY)

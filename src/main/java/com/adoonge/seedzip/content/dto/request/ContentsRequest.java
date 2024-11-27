@@ -39,17 +39,19 @@ public class ContentsRequest {
                     .build();
         }
 
-        public Document toDocEntity(Contents contents, String docLink){
+        public Document toDocEntity(Contents contents, String docLink, String docName){
             return Document.builder()
                     .docLink(docLink)
                     .contents(contents)
+                    .docName(docName)
                     .build();
         }
 
-        public Image toImgEntity(Contents contents, String imgLink){
+        public Image toImgEntity(Contents contents, String imgLink, String imgName){
             return Image.builder()
                     .imgLink(imgLink)
                     .contents(contents)
+                    .imgName(imgName)
                     .build();
         }
     }

@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.content.domain.mapping;
 
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -7,14 +8,11 @@ import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.content.domain.Tag;
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContentTag extends BaseEntity {
@@ -23,7 +21,7 @@ public class ContentTag extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contentsId")
+    @JoinColumn(name = "contents_id")
     @OnDelete(action = OnDeleteAction.CASCADE)  //Content 삭제시 ContentTag 삭제됨
     private Contents contents;
 

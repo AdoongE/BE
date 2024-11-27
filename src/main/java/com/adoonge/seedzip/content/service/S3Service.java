@@ -52,4 +52,24 @@ public class S3Service {
         // 업로드된 파일의 URL 반환
         return s3Client.getUrl(imgBucketName, fileName).toString();
     }
+
+    public void deleteDocFile(String fileUrl) {
+        // S3 버킷에서 파일 삭제 로직
+        s3Client.deleteObject(docBucketName, extractKeyFromUrl(fileUrl, docBucketName));
+    }
+
+    public void deleteImgFile(String fileUrl) {
+        // S3 버킷에서 파일 삭제 로직
+        s3Client.deleteObject(imgBucketName, extractKeyFromUrl(fileUrl, imgBucketName));
+    }
+
+    public static String extractKeyFromUrl(String url, String bucketName) {
+        String baseUrl = "https://" + bucketName + ".s3.amazonaws.com/";
+
+        if (url.startsWith(baseUrl)) {
+            return url.substring(baseUrl.length());
+        } else {
+            throw new IllegalArgumentException("Invalid S3 URL: " + url);
+        }
+    }
 }
