@@ -537,55 +537,17 @@ public class ContentsService {
 		// 다른 DB도 접근하는 경우
 		if(contents.getContentsDataType().equals(ContentsDataType.PDF)){
 
-			// 기존 Document 조회
 			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contentsId);
 
-			// 기존 파일 링크 추출
-			List<String> existingDocNames = existingDocuments.stream()
-					.map(Document::getDocName)
-					.collect(Collectors.toList());
-
-			// 요청된 파일 이름 리스트 추출
-			List<String> requestedDocNames = files.stream()
-					.map(file -> {
-						try {
-							return file.getOriginalFilename();
-						} catch (Exception e) {
-							e.printStackTrace();
-							return null;
-						}
-					})
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-			// S3 및 Document에서 삭제할 파일
-			List<Document> documentsToDelete = existingDocuments.stream()
-					.filter(document -> !requestedDocNames.contains(document.getDocName()))
-					.collect(Collectors.toList());
-
-			// 삭제 처리
-			documentsToDelete.forEach(document -> {
-				// S3에서 파일 삭제
+			existingDocuments.forEach(document -> {
 				s3Service.deleteDocFile(document.getDocLink());
-				// Document 테이블에서 삭제
 				documentRepository.delete(document);
 			});
 
-			// 새롭게 저장할 파일 리스트
-			List<MultipartFile> filesToSave = files.stream()
-					.filter(file -> !existingDocNames.contains(file.getOriginalFilename()))
-					.collect(Collectors.toList());
-
-			existingDocuments.forEach(document -> {
-				document.setDocThumbnail(false);
-				documentRepository.save(document);
-			});
-
-			// S3에 업로드하고 Document 저장
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
 			int thumbnailIndex = request.getThumbnailImage();
 
-			filesToSave.stream().forEach(file -> {
+			files.stream().forEach(file -> {
 				try {
 					// S3에 파일 업로드 및 URL 가져오기
 					String fileUrl = s3Service.uploadDocFile(file);
@@ -626,44 +588,15 @@ public class ContentsService {
 		else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)){
 			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
 
-			List<String> existingImgNames = existingImages.stream()
-					.map(Image::getImgName)
-					.collect(Collectors.toList());
-
-			List<String> requestedImgNames = files.stream()
-					.map(file -> {
-						try {
-							return file.getOriginalFilename();
-						} catch (Exception e) {
-							e.printStackTrace();
-							return null;
-						}
-					})
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-			List<Image> imagesToDelete = existingImages.stream()
-					.filter(image -> !requestedImgNames.contains(image.getImgName()))
-					.collect(Collectors.toList());
-
-			imagesToDelete.forEach(image -> {
-				s3Service.deleteImgFile(image.getImgLink());
-				imageRepository.delete(image);
-			});
-
-			List<MultipartFile> filesToSave = files.stream()
-					.filter(file -> !existingImgNames.contains(file.getOriginalFilename()))
-					.collect(Collectors.toList());
-
 			existingImages.forEach(image -> {
-				image.setImgThumbnail(false);
-				imageRepository.save(image);
+				s3Service.deleteDocFile(image.getImgLink());
+				imageRepository.delete(image);
 			});
 
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
 			int thumbnailIndex = request.getThumbnailImage();
 
-			filesToSave.stream().forEach(file -> {
+			files.stream().forEach(file -> {
 				try {
 					// S3에 파일 업로드 및 URL 가져오기
 					String fileUrl = s3Service.uploadImgFile(file);
