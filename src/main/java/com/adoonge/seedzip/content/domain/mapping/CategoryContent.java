@@ -26,7 +26,7 @@ public class CategoryContent extends BaseEntity {
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contentsId")
+    @JoinColumn(name = "contents_id")
     @OnDelete(action = OnDeleteAction.CASCADE)  //Content 삭제시 CategoryContent 삭제됨
     private Contents contents;
 }

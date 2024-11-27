@@ -115,6 +115,28 @@ public class ContentsController {
 		return new ApiResponse<>(getContents);
 	}
 
+	@PatchMapping(value = "/{contentsId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@Operation(summary = "콘텐츠 수정 API", description = "콘텐츠 내용을 수정하는 API입니다.")
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+					content = @Content(mediaType = "application/json",
+							schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+	})
+	public ApiResponse<ContentsAllResponse.contentResponse> modifyContents(
+			@PathVariable("contentsId") Long contentsId,
+			@Parameter(description = "업로드할 파일 리스트", content = @Content(mediaType = "application/octet-stream"))
+			@RequestParam(value = "file", required = false) List<MultipartFile> files,
+			@Parameter(description = "JSON 요청 데이터", content = @Content(mediaType = "application/json"))
+			@RequestPart("request") ContentsRequest.allContentsRequest request,
+			@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+
+		Member member = customUserDetails.getMember();
+		ContentsAllResponse.contentResponse modifyContents = contentsService.modifyContents(request, contentsId, files, member);
+		return new ApiResponse<>(modifyContents);
+	}
+
 	@DeleteMapping("/api/v1/content/{contentsId}")
 	@Operation(summary = "콘텐츠 삭제 API", description = "콘텐츠 삭제 API입니다.")
 	@ApiResponses(value = {

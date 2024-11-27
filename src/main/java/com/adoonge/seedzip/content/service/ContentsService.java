@@ -104,7 +104,6 @@ public class ContentsService {
 
 		if (request.getDataType().equals(ContentsDataType.PDF)) {
 			// PDF
-
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
 			int thumbnailIndex = request.getThumbnailImage();
 
@@ -115,7 +114,7 @@ public class ContentsService {
 					fileUrls.add(fileUrl);
 
 					// URL 저장
-					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl));
+					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
 
 					if (index.get() == thumbnailIndex) {
 						document.setDocThumbnail(true);
@@ -148,7 +147,7 @@ public class ContentsService {
 					fileUrls.add(fileUrl);
 
 					// Image 엔티티 생성
-					Image image = request.toImgEntity(contents, fileUrl);
+					Image image = request.toImgEntity(contents, fileUrl, file.getOriginalFilename());
 
 					// 인덱스가 thumbnailIndex와 일치하면 imgThumbnail을 true로 설정
 					if (index.get() == thumbnailIndex) {
@@ -394,6 +393,298 @@ public class ContentsService {
 			contents.getContentsDetail()
 
 		);
+	}
+
+	// 콘텐츠 수정 (수정하자...)
+	public ContentsAllResponse.contentResponse modifyContents(ContentsRequest.allContentsRequest request, Long contentsId,
+															  List<MultipartFile> files, Member member) {
+		Contents contents = contentsRepository.findById(contentsId)
+				.orElseThrow(() -> new RuntimeException("Content not found"));
+
+		if(!Objects.equals(contents.getContentsName(), request.getContentName())){
+			contents.setContentsName(request.getContentName());
+		}
+
+		if (!Objects.equals(contents.getDDay(), request.getDDay())) {
+			contents.setDDay(request.getDDay());
+		}
+		if (!Objects.equals(contents.getContentsDetail(), request.getContentDetail())) {
+			contents.setContentsDetail(request.getContentDetail());
+		}
+
+		contentsRepository.save(contents);
+
+		// 기존 태그 조회
+		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(contents.getContentsId());
+
+		// 기존 태그 이름 리스트 생성
+		List<String> existingTagNames = existingContentTags.stream()
+				.map(contentTag -> tagRepository.findById(contentTag.getTag().getTagId())
+						.map(Tag::getTagName)
+						.orElse(null))
+				.filter(Objects::nonNull) // null 값 필터링
+				.collect(Collectors.toList());
+
+		// 요청된 태그 이름 리스트
+		List<String> requestedTagNames = Arrays.asList(request.getTags());
+
+		// 삭제할 태그: 요청에 없는 기존 태그
+		List<ContentTag> tagsToDelete = existingContentTags.stream()
+				.filter(contentTag -> {
+					String tagName = tagRepository.findById(contentTag.getTag().getTagId())
+							.map(Tag::getTagName)
+							.orElse(null);
+					return !requestedTagNames.contains(tagName);
+				})
+				.collect(Collectors.toList());
+
+		// 삭제 처리
+		tagsToDelete.forEach(contentTag -> contentTagRepository.delete(contentTag));
+
+		// 추가할 태그: 기존에 없는 새 요청 태그
+		List<String> tagsToAdd = requestedTagNames.stream()
+				.filter(tagName -> !existingTagNames.contains(tagName))
+				.collect(Collectors.toList());
+
+		// 추가 처리
+		tagsToAdd.forEach(tagName -> {
+			Tag tag = tagRepository.findByTagName(tagName)
+					.orElseGet(() -> tagRepository.save(
+							Tag.builder()
+									.tagName(tagName)
+									.build()));
+
+			ContentTag contentTag = ContentTag.builder()
+					.contents(contents)
+					.tag(tag)
+					.build();
+			contentTagRepository.save(contentTag);
+		});
+
+		// 카테고리
+		if (Objects.isNull(request.getBoardCategory())) {
+			Category category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
+			request.setBoardCategory(new String[] {"default"});
+		}
+
+		List<CategoryContent> existingCategoryContents = categoryContentRepository.findAllByContents_ContentsId(contents.getContentsId());
+		List<String> requestedCategoryNames = Arrays.asList(request.getBoardCategory());
+
+		// 기존 카테고리 이름 가져오기
+		List<String> existingCategoryNames = existingCategoryContents.stream()
+				.map(categoryContent -> categoryRepository.findById(categoryContent.getCategory().getCategoryId())
+						.map(Category::getName) // Category에서 name 가져오기
+						.orElse(null)) // Category가 없을 경우 null 처리
+				.filter(Objects::nonNull) // null 값 필터링
+				.collect(Collectors.toList());
+
+		// 삭제할 카테고리: 요청에 없는 기존 카테고리
+		List<CategoryContent> categoriesToDelete = existingCategoryContents.stream()
+				.filter(categoryContent -> {
+					String categoryName = categoryRepository.findById(categoryContent.getCategory().getCategoryId())
+							.map(Category::getName)
+							.orElse(null);
+					return !requestedCategoryNames.contains(categoryName);
+				})
+				.collect(Collectors.toList());
+
+		// 추가할 카테고리: 기존에 없는 새 요청 카테고리
+		List<String> categoriesToAdd = requestedCategoryNames.stream()
+				.filter(categoryName -> !existingCategoryNames.contains(categoryName))
+				.collect(Collectors.toList());
+
+		// 삭제 처리
+		categoriesToDelete.forEach(categoryContent -> categoryContentRepository.delete(categoryContent));
+
+		// 추가 처리
+		categoriesToAdd.forEach(categoryName -> {
+			if (categoryName == null || categoryName.trim().isEmpty()) {
+				// 입력받은 카테고리가 없는 경우 default 카테고리 사용
+				Category defaultCategory = categoryRepository.findByMemberIdAndName(member.getId(), "default");
+				CategoryContent categoryContent = CategoryContent.builder()
+						.contents(contents)
+						.category(defaultCategory)
+						.build();
+				categoryContentRepository.save(categoryContent);
+			} else {
+				Category existingCategory = categoryRepository.findByMemberIdAndName(member.getId(), categoryName);
+				if (existingCategory != null) {
+					CategoryContent categoryContent = CategoryContent.builder()
+							.contents(contents)
+							.category(existingCategory)
+							.build();
+					categoryContentRepository.save(categoryContent);
+				} else {
+					// 카테고리가 존재하지 않으면 새로 생성
+					Category newCategory = Category.builder()
+							.name(categoryName)
+							.member(member)
+							.build();
+					categoryRepository.save(newCategory);
+
+					CategoryContent categoryContent = CategoryContent.builder()
+							.contents(contents)
+							.category(newCategory)
+							.build();
+
+					categoryContentRepository.save(categoryContent);
+				}
+			}
+		});
+
+		List<String> fileUrls = new ArrayList<>();
+
+		// 다른 DB도 접근하는 경우
+		if(contents.getContentsDataType().equals(ContentsDataType.PDF)){
+
+			// 기존 Document 조회
+			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contentsId);
+
+			// 기존 파일 링크 추출
+			List<String> existingDocNames = existingDocuments.stream()
+					.map(Document::getDocName)
+					.collect(Collectors.toList());
+
+			// 요청된 파일 이름 리스트 추출
+			List<String> requestedDocNames = files.stream()
+					.map(file -> {
+						try {
+							return file.getOriginalFilename();
+						} catch (Exception e) {
+							e.printStackTrace();
+							return null;
+						}
+					})
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			// S3 및 Document에서 삭제할 파일
+			List<Document> documentsToDelete = existingDocuments.stream()
+					.filter(document -> !requestedDocNames.contains(document.getDocName()))
+					.collect(Collectors.toList());
+
+			// 삭제 처리
+			documentsToDelete.forEach(document -> {
+				// S3에서 파일 삭제
+				s3Service.deleteDocFile(document.getDocLink());
+				// Document 테이블에서 삭제
+				documentRepository.delete(document);
+			});
+
+			// 새롭게 저장할 파일 리스트
+			List<MultipartFile> filesToSave = files.stream()
+					.filter(file -> !existingDocNames.contains(file.getOriginalFilename()))
+					.collect(Collectors.toList());
+
+			existingDocuments.forEach(document -> {
+				document.setDocThumbnail(false);
+				documentRepository.save(document);
+			});
+
+			// S3에 업로드하고 Document 저장
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = request.getThumbnailImage();
+
+			filesToSave.stream().forEach(file -> {
+				try {
+					// S3에 파일 업로드 및 URL 가져오기
+					String fileUrl = s3Service.uploadDocFile(file);
+					fileUrls.add(fileUrl);
+
+					// URL 저장
+					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
+
+					if (index.get() == thumbnailIndex) {
+						document.setDocThumbnail(true);
+					}
+
+					documentRepository.save(document);
+					index.getAndIncrement();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		}
+		else if(contents.getContentsDataType().equals(ContentsDataType.LINK)){
+			Optional<Link> existingLinkOptional = linkRepository.findByContents_ContentsId(contentsId);
+			String requestLink = request.getContentLink();
+
+			if (existingLinkOptional.isPresent()) {
+				Link existingLink = existingLinkOptional.get();
+
+				if (!existingLink.getLink().equals(request.getContentLink())) {
+					linkRepository.delete(existingLink);
+					Link newLink = Link.builder()
+							.link(requestLink)
+							.contents(contents)
+							.build();
+					linkRepository.save(newLink);
+				}
+			}
+		}
+		else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)){
+			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
+
+			List<String> existingImgNames = existingImages.stream()
+					.map(Image::getImgName)
+					.collect(Collectors.toList());
+
+			List<String> requestedImgNames = files.stream()
+					.map(file -> {
+						try {
+							return file.getOriginalFilename();
+						} catch (Exception e) {
+							e.printStackTrace();
+							return null;
+						}
+					})
+					.filter(Objects::nonNull)
+					.collect(Collectors.toList());
+
+			List<Image> imagesToDelete = existingImages.stream()
+					.filter(image -> !requestedImgNames.contains(image.getImgName()))
+					.collect(Collectors.toList());
+
+			imagesToDelete.forEach(image -> {
+				s3Service.deleteImgFile(image.getImgLink());
+				imageRepository.delete(image);
+			});
+
+			List<MultipartFile> filesToSave = files.stream()
+					.filter(file -> !existingImgNames.contains(file.getOriginalFilename()))
+					.collect(Collectors.toList());
+
+			existingImages.forEach(image -> {
+				image.setImgThumbnail(false);
+				imageRepository.save(image);
+			});
+
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = request.getThumbnailImage();
+
+			filesToSave.stream().forEach(file -> {
+				try {
+					// S3에 파일 업로드 및 URL 가져오기
+					String fileUrl = s3Service.uploadImgFile(file);
+					fileUrls.add(fileUrl);
+
+					// URL 저장
+					Image image = imageRepository.save(request.toImgEntity(contents, fileUrl, file.getOriginalFilename()));
+
+					if (index.get() == thumbnailIndex) {
+						image.setImgThumbnail(true);
+					}
+
+					imageRepository.save(image);
+					index.getAndIncrement();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		}
+		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 수정했습니다!", contents);
 	}
 
 	// 콘텐츠 삭제

@@ -15,4 +15,8 @@ public interface CategoryContentRepository extends JpaRepository<CategoryContent
 
     @Query("SELECT cc.contents.contentsId FROM CategoryContent cc WHERE cc.category.categoryId = :categoryId")
     List<Long> findContentIdsByCategoryId(@Param("categoryId") Long categoryId);
+
+    List<CategoryContent> findAllByContents_ContentsId(Long contentsId);
+
+//    void deleteByContentsIdAndCategoryId(Long contentsId, Long categoryId);
 }
