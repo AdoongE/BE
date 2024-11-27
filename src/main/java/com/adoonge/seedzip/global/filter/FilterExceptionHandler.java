@@ -8,10 +8,12 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
+@Slf4j
 public class FilterExceptionHandler extends OncePerRequestFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -26,6 +28,7 @@ public class FilterExceptionHandler extends OncePerRequestFilter {
             createAPIResponse(response, ex.getErrorCode());
         } catch (Exception ex) {
             // 기타 예외 처리
+            log.warn(ex.getMessage(), ex);
             createAPIResponse(response, ErrorCode.INTERNAL_SEVER_ERROR);
         }
     }

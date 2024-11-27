@@ -69,6 +69,13 @@ kakao:
   redirect:
     uri: ${KAKAO_REDIRECT_URI}
 
+naver:
+  client:
+    id: ${NAVER_API_CLIENT_ID}
+    secret: ${NAVER_API_CLIENT_SECRET}
+  redirect:
+    uri: ${NAVER_API_REDIRECT_URI}
+
 cloud:
   aws:
     credentials:
