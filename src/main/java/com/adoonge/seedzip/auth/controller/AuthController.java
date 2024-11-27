@@ -38,10 +38,16 @@ public class AuthController {
         return authService.login(code, SocialType.BASIC, response);
     }
 
-    @PostMapping("login/kakao")
+    @PostMapping("/login/kakao")
     @Operation(summary = "카카오 로그인 API", description = "카카오 인가코드를 받고 JWT 토큰을 리턴합니다.")
     ApiResponse<LoginResponse> loginKakao(@RequestParam String code, HttpServletResponse response) {
         return authService.login(code, SocialType.KAKAO, response);
+    }
+
+    @PostMapping("/login/naver")
+    @Operation(summary = "네이버 로그인 API", description = "네이버 인가코드를 받고 JWT 토큰을 리턴합니다.")
+    ApiResponse<LoginResponse> loginNaver(@RequestParam String code, HttpServletResponse response) {
+        return authService.login(code, SocialType.NAVER, response);
     }
 
     @GetMapping("/test")
