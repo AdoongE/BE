@@ -37,7 +37,7 @@ public class TagController {
 	private final TagService tagService;
 
 	@PostMapping(value = "/member")
-	@Operation(summary = "사용자가 생성한 태그 조회 API", description = "콘텐츠 생성 API입니다.")
+	@Operation(summary = "사용자가 생성한 태그 조회 API", description = "태그 조회 API입니다.")
 	public ApiResponse<?> getMemberTag(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
@@ -46,6 +46,19 @@ public class TagController {
 
 		return new ApiResponse<>(memberTags);
 	}
+
+	@PostMapping(value = "/member")
+	@Operation(summary = "기본 태그 중 사용한 적 있는 태그만 조회 API", description = "태그 조회 API입니다.")
+	public ApiResponse<?> getUsedTag(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+		Member member = customUserDetails.getMember();
+		ApiResponse<?> memberTags = tagService.getMemberTags(member);
+
+		return new ApiResponse<>(memberTags);
+	}
+
+
 
 
 }

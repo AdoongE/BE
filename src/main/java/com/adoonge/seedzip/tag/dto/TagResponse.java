@@ -1,6 +1,7 @@
 package com.adoonge.seedzip.tag.dto;
 
 import com.adoonge.seedzip.tag.domain.MemberTag;
+import com.adoonge.seedzip.tag.domain.UsedTag;
 
 public record TagResponse(
 	Long id,
@@ -10,6 +11,13 @@ public record TagResponse(
 		return new TagResponse(
 			memberTag.getId(),
 			memberTag.getTagName()
+		);
+	}
+
+	public static TagResponse from(UsedTag usedTag) {
+		return new TagResponse(
+			usedTag.getId(),
+			usedTag.getTag().getTagName()
 		);
 	}
 

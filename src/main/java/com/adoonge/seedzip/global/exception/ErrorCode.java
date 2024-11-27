@@ -85,6 +85,7 @@ public enum ErrorCode {
     // tag
     TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "태그를 찾을 수 없습니다."),
     EMPTY_TAG(HttpStatus.OK, "태그가 존재하지 않습니다."),
+    EMPTY_USED_TAG(HttpStatus.OK, "디폴트 태그를 사용한 적 없습니다."),
     TAG_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 존재하는 태그입니다."),
     TAG_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "태그 생성에 실패했습니다."),
     TAG_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "태그 유효성 검사가 실패했습니다."),
