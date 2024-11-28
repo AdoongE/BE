@@ -64,11 +64,20 @@ public class S3Service {
     }
 
     public static String extractKeyFromUrl(String url, String bucketName) {
-        String baseUrl = "https://" + bucketName + ".s3.amazonaws.com/";
 
-        if (url.startsWith(baseUrl)) {
-            return url.substring(baseUrl.length());
-        } else {
+        String docBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
+        String imgBaseUrl = "https://content-img.s3.ap-northeast-2.amazonaws.com/";
+
+        // URL이 docBaseUrl로 시작하는지 확인
+        if (url.startsWith(docBaseUrl)) {
+            return url.substring(docBaseUrl.length()); // docBaseUrl 뒤의 경로 추출
+        }
+        // URL이 imgBaseUrl로 시작하는지 확인
+        else if (url.startsWith(imgBaseUrl)) {
+            return url.substring(imgBaseUrl.length()); // imgBaseUrl 뒤의 경로 추출
+        }
+        // 어떤 기준에도 맞지 않으면 예외 처리
+        else {
             throw new IllegalArgumentException("Invalid S3 URL: " + url);
         }
     }

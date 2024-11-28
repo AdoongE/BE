@@ -589,7 +589,7 @@ public class ContentsService {
 			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
 
 			existingImages.forEach(image -> {
-				s3Service.deleteDocFile(image.getImgLink());
+				s3Service.deleteImgFile(image.getImgLink());
 				imageRepository.delete(image);
 			});
 
