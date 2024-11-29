@@ -89,7 +89,7 @@ public class ContentsService {
 		Contents contents = contentsRepository.save(request.toContentEntity(member));
 
 		// 태그 저장
-		for(String tagName : request.getTags()){
+		for (String tagName : request.getTags()) {
 			Tag tag = findOrCreateTag(tagName, member);
 
 			ContentTag contentTag = ContentTag.builder()
@@ -180,17 +180,17 @@ public class ContentsService {
 		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 저장했습니다!", contents);
 	}
 
-	private Tag findOrCreateTag(String tagName, Member member){
+	private Tag findOrCreateTag(String tagName, Member member) {
 		// 1. Default 태그 확인
 		Optional<DefaultTag> defaultTagOpt = defaultTagRepository.findByTagName(tagName);
 		// 디폴트 태그인 경우
-		if(defaultTagOpt.isPresent()){
+		if (defaultTagOpt.isPresent()) {
 			DefaultTag defaultTag = defaultTagOpt.get();
 
 			// 사용자별 UsedDefaultTag 생성, 조회
 			UsedDefaultTag usedDefaultTag = usedDefaultTagRepository
-				.findByMemberIdAndTagId(member.getId(), defaultTag.getId())	//사용한적 O
-				.orElseGet(() ->	// 사용한적 X
+				.findByMemberIdAndTagId(member.getId(), defaultTag.getId())    //사용한적 O
+				.orElseGet(() ->    // 사용한적 X
 					usedDefaultTagRepository.save(UsedDefaultTag.builder()
 						.member(member)
 						.tag(defaultTag)
@@ -225,10 +225,9 @@ public class ContentsService {
 					if (thumbnailImage.isPresent()) {
 						thumbnailUrl = thumbnailImage.get().getImgLink();
 					}
-				}
-				else if(ContentsDataType.PDF.equals(content.getContentsDataType())) {
+				} else if (ContentsDataType.PDF.equals(content.getContentsDataType())) {
 					Optional<Document> thumbnailDoc = documentRepository.findByContentsIdAndDocThumbnail(
-							content.getContentsId(), true);
+						content.getContentsId(), true);
 					if (thumbnailDoc.isPresent()) {
 						thumbnailUrl = thumbnailDoc.get().getDocLink();
 					}
@@ -378,7 +377,7 @@ public class ContentsService {
 
 				// 썸네일 이미지인 경우 ID 저장
 				if (image.isImgThumbnail()) {
-					thumbnailImage = (long) idx;
+					thumbnailImage = (long)idx;
 				}
 
 				idx++;
@@ -397,7 +396,7 @@ public class ContentsService {
 				contentDoc.add(document.getDocLink());
 
 				if (document.isDocThumbnail()) {
-					thumbnailImage = (long) idx;
+					thumbnailImage = (long)idx;
 				}
 
 				idx++;
@@ -666,7 +665,7 @@ public class ContentsService {
 
 	// 콘텐츠 삭제
 	@Transactional
-	public void deleteContent(Long id, Member member){
+	public void deleteContent(Long id, Member member) {
 		Contents contents = contentsRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CONTENT_ACCESS_DENIED));
 
