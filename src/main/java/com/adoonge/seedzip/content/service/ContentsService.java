@@ -118,6 +118,7 @@ public class ContentsService {
 
 		if (request.getDataType().equals(ContentsDataType.PDF)) {
 			// PDF
+
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
 			int thumbnailIndex = request.getThumbnailImage();
 
