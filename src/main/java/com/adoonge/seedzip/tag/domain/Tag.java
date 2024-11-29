@@ -6,16 +6,22 @@ import lombok.*;
 
 @Entity
 @Getter
-@Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Tag extends BaseEntity {
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn // DTYPE 생성
+public abstract class Tag extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "tag_id")
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "tag_name", unique = true)
     private String tagName;
+
+    public Tag(String tagName){
+        this.tagName = tagName;
+    }
+
 }

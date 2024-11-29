@@ -1,23 +1,23 @@
 package com.adoonge.seedzip.tag.dto;
 
-import com.adoonge.seedzip.tag.domain.MemberTag;
-import com.adoonge.seedzip.tag.domain.UsedTag;
+import com.adoonge.seedzip.tag.domain.CustomTag;
+import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
 
 public record TagResponse(
 	Long id,
 	String name
 ) {
-	public static TagResponse from(MemberTag memberTag) {
+	public static TagResponse from(CustomTag customTag) {
 		return new TagResponse(
-			memberTag.getId(),
-			memberTag.getTagName()
+			customTag.getId(),
+			customTag.getTagName()
 		);
 	}
 
-	public static TagResponse from(UsedTag usedTag) {
+	public static TagResponse from(UsedDefaultTag usedDefaultTag) {
 		return new TagResponse(
-			usedTag.getId(),
-			usedTag.getTag().getTagName()
+			usedDefaultTag.getId(),
+			usedDefaultTag.getTag().getTagName()
 		);
 	}
 

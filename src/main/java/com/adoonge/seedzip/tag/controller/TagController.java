@@ -2,9 +2,12 @@ package com.adoonge.seedzip.tag.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -12,10 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
+import com.adoonge.seedzip.category.dto.request.AddCategoryRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
+import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.tag.dto.TagResponse;
 import com.adoonge.seedzip.tag.service.TagService;
@@ -36,26 +41,34 @@ public class TagController {
 
 	private final TagService tagService;
 
-	@PostMapping(value = "/member")
+	@GetMapping(value = "/member")
 	@Operation(summary = "사용자가 생성한 태그 조회 API", description = "태그 조회 API입니다.")
-	public ApiResponse<?> getMemberTag(
+	public ApiResponse<?> getCustomTag(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		Member member = customUserDetails.getMember();
-		ApiResponse<?> memberTags = tagService.getMemberTags(member);
+		ApiResponse<?> customTags = tagService.getCustomTag(member);
 
-		return new ApiResponse<>(memberTags);
+		return new ApiResponse<>(customTags);
 	}
 
-	@PostMapping(value = "/member")
+	@GetMapping(value = "/default/used")
 	@Operation(summary = "기본 태그 중 사용한 적 있는 태그만 조회 API", description = "태그 조회 API입니다.")
 	public ApiResponse<?> getUsedTag(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		Member member = customUserDetails.getMember();
-		ApiResponse<?> memberTags = tagService.getMemberTags(member);
+		ApiResponse<?> memberTags = tagService.getUsedTags(member);
 
 		return new ApiResponse<>(memberTags);
+	}
+
+	@PostMapping(value = "/default")
+	@Operation(summary = "디폴트 태그 저장 API", description = "태그 저장 API입니다.")
+	public ApiResponse<Void> saveDefaultTag(@RequestBody List<String> tagNames) {
+		tagService.saveDefaultTags(tagNames);
+
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}
 
 

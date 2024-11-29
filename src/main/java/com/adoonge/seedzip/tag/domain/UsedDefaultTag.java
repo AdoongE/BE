@@ -1,8 +1,6 @@
 package com.adoonge.seedzip.tag.domain;
 
-import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
-import com.adoonge.seedzip.tag.domain.Tag;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,22 +17,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Getter
-@Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class UsedTag extends BaseEntity {
+@Builder
+@Getter
+public class UsedDefaultTag {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "used_tag_id")
+	@Column(name = "used_default_id")
 	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "tag_id")
-	private Tag tag;
-
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "member_id")
+	@JoinColumn(name = "member_id", nullable = false)
 	private Member member;
+
+	@ManyToOne
+	@JoinColumn(name = "tag_id", nullable = false)
+	private DefaultTag tag; // Tag와 관계를 정의
 }
