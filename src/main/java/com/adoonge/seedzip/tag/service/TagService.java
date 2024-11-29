@@ -66,8 +66,8 @@ public class TagService {
 	}
 
 	// 디폴트 태그 삽입
-	public void saveDefaultTags(List<String> tagNames){
-		for(String tagName : tagNames){
+	public void saveDefaultTags(List<String> tagNames) {
+		for (String tagName : tagNames) {
 			defaultTagRepository.save(DefaultTag.builder()
 				.name(tagName).build());
 		}
