@@ -28,6 +28,7 @@ import com.adoonge.seedzip.tag.service.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -64,7 +65,63 @@ public class TagController {
 	}
 
 	@PostMapping(value = "/default")
-	@Operation(summary = "디폴트 태그 저장 API", description = "태그 저장 API입니다.")
+	@Operation(
+		summary = "디폴트 태그 저장 API",
+		description = "태그 저장 API입니다. 초기화 이후에 아래 내용 한번만! execute하면 됩니다. ",
+		requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+			content = @Content(
+				mediaType = "application/json",
+				examples = @ExampleObject(
+					name = "defaultTagsExample",
+					summary = "Default Tags Example",
+					value = """
+                        [
+                            "기획/아이디어",
+                            "여행",
+                            "글로벌",
+                            "맛집",
+                            "음식/요리",
+                            "운동",
+                            "건강",
+                            "스포츠",
+                            "영화/드라마",
+                            "뮤지컬/연극",
+                            "연예",
+                            "음악",
+                            "뷰티",
+                            "패션",
+                            "디자인",
+                            "UX/UI",
+                            "인테리어",
+                            "사진",
+                            "영상",
+                            "SNS",
+                            "IT",
+                            "비즈니스",
+                            "자기계발",
+                            "생산성",
+                            "생활",
+                            "반려동물",
+                            "책/글쓰기",
+                            "취미",
+                            "게임",
+                            "공부",
+                            "금융/재테크",
+                            "부동산",
+                            "예술",
+                            "환경",
+                            "역사",
+                            "과학",
+                            "철학",
+                            "심리학",
+                            "교육",
+                            "정치"
+                        ]
+                        """
+				)
+			)
+		)
+	)
 	public ApiResponse<Void> saveDefaultTag(@RequestBody List<String> tagNames) {
 		tagService.saveDefaultTags(tagNames);
 
