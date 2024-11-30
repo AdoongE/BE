@@ -96,7 +96,8 @@ youtube :
   api :
     key : ${YOUTUBE_API_KEY}
 
-openai :
-  api :
-    key : ${OPENAI_API_KEY}
-
+openai:
+  api:
+    key: ${openai_api_key}
+  url: ${openai_url}
+  model: ${openai_model}
