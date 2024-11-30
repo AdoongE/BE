@@ -357,6 +357,7 @@ public class ContentsService {
 		List<String> contentImage = null;
 		List<String> contentDoc = null;
 		Long thumbnailImage = -1L;
+		List<String> title = new ArrayList<>();
 
 		// contentDataType이 LINK인 경우
 		if (ContentsDataType.LINK.equals(contents.getContentsDataType())) {
@@ -374,12 +375,12 @@ public class ContentsService {
 			for (Image image : imageList) {
 				// 이미지 URL 추가
 				contentImage.add(image.getImgLink());
+				title.add(image.getImgName());
 
 				// 썸네일 이미지인 경우 ID 저장
 				if (image.isImgThumbnail()) {
 					thumbnailImage = (long)idx;
 				}
-
 				idx++;
 			}
 		}
@@ -394,11 +395,11 @@ public class ContentsService {
 			for (Document document : documentList) {
 				// 이미지 URL 추가
 				contentDoc.add(document.getDocLink());
+				title.add(document.getDocName());
 
 				if (document.isDocThumbnail()) {
 					thumbnailImage = (long)idx;
 				}
-
 				idx++;
 			}
 		}
@@ -429,6 +430,7 @@ public class ContentsService {
 			contentLink,
 			contentImage,
 			contentDoc,
+			title,
 			thumbnailImage,
 			categoryNames,
 			tagNames,
@@ -650,10 +652,12 @@ public class ContentsService {
 		//IMAGE
 		if (ContentsDataType.IMAGE.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
+
 		}
 		//PDF
 		if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
+
 		}
 
 	}
