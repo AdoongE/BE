@@ -90,3 +90,13 @@ cloud:
 server:
   tomcat:
     max-swallow-size: 50MB
+
+
+youtube :
+  api :
+    key : ${YOUTUBE_API_KEY}
+
+openai :
+  api :
+    key : ${OPENAI_API_KEY}
+
