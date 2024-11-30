@@ -460,49 +460,60 @@ public class ContentsService {
 		// 기존 태그 조회
 		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(contents.getContentsId());
 
-		// 기존 태그 이름 리스트 생성
-		List<String> existingTagNames = existingContentTags.stream()
-				.map(contentTag -> tagRepository.findById(contentTag.getTag().getId())
-						.map(Tag::getTagName)
-						.orElse(null))
-				.filter(Objects::nonNull) // null 값 필터링
-				.collect(Collectors.toList());
-
-		// 요청된 태그 이름 리스트
-		List<String> requestedTagNames = Arrays.asList(request.getTags());
-
-		// 삭제할 태그: 요청에 없는 기존 태그
-		List<ContentTag> tagsToDelete = existingContentTags.stream()
-				.filter(contentTag -> {
-					String tagName = tagRepository.findById(contentTag.getTag().getId())
-							.map(Tag::getTagName)
-							.orElse(null);
-					return !requestedTagNames.contains(tagName);
-				})
-				.collect(Collectors.toList());
+//		// 기존 태그 이름 리스트 생성
+//		List<String> existingTagNames = existingContentTags.stream()
+//				.map(contentTag -> tagRepository.findById(contentTag.getTag().getId())
+//						.map(Tag::getTagName)
+//						.orElse(null))
+//				.filter(Objects::nonNull) // null 값 필터링
+//				.collect(Collectors.toList());
+//
+//		// 요청된 태그 이름 리스트
+//		List<String> requestedTagNames = Arrays.asList(request.getTags());
+//
+//		// 삭제할 태그: 요청에 없는 기존 태그
+//		List<ContentTag> tagsToDelete = existingContentTags.stream()
+//				.filter(contentTag -> {
+//					String tagName = tagRepository.findById(contentTag.getTag().getId())
+//							.map(Tag::getTagName)
+//							.orElse(null);
+//					return !requestedTagNames.contains(tagName);
+//				})
+//				.collect(Collectors.toList());
 
 		// 삭제 처리
-		tagsToDelete.forEach(contentTag -> contentTagRepository.delete(contentTag));
+		existingContentTags.forEach(contentTag -> contentTagRepository.delete(contentTag));
 
-		// 추가할 태그: 기존에 없는 새 요청 태그
-		List<String> tagsToAdd = requestedTagNames.stream()
-				.filter(tagName -> !existingTagNames.contains(tagName))
-				.collect(Collectors.toList());
+//		// 추가할 태그: 기존에 없는 새 요청 태그
+//		List<String> tagsToAdd = requestedTagNames.stream()
+//				.filter(tagName -> !existingTagNames.contains(tagName))
+//				.collect(Collectors.toList());
 
-		// 추가 처리
-		tagsToAdd.forEach(tagName -> {
-			CustomTag tag = customTagRepository.findByTagNameAndMemberId(tagName, member.getId())
-					.orElseGet(() -> customTagRepository.save(
-							CustomTag.builder()
-									.name(tagName)
-									.build()));
+		// 태그 생성 및 사용
+		Arrays.stream(request.getTags())
+				.map(tagName -> {
+					Tag tag = findOrCreateTag(tagName, member); // 태그 찾거나 생성
+					return ContentTag.builder()
+							.contents(contents)
+							.tag(tag)
+							.build();
+				})
+				.forEach(contentTagRepository::save); // ContentTag 저장
 
-			ContentTag contentTag = ContentTag.builder()
-					.contents(contents)
-					.tag(tag)
-					.build();
-			contentTagRepository.save(contentTag);
-		});
+//		// 추가 처리
+//		tagsToAdd.forEach(tagName -> {
+//			CustomTag tag = customTagRepository.findByTagNameAndMemberId(tagName, member.getId())
+//					.orElseGet(() -> customTagRepository.save(
+//							CustomTag.builder()
+//									.name(tagName)
+//									.build()));
+//
+//			ContentTag contentTag = ContentTag.builder()
+//					.contents(contents)
+//					.tag(tag)
+//					.build();
+//			contentTagRepository.save(contentTag);
+//		});
 
 		// 카테고리
 		if (Objects.isNull(request.getBoardCategory())) {
