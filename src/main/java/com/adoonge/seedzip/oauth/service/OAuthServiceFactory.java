@@ -22,7 +22,11 @@ public class OAuthServiceFactory {
     private SocialType getSocialType(OAuthService service) {
         if (service instanceof KakaoService) {
             return SocialType.KAKAO;
-        } else if (service instanceof BasicService) {
+        }
+        else if(service instanceof NaverService) {
+            return SocialType.NAVER;
+        }
+        else if (service instanceof BasicService) {
             return SocialType.BASIC;
         }
         throw new IllegalArgumentException("Unknown OAuthService type: " + service.getClass());

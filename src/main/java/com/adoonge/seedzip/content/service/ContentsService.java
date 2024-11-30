@@ -11,6 +11,14 @@ import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.tag.domain.CustomTag;
+import com.adoonge.seedzip.tag.domain.DefaultTag;
+import com.adoonge.seedzip.tag.domain.Tag;
+import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
+import com.adoonge.seedzip.tag.repository.CustomTagRepository;
+import com.adoonge.seedzip.tag.repository.DefaultTagRepository;
+import com.adoonge.seedzip.tag.repository.TagRepository;
+import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +47,15 @@ public class ContentsService {
 
 	@Autowired
 	private final TagRepository tagRepository;
+
+	@Autowired
+	private final CustomTagRepository customTagRepository;
+
+	@Autowired
+	private final UsedDefaultTagRepository usedDefaultTagRepository;
+
+	@Autowired
+	private final DefaultTagRepository defaultTagRepository;
 
 	@Autowired
 	private final ContentTagRepository contentTagRepository;
@@ -72,18 +89,15 @@ public class ContentsService {
 		Contents contents = contentsRepository.save(request.toContentEntity(member));
 
 		// 태그 저장
-		Arrays.stream(request.getTags())
-			.map(tagName -> tagRepository.findByTagName(tagName)
-				.orElseGet(() -> tagRepository.save(
-					Tag.builder()
-						.tagName(tagName)
-						.build())))
-			.forEach(tag -> {
-				ContentTag contentTag = new ContentTag();
-				contentTag.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
-				contentTag.setTag(tag);
-				contentTagRepository.save(contentTag);
-			});
+		for (String tagName : request.getTags()) {
+			Tag tag = findOrCreateTag(tagName, member);
+
+			ContentTag contentTag = ContentTag.builder()
+				.contents(contents)
+				.tag(tag).build();
+
+			contentTagRepository.save(contentTag);
+		}
 
 		if (Objects.isNull(request.getBoardCategory())) {
 			Category category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
@@ -104,6 +118,7 @@ public class ContentsService {
 
 		if (request.getDataType().equals(ContentsDataType.PDF)) {
 			// PDF
+
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
 			int thumbnailIndex = request.getThumbnailImage();
 
@@ -165,6 +180,35 @@ public class ContentsService {
 		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 저장했습니다!", contents);
 	}
 
+	private Tag findOrCreateTag(String tagName, Member member) {
+		// 1. Default 태그 확인
+		Optional<DefaultTag> defaultTagOpt = defaultTagRepository.findByTagName(tagName);
+		// 디폴트 태그인 경우
+		if (defaultTagOpt.isPresent()) {
+			DefaultTag defaultTag = defaultTagOpt.get();
+
+			// 사용자별 UsedDefaultTag 생성, 조회
+			UsedDefaultTag usedDefaultTag = usedDefaultTagRepository
+				.findByMemberIdAndTagId(member.getId(), defaultTag.getId())    //사용한적 O
+				.orElseGet(() ->    // 사용한적 X
+					usedDefaultTagRepository.save(UsedDefaultTag.builder()
+						.member(member)
+						.tag(defaultTag)
+						.build()));
+
+			return defaultTag;
+		}
+
+		// 2. 디폴트 태그가 아닌 경우 CustomTag 생성
+		return customTagRepository.findByTagNameAndMemberId(tagName, member.getId())
+			.orElseGet(() -> {
+				return customTagRepository.save(CustomTag.builder()
+					.name(tagName)
+					.member(member)
+					.build());
+			});
+	}
+
 	@Transactional
 	public List<ContentsAllResponse.contentsInfo> getAllContents(Member member) {
 		List<Contents> contentsList = contentsRepository.findByMemberId(member.getId());
@@ -181,10 +225,9 @@ public class ContentsService {
 					if (thumbnailImage.isPresent()) {
 						thumbnailUrl = thumbnailImage.get().getImgLink();
 					}
-				}
-				else if(ContentsDataType.PDF.equals(content.getContentsDataType())) {
+				} else if (ContentsDataType.PDF.equals(content.getContentsDataType())) {
 					Optional<Document> thumbnailDoc = documentRepository.findByContentsIdAndDocThumbnail(
-							content.getContentsId(), true);
+						content.getContentsId(), true);
 					if (thumbnailDoc.isPresent()) {
 						thumbnailUrl = thumbnailDoc.get().getDocLink();
 					}
@@ -334,7 +377,7 @@ public class ContentsService {
 
 				// 썸네일 이미지인 경우 ID 저장
 				if (image.isImgThumbnail()) {
-					thumbnailImage = (long) idx;
+					thumbnailImage = (long)idx;
 				}
 
 				idx++;
@@ -353,7 +396,7 @@ public class ContentsService {
 				contentDoc.add(document.getDocLink());
 
 				if (document.isDocThumbnail()) {
-					thumbnailImage = (long) idx;
+					thumbnailImage = (long)idx;
 				}
 
 				idx++;
@@ -419,7 +462,7 @@ public class ContentsService {
 
 		// 기존 태그 이름 리스트 생성
 		List<String> existingTagNames = existingContentTags.stream()
-				.map(contentTag -> tagRepository.findById(contentTag.getTag().getTagId())
+				.map(contentTag -> tagRepository.findById(contentTag.getTag().getId())
 						.map(Tag::getTagName)
 						.orElse(null))
 				.filter(Objects::nonNull) // null 값 필터링
@@ -431,7 +474,7 @@ public class ContentsService {
 		// 삭제할 태그: 요청에 없는 기존 태그
 		List<ContentTag> tagsToDelete = existingContentTags.stream()
 				.filter(contentTag -> {
-					String tagName = tagRepository.findById(contentTag.getTag().getTagId())
+					String tagName = tagRepository.findById(contentTag.getTag().getId())
 							.map(Tag::getTagName)
 							.orElse(null);
 					return !requestedTagNames.contains(tagName);
@@ -448,10 +491,10 @@ public class ContentsService {
 
 		// 추가 처리
 		tagsToAdd.forEach(tagName -> {
-			Tag tag = tagRepository.findByTagName(tagName)
-					.orElseGet(() -> tagRepository.save(
-							Tag.builder()
-									.tagName(tagName)
+			CustomTag tag = customTagRepository.findByTagNameAndMemberId(tagName, member.getId())
+					.orElseGet(() -> customTagRepository.save(
+							CustomTag.builder()
+									.name(tagName)
 									.build()));
 
 			ContentTag contentTag = ContentTag.builder()
@@ -622,7 +665,7 @@ public class ContentsService {
 
 	// 콘텐츠 삭제
 	@Transactional
-	public void deleteContent(Long id, Member member){
+	public void deleteContent(Long id, Member member) {
 		Contents contents = contentsRepository.findById(id)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CONTENT_ACCESS_DENIED));
 
