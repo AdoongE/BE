@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.content.repository;
 
+import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,5 +19,5 @@ public interface CategoryContentRepository extends JpaRepository<CategoryContent
 
     List<CategoryContent> findAllByContents_ContentsId(Long contentsId);
 
-//    void deleteByContentsIdAndCategoryId(Long contentsId, Long categoryId);
+    void deleteByContents(Contents contents);
 }

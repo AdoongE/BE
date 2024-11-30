@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class S3Service {
@@ -66,11 +68,13 @@ public class S3Service {
     public static String extractKeyFromUrl(String url) {
 
         String docBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
-        String imgBaseUrl = "https://content-img.s3.ap-northeast-2.amazonaws.com/";
+//        String imgBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
+        String imgBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/image/";
 
         // URL이 docBaseUrl로 시작하는지 확인
         if (url.startsWith(docBaseUrl)) {
-            return url.substring(docBaseUrl.length()); // docBaseUrl 뒤의 경로 추출
+            String decodedString = URLDecoder.decode(url, StandardCharsets.UTF_8);
+            return decodedString.substring(docBaseUrl.length()); // docBaseUrl 뒤의 경로 추출
         }
         // URL이 imgBaseUrl로 시작하는지 확인
         else if (url.startsWith(imgBaseUrl)) {
