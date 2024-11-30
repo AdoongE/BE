@@ -49,6 +49,7 @@ public class ContentsAllResponse {
         String contentLink;
         List<String> contentImage;
         List<String> contentDoc;
+        List<String> title;
         Long thumbnailImage;
         List<String> boardCategory;
         List<String> tags;
