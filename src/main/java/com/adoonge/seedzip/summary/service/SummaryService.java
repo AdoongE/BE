@@ -26,7 +26,7 @@ public class SummaryService {
     private final RestTemplate template;
 
     public ChatGPTResponse requestTextAnalysis(String requestText) {
-        ChatGPTRequest request = ChatGPTRequest.createTextRequest(apiModel, 500, "user", requestText);
+        ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
         return template.postForObject(apiUrl, request, ChatGPTResponse.class);
     }
 

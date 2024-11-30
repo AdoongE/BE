@@ -4,8 +4,10 @@ import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.summary.dto.response.ChatGPTResponse;
 import com.adoonge.seedzip.summary.dto.response.ImageSummaryResponse;
 import com.adoonge.seedzip.summary.service.SummaryService;
+import com.adoonge.seedzip.summary.service.YouTubeService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,9 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/summary")
 @RequiredArgsConstructor
+@Slf4j
 public class SummaryController {
 
     private final SummaryService summaryService;
+
+    private final YouTubeService youTubeService;
 
     @PostMapping("/image")
     public ApiResponse<ImageSummaryResponse> imageAnalysis(@RequestParam String imageUrl) throws IOException {
@@ -24,9 +29,14 @@ public class SummaryController {
         return new ApiResponse<>(response);
     }
 
-    @PostMapping("/text")
-    public String textAnalysis(@RequestParam String requestText) {
-        ChatGPTResponse response = summaryService.requestTextAnalysis(requestText);
+    @PostMapping("/youtube")
+    public String youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
+
+        String str = youTubeService.searchVideos(youtubeUrl);
+
+        ChatGPTResponse response = summaryService.requestTextAnalysis(str);
+
+        log.info(response.toString());
         return response.getChoices().get(0).getMessage().getContent();
     }
 }

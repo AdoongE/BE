@@ -93,6 +93,9 @@ openai:
   url: ${openai_url}
   model: ${openai_model}
 
+youtube :
+  api :
+    key : ${YOUTUBE_API_KEY}
 
 server:
   tomcat:
