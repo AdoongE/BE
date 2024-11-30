@@ -9,6 +9,7 @@ import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -40,4 +41,3 @@ public class SummaryController {
 		return response.getChoices().get(0).getMessage().getContent();
 	}
 
-}

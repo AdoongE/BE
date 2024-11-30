@@ -87,6 +87,7 @@ cloud:
       docBucket: ${DOC_BUCKET}
       imgBucket: ${IMG_BUCKET}
 
+
 server:
   tomcat:
     max-swallow-size: 50MB
@@ -101,3 +102,4 @@ openai:
     key: ${openai_api_key}
   url: ${openai_url}
   model: ${openai_model}
+

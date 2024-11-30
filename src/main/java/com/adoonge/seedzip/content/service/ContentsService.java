@@ -357,6 +357,7 @@ public class ContentsService {
 		List<String> contentImage = null;
 		List<String> contentDoc = null;
 		Long thumbnailImage = -1L;
+		List<String> title = new ArrayList<>();
 
 		// contentDataType이 LINK인 경우
 		if (ContentsDataType.LINK.equals(contents.getContentsDataType())) {
@@ -374,12 +375,12 @@ public class ContentsService {
 			for (Image image : imageList) {
 				// 이미지 URL 추가
 				contentImage.add(image.getImgLink());
+				title.add(image.getImgName());
 
 				// 썸네일 이미지인 경우 ID 저장
 				if (image.isImgThumbnail()) {
 					thumbnailImage = (long)idx;
 				}
-
 				idx++;
 			}
 		}
@@ -394,11 +395,11 @@ public class ContentsService {
 			for (Document document : documentList) {
 				// 이미지 URL 추가
 				contentDoc.add(document.getDocLink());
+				title.add(document.getDocName());
 
 				if (document.isDocThumbnail()) {
 					thumbnailImage = (long)idx;
 				}
-
 				idx++;
 			}
 		}
@@ -429,6 +430,7 @@ public class ContentsService {
 			contentLink,
 			contentImage,
 			contentDoc,
+			title,
 			thumbnailImage,
 			categoryNames,
 			tagNames,
@@ -438,7 +440,7 @@ public class ContentsService {
 		);
 	}
 
-	// 콘텐츠 수정 (수정하자...)
+	// 콘텐츠 수정
 	public ContentsAllResponse.contentResponse modifyContents(ContentsRequest.allContentsRequest request, Long contentsId,
 															  List<MultipartFile> files, Member member) {
 		Contents contents = contentsRepository.findById(contentsId)
@@ -460,49 +462,19 @@ public class ContentsService {
 		// 기존 태그 조회
 		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(contents.getContentsId());
 
-		// 기존 태그 이름 리스트 생성
-		List<String> existingTagNames = existingContentTags.stream()
-				.map(contentTag -> tagRepository.findById(contentTag.getTag().getId())
-						.map(Tag::getTagName)
-						.orElse(null))
-				.filter(Objects::nonNull) // null 값 필터링
-				.collect(Collectors.toList());
-
-		// 요청된 태그 이름 리스트
-		List<String> requestedTagNames = Arrays.asList(request.getTags());
-
-		// 삭제할 태그: 요청에 없는 기존 태그
-		List<ContentTag> tagsToDelete = existingContentTags.stream()
-				.filter(contentTag -> {
-					String tagName = tagRepository.findById(contentTag.getTag().getId())
-							.map(Tag::getTagName)
-							.orElse(null);
-					return !requestedTagNames.contains(tagName);
-				})
-				.collect(Collectors.toList());
-
 		// 삭제 처리
-		tagsToDelete.forEach(contentTag -> contentTagRepository.delete(contentTag));
+		existingContentTags.forEach(contentTag -> contentTagRepository.delete(contentTag));
 
-		// 추가할 태그: 기존에 없는 새 요청 태그
-		List<String> tagsToAdd = requestedTagNames.stream()
-				.filter(tagName -> !existingTagNames.contains(tagName))
-				.collect(Collectors.toList());
-
-		// 추가 처리
-		tagsToAdd.forEach(tagName -> {
-			CustomTag tag = customTagRepository.findByTagNameAndMemberId(tagName, member.getId())
-					.orElseGet(() -> customTagRepository.save(
-							CustomTag.builder()
-									.name(tagName)
-									.build()));
-
-			ContentTag contentTag = ContentTag.builder()
-					.contents(contents)
-					.tag(tag)
-					.build();
-			contentTagRepository.save(contentTag);
-		});
+		// 태그 생성 및 사용
+		Arrays.stream(request.getTags())
+				.map(tagName -> {
+					Tag tag = findOrCreateTag(tagName, member); // 태그 찾거나 생성
+					return ContentTag.builder()
+							.contents(contents)
+							.tag(tag)
+							.build();
+				})
+				.forEach(contentTagRepository::save); // ContentTag 저장
 
 		// 카테고리
 		if (Objects.isNull(request.getBoardCategory())) {
@@ -675,16 +647,32 @@ public class ContentsService {
 		}
 
 		//콘텐츠 삭제
-		contentsRepository.delete(contents);
+		categoryContentRepository.deleteByContents(contents);
+		contentTagRepository.deleteByContents(contents);
 
+		if(ContentsDataType.LINK.equals(contents.getContentsDataType())){
+			linkRepository.deleteByContentsId(contents.getContentsId());
+		}
 		//IMAGE
-		if (ContentsDataType.IMAGE.equals(contents.getContentsDataType())) {
+		else if (ContentsDataType.IMAGE.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
+			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contents.getContentsId());
+			imageRepository.deleteByContentsId(contents.getContentsId());
+
+			existingImages.forEach(image -> {
+				s3Service.deleteImgFile(image.getImgLink());
+			});
 		}
 		//PDF
-		if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
+		else if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
+			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contents.getContentsId());
+			documentRepository.deleteByContentsId(contents.getContentsId());
+			existingDocuments.forEach(document -> {
+				s3Service.deleteDocFile(document.getDocLink());
+			});
 		}
 
+		contentsRepository.delete(contents);
 	}
 }

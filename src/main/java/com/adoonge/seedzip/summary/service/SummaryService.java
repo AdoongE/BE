@@ -3,6 +3,7 @@ package com.adoonge.seedzip.summary.service;
 import com.adoonge.seedzip.summary.dto.request.ChatGPTRequest;
 import com.adoonge.seedzip.summary.dto.response.ChatGPTResponse;
 
+
 import java.io.IOException;
 
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.codec.binary.Base64;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
+
 
 @Service
 @RequiredArgsConstructor
@@ -35,4 +44,3 @@ public class SummaryService {
 		ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, "user", requestText, imageUrl);
 		return template.postForObject(apiUrl, request, ChatGPTResponse.class);
 	}
-}
