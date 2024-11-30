@@ -1,6 +1,8 @@
 package com.adoonge.seedzip.summary.controller;
 
+import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.summary.dto.response.ChatGPTResponse;
+import com.adoonge.seedzip.summary.dto.response.ImageSummaryResponse;
 import com.adoonge.seedzip.summary.service.SummaryService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +19,9 @@ public class SummaryController {
     private final SummaryService summaryService;
 
     @PostMapping("/image")
-    public String imageAnalysis(@RequestParam String imageUrl, @RequestParam String requestText) throws IOException {
-        ChatGPTResponse response = summaryService.requestImageAnalysis(imageUrl, requestText);
-        return response.getChoices().get(0).getMessage().getContent();
+    public ApiResponse<ImageSummaryResponse> imageAnalysis(@RequestParam String imageUrl) throws IOException {
+        ImageSummaryResponse response = summaryService.requestImageAnalysis(imageUrl);
+        return new ApiResponse<>(response);
     }
 
     @PostMapping("/text")
