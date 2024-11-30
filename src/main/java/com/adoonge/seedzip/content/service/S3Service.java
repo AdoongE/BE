@@ -55,15 +55,15 @@ public class S3Service {
 
     public void deleteDocFile(String fileUrl) {
         // S3 버킷에서 파일 삭제 로직
-        s3Client.deleteObject(docBucketName, extractKeyFromUrl(fileUrl, docBucketName));
+        s3Client.deleteObject("content-doc", extractKeyFromUrl(fileUrl));
     }
 
     public void deleteImgFile(String fileUrl) {
         // S3 버킷에서 파일 삭제 로직
-        s3Client.deleteObject(imgBucketName, extractKeyFromUrl(fileUrl, imgBucketName));
+        s3Client.deleteObject("content-img", extractKeyFromUrl(fileUrl));
     }
 
-    public static String extractKeyFromUrl(String url, String bucketName) {
+    public static String extractKeyFromUrl(String url) {
 
         String docBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
         String imgBaseUrl = "https://content-img.s3.ap-northeast-2.amazonaws.com/";
