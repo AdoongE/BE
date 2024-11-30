@@ -647,18 +647,32 @@ public class ContentsService {
 		}
 
 		//콘텐츠 삭제
-		contentsRepository.delete(contents);
+		categoryContentRepository.deleteByContents(contents);
+		contentTagRepository.deleteByContents(contents);
 
+		if(ContentsDataType.LINK.equals(contents.getContentsDataType())){
+			linkRepository.deleteByContentsId(contents.getContentsId());
+		}
 		//IMAGE
-		if (ContentsDataType.IMAGE.equals(contents.getContentsDataType())) {
+		else if (ContentsDataType.IMAGE.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
+			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contents.getContentsId());
+			imageRepository.deleteByContentsId(contents.getContentsId());
 
+			existingImages.forEach(image -> {
+				s3Service.deleteImgFile(image.getImgLink());
+			});
 		}
 		//PDF
-		if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
+		else if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
-
+			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contents.getContentsId());
+			documentRepository.deleteByContentsId(contents.getContentsId());
+			existingDocuments.forEach(document -> {
+				s3Service.deleteDocFile(document.getDocLink());
+			});
 		}
 
+		contentsRepository.delete(contents);
 	}
 }
