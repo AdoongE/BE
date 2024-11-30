@@ -24,8 +24,9 @@ public class ChatGPTRequest {
     @JsonProperty("max_tokens")
     private int maxTokens;
 
-    public static ChatGPTRequest createImageRequest(String model, int maxTokens, String role, String requestText, String imageUrl) {
-        TextContent textContent = new TextContent("text", requestText);
+    public static ChatGPTRequest createImageRequest(String model, int maxTokens, String role, String imageUrl) {
+        String prompt = "Please answer in Korean. Analyze the image from the given URL and extract title, a 3-sentence summary, and tags as a comma-separated string without #, then return the result as a raw JSON object without any code block or additional formatting.";
+        TextContent textContent = new TextContent("text", prompt);
         ImageContent imageContent = new ImageContent("image_url", new ImageUrl(imageUrl));
         Message message = new ImageMessage(role, List.of(textContent, imageContent));
         return createChatGPTRequest(model, maxTokens, Collections.singletonList(message));
