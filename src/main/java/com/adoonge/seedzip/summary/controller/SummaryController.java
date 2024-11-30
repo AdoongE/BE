@@ -1,6 +1,8 @@
 package com.adoonge.seedzip.summary.controller;
 
+import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.summary.dto.response.ChatGPTResponse;
+import com.adoonge.seedzip.summary.dto.response.ImageSummaryResponse;
 import com.adoonge.seedzip.summary.service.SummaryService;
 import com.adoonge.seedzip.summary.service.YouTubeService;
 
@@ -40,4 +42,4 @@ public class SummaryController {
 		log.info(response.toString());
 		return response.getChoices().get(0).getMessage().getContent();
 	}
-
+}
