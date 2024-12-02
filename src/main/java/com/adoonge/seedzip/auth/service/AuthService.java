@@ -4,7 +4,6 @@ import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
 import com.adoonge.seedzip.auth.dto.response.LoginResponse;
 import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.category.domain.Visibility;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
@@ -82,7 +81,7 @@ public class AuthService {
         // Category 자동 생성
         Category defaultCategory = Category.builder()
                 .name("default")
-                .visibility(Visibility.PRIVATE)
+                .isPublic(false)
                 .member(member)
                 .build();
 
