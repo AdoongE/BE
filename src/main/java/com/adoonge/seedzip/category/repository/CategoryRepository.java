@@ -12,7 +12,6 @@ import com.adoonge.seedzip.category.domain.Category;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
 	List<Category> findAllByMemberId(Long memberId);
-	Category findByName(String name);
-	List<Category> findByMemberId(Long memberId);
+
 	Category findByMemberIdAndName(Long memberId, String name);
 }
