@@ -22,11 +22,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
 @Entity
 @Table(name = "bookmark")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Bookmark extends BaseEntity {
 
 	@Id
@@ -42,4 +40,16 @@ public class Bookmark extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
+	@Builder
+	public Bookmark(Category category, Member member) {
+		this.category = category;
+		this.member = member;
+	}
+
+	public static Bookmark of(Category category, Member member) {
+		return Bookmark.builder()
+			.category(category)
+			.member(member)
+			.build();
+	}
 }

@@ -29,21 +29,25 @@ public class BookmarkController {
 
 	private final BookmarkService bookmarkService;
 
-	@PostMapping("category/{id}/bookmark")
+	@PostMapping("category/{categoryId}/bookmark")
 	@Operation(summary = "북마크 추가 API", description = "북마크 추가 API입니다.")
-	public ApiResponse<BookmarkResponse> addBookmark(@PathVariable Long id,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ApiResponse<BookmarkResponse> addBookmark(
+		@PathVariable Long categoryId,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 
 		Member member = customUserDetails.getMember();
-		BookmarkResponse bookmarkResponse = bookmarkService.addBookmark(id, member);
+		BookmarkResponse bookmarkResponse = bookmarkService.addBookmark(categoryId, member);
 
 		return new ApiResponse<>(bookmarkResponse);
 	}
 
 	@DeleteMapping("/bookmark/{bookmarkId}")
 	@Operation(summary = "북마크 삭제 API", description = "북마크 삭제 API입니다.")
-	public ApiResponse<Void> deleteBookmark(@PathVariable Long bookmarkId,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ApiResponse<Void> deleteBookmark(
+		@PathVariable Long bookmarkId,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 
 		Member member = customUserDetails.getMember();
 		bookmarkService.deleteBookmark(bookmarkId, member);
@@ -53,7 +57,9 @@ public class BookmarkController {
 
 	@GetMapping("/bookmark")
 	@Operation(summary = "북마크 조회 API", description = "북마크 조회 API입니다.")
-	public ApiResponse<BookmarkResponse> getBookmarks(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ApiResponse<BookmarkResponse> getBookmarks(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 
 		Member member = customUserDetails.getMember();
 		List<BookmarkResponse> bookmarks = bookmarkService.getBookmarks(member);

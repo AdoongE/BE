@@ -1,5 +1,7 @@
 package com.adoonge.seedzip.category.domain;
 
+import org.hibernate.annotations.ColumnDefault;
+
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
 
@@ -13,16 +15,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
-@Builder
 @Entity
 @Table(name = "category")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
 public class Category extends BaseEntity {
 
 	@Id
@@ -32,22 +34,21 @@ public class Category extends BaseEntity {
 	@Column(length = 50)
 	private String name;
 
-	@Enumerated(EnumType.STRING)
-	@NonNull
-	private Visibility visibility;
+	@ColumnDefault("false")
+	private Boolean isPublic;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	@PrePersist
-	public void setDefaultValues() {
-		if (this.name == null) {
-			this.name = "새 카테고리";
-		}
+	@Builder
+	public Category(String name, Boolean isPublic, Member member) {
+		this.name = name;
+		this.isPublic = isPublic;
+		this.member = member;
 	}
 
-	public void updateCategory(String name) {
+	public void updateCategoryName(String name) {
 		this.name = name;
 	}
 }

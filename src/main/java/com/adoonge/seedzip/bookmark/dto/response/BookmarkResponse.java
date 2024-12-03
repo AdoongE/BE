@@ -1,9 +1,10 @@
 package com.adoonge.seedzip.bookmark.dto.response;
 
 import com.adoonge.seedzip.bookmark.domain.Bookmark;
-import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.category.domain.Visibility;
 
+import lombok.Builder;
+
+@Builder
 public record BookmarkResponse(
 	Long bookmarkId,
 	Long categoryId,
@@ -12,13 +13,12 @@ public record BookmarkResponse(
 	Long memberId
 ) {
 	public static BookmarkResponse fromEntity(Bookmark bookmark) {
-		Category category = bookmark.getCategory();
-		return new BookmarkResponse(
-			bookmark.getBookmarkId(),
-			category.getCategoryId(),
-			category.getName(),
-			category.getVisibility() == Visibility.PUBLIC,
-			bookmark.getMember().getId()
-		);
+		return BookmarkResponse.builder()
+			.bookmarkId(bookmark.getBookmarkId())
+			.categoryId(bookmark.getCategory().getCategoryId())
+			.name(bookmark.getCategory().getName())
+			.isPublic(bookmark.getCategory().getIsPublic())
+			.memberId(bookmark.getMember().getId())
+			.build();
 	}
 }

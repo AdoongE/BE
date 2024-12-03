@@ -1,9 +1,9 @@
 package com.adoonge.seedzip.bookmark.service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.adoonge.seedzip.bookmark.domain.Bookmark;
 import com.adoonge.seedzip.bookmark.dto.response.BookmarkResponse;
@@ -15,10 +15,10 @@ import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 @Service
 public class BookmarkService {
 
@@ -32,18 +32,14 @@ public class BookmarkService {
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
 
 		// 북마크 중복 확인
-		Boolean isAlreadyBookmarked = bookmarkRepository.existsByCategoryAndMember(category, member);
-		if (isAlreadyBookmarked) {
+		if (bookmarkRepository.existsByCategoryAndMember(category, member)) {
 			throw SeedzipException.from(ErrorCode.CATEGORY_ALREADY_BOOKMARKED);
 		}
 
-		Bookmark bookmark = Bookmark.builder()
-			.category(category)
-			.member(member)
-			.build();
-		bookmarkRepository.save(bookmark);
+		Bookmark bookmark = Bookmark.of(category, member);
+		Bookmark savedBookMark = bookmarkRepository.save(bookmark);	//id유무
 
-		return BookmarkResponse.fromEntity(bookmark);
+		return BookmarkResponse.fromEntity(savedBookMark);
 	}
 
 	@Transactional
@@ -59,12 +55,11 @@ public class BookmarkService {
 		bookmarkRepository.delete(bookmark);
 	}
 
-	@Transactional
 	public List<BookmarkResponse> getBookmarks(Member member) {
-		List<Bookmark> bookmarks = bookmarkRepository.findByMemberId(member.getId());
+		List<Bookmark> bookmarks = bookmarkRepository.findAllByMemberId(member.getId());
 
 		return bookmarks.stream()
 			.map(BookmarkResponse::fromEntity)
-			.collect(Collectors.toList());
+			.toList();
 	}
 }
