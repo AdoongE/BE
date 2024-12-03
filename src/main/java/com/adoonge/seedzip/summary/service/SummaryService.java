@@ -35,10 +35,6 @@ public class SummaryService {
 
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
-        log.info(response);
-
-
-
         try{
             return parseSummaryResponse(response);
         } catch (JsonProcessingException e) {
@@ -53,8 +49,6 @@ public class SummaryService {
         ChatGPTResponse chatGPTResponse =  template.postForObject(apiUrl, request, ChatGPTResponse.class);
 
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
-
-        log.info(response);
 
         try{
             return parseSummaryResponse(response);

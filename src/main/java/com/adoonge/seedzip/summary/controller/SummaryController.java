@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/summary")
 @RequiredArgsConstructor
-@Slf4j
 public class SummaryController {
 
     private final SummaryService summaryService;
