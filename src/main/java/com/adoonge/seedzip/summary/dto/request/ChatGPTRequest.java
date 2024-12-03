@@ -32,10 +32,10 @@ public class ChatGPTRequest {
         return createChatGPTRequest(model, maxTokens, Collections.singletonList(message));
     }
 
-    public static ChatGPTRequest createYoutubeRequest(String model, int maxTokens, String requestText) {
-        Message systemMessage = new TextMessage("system", "당신은 유튜브 영상에 대한 해시태그를 생성하는 유용한 어시스턴트입니다.");
-        Message userMessage = new TextMessage("user", "다음 내용만 가지고 어울리는 해시태그 3개, 제목, 요약을 추천해 줘.\n"+requestText);
 
+    public static ChatGPTRequest createYoutubeRequest(String model, int maxTokens, String requestText) {
+        Message systemMessage = new TextMessage("system", "You are a helpful assistant for generating hashtags for YouTube videos. Please answer in Korean.");
+        Message userMessage = new TextMessage("user", "Analyze the given text about a YouTube video, suggest a title, provide a 3-sentence summary, and 3 tags as a comma-separated string without #. Return the result as a raw JSON object without any code block or additional formatting.\n" + requestText);
         return createChatGPTRequest(model, maxTokens, List.of(systemMessage,userMessage));
     }
 
@@ -46,4 +46,5 @@ public class ChatGPTRequest {
                 .messages(messages)
                 .build();
     }
+
 }

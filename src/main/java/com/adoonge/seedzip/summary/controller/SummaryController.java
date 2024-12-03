@@ -2,7 +2,7 @@ package com.adoonge.seedzip.summary.controller;
 
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.summary.dto.response.ChatGPTResponse;
-import com.adoonge.seedzip.summary.dto.response.ImageSummaryResponse;
+import com.adoonge.seedzip.summary.dto.response.SummaryResponse;
 import com.adoonge.seedzip.summary.service.SummaryService;
 import com.adoonge.seedzip.summary.service.YouTubeService;
 import java.io.IOException;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/summary")
 @RequiredArgsConstructor
-@Slf4j
 public class SummaryController {
 
     private final SummaryService summaryService;
@@ -24,19 +23,15 @@ public class SummaryController {
     private final YouTubeService youTubeService;
 
     @PostMapping("/image")
-    public ApiResponse<ImageSummaryResponse> imageAnalysis(@RequestParam String imageUrl) throws IOException {
-        ImageSummaryResponse response = summaryService.requestImageAnalysis(imageUrl);
+    public ApiResponse<SummaryResponse> imageAnalysis(@RequestParam String imageUrl) throws IOException {
+        SummaryResponse response = summaryService.requestImageAnalysis(imageUrl);
         return new ApiResponse<>(response);
     }
 
     @PostMapping("/youtube")
-    public String youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
-
-        String str = youTubeService.searchVideos(youtubeUrl);
-
-        ChatGPTResponse response = summaryService.requestTextAnalysis(str);
-
-        log.info(response.toString());
-        return response.getChoices().get(0).getMessage().getContent();
+    public ApiResponse<SummaryResponse> youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
+        String youtubeData = youTubeService.searchVideos(youtubeUrl);   // 유튜브 데이터 조회
+        SummaryResponse response = summaryService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
+        return new ApiResponse<>(response);
     }
 }
