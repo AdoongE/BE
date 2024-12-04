@@ -20,7 +20,7 @@ public class Tag extends BaseEntity {
     @Column(name = "tag_id")
     private Long id;
 
-    @Column(name = "tag_name", unique = true)
+    @Column(name = "tag_name")
     private String tagName;
 
     @Column(name = "is_default")

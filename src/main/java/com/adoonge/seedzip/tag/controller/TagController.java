@@ -44,30 +44,30 @@ public class TagController {
 
 	@GetMapping(value = "/member")
 	@Operation(summary = "사용자가 생성한 태그 조회 API", description = "태그 조회 API입니다.")
-	public ApiResponse<?> getCustomTag(
+	public ApiResponse<TagResponse> getCustomTag(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		Member member = customUserDetails.getMember();
-		ApiResponse<?> customTags = tagService.getCustomTag(member);
+		List<TagResponse> customTags = tagService.getCustomTag(member);
 
 		return new ApiResponse<>(customTags);
 	}
 
 	@GetMapping(value = "/default/used")
 	@Operation(summary = "기본 태그 중 사용한 적 있는 태그만 조회 API", description = "태그 조회 API입니다.")
-	public ApiResponse<?> getUsedTag(
+	public ApiResponse<TagResponse> getUsedTag(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
 		Member member = customUserDetails.getMember();
-		ApiResponse<?> memberTags = tagService.getUsedTags(member);
+		List<TagResponse> usedTags = tagService.getUsedTags(member);
 
-		return new ApiResponse<>(memberTags);
+		return new ApiResponse<>(usedTags);
 	}
 
 	@PostMapping(value = "/default")
 	@Operation(
 		summary = "디폴트 태그 저장 API",
-		description = "태그 저장 API입니다. 초기화 이후에 아래 내용 한번만! execute하면 됩니다. ",
+		description = "태그 저장 API입니다. admin 계정으로 로그인한 경우에만 사용 가능합니다.",
 		requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
 			content = @Content(
 				mediaType = "application/json",
@@ -122,8 +122,10 @@ public class TagController {
 			)
 		)
 	)
-	public ApiResponse<Void> saveDefaultTag(@RequestBody List<String> tagNames) {
-		tagService.saveDefaultTags(tagNames);
+	public ApiResponse<Void> saveDefaultTag(@RequestBody List<String> tagNames, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+
+		tagService.saveDefaultTags(member, tagNames);
 
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}
