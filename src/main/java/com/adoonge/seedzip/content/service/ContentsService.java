@@ -11,12 +11,9 @@ import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
-import com.adoonge.seedzip.tag.domain.CustomTag;
-import com.adoonge.seedzip.tag.domain.DefaultTag;
 import com.adoonge.seedzip.tag.domain.Tag;
 import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
-import com.adoonge.seedzip.tag.repository.CustomTagRepository;
-import com.adoonge.seedzip.tag.repository.DefaultTagRepository;
+import com.adoonge.seedzip.tag.domain.type.DefaultTagType;
 import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
@@ -45,17 +42,9 @@ public class ContentsService {
 	@Autowired
 	private final DocumentRepository documentRepository;
 
-	@Autowired
 	private final TagRepository tagRepository;
 
-	@Autowired
-	private final CustomTagRepository customTagRepository;
-
-	@Autowired
 	private final UsedDefaultTagRepository usedDefaultTagRepository;
-
-	@Autowired
-	private final DefaultTagRepository defaultTagRepository;
 
 	@Autowired
 	private final ContentTagRepository contentTagRepository;
@@ -129,7 +118,8 @@ public class ContentsService {
 					fileUrls.add(fileUrl);
 
 					// URL 저장
-					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
+					Document document = documentRepository.save(
+						request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
 
 					if (index.get() == thumbnailIndex) {
 						document.setDocThumbnail(true);
@@ -181,16 +171,17 @@ public class ContentsService {
 	}
 
 	private Tag findOrCreateTag(String tagName, Member member) {
-		// 1. Default 태그 확인
-		Optional<DefaultTag> defaultTagOpt = defaultTagRepository.findByTagName(tagName);
-		// 디폴트 태그인 경우
-		if (defaultTagOpt.isPresent()) {
-			DefaultTag defaultTag = defaultTagOpt.get();
+		// 1. Default 태그 확인 (enum 클래스에서)
+		if (Arrays.stream(DefaultTagType.values())
+			.anyMatch(tag -> tag.getDisplayName().equals(tagName))) {
 
-			// 사용자별 UsedDefaultTag 생성, 조회
-			UsedDefaultTag usedDefaultTag = usedDefaultTagRepository
+			Tag defaultTag = tagRepository.findByTagName(tagName)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
+
+			// 사용자별 UsedDefaultTag 조회, 저장
+			usedDefaultTagRepository
 				.findByMemberIdAndTagId(member.getId(), defaultTag.getId())    //사용한적 O
-				.orElseGet(() ->    // 사용한적 X
+				.orElseGet(() ->    // 사용한적 없으면 저장
 					usedDefaultTagRepository.save(UsedDefaultTag.builder()
 						.member(member)
 						.tag(defaultTag)
@@ -199,11 +190,11 @@ public class ContentsService {
 			return defaultTag;
 		}
 
-		// 2. 디폴트 태그가 아닌 경우 CustomTag 생성
-		return customTagRepository.findByTagNameAndMemberId(tagName, member.getId())
+		// 2. 디폴트 태그가 아닌 경우 CustomTag로 저장
+		return tagRepository.findByTagNameAndMemberId(tagName, member.getId())
 			.orElseGet(() -> {
-				return customTagRepository.save(CustomTag.builder()
-					.name(tagName)
+				return tagRepository.save(Tag.builder()
+					.tagName(tagName)
 					.member(member)
 					.build());
 			});
@@ -441,12 +432,13 @@ public class ContentsService {
 	}
 
 	// 콘텐츠 수정
-	public ContentsAllResponse.contentResponse modifyContents(ContentsRequest.allContentsRequest request, Long contentsId,
-															  List<MultipartFile> files, Member member) {
+	public ContentsAllResponse.contentResponse modifyContents(ContentsRequest.allContentsRequest request,
+		Long contentsId,
+		List<MultipartFile> files, Member member) {
 		Contents contents = contentsRepository.findById(contentsId)
-				.orElseThrow(() -> new RuntimeException("Content not found"));
+			.orElseThrow(() -> new RuntimeException("Content not found"));
 
-		if(!Objects.equals(contents.getContentsName(), request.getContentName())){
+		if (!Objects.equals(contents.getContentsName(), request.getContentName())) {
 			contents.setContentsName(request.getContentName());
 		}
 
@@ -460,21 +452,22 @@ public class ContentsService {
 		contentsRepository.save(contents);
 
 		// 기존 태그 조회
-		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(contents.getContentsId());
+		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(
+			contents.getContentsId());
 
 		// 삭제 처리
 		existingContentTags.forEach(contentTag -> contentTagRepository.delete(contentTag));
 
 		// 태그 생성 및 사용
 		Arrays.stream(request.getTags())
-				.map(tagName -> {
-					Tag tag = findOrCreateTag(tagName, member); // 태그 찾거나 생성
-					return ContentTag.builder()
-							.contents(contents)
-							.tag(tag)
-							.build();
-				})
-				.forEach(contentTagRepository::save); // ContentTag 저장
+			.map(tagName -> {
+				Tag tag = findOrCreateTag(tagName, member); // 태그 찾거나 생성
+				return ContentTag.builder()
+					.contents(contents)
+					.tag(tag)
+					.build();
+			})
+			.forEach(contentTagRepository::save); // ContentTag 저장
 
 		// 카테고리
 		if (Objects.isNull(request.getBoardCategory())) {
@@ -482,31 +475,32 @@ public class ContentsService {
 			request.setBoardCategory(new String[] {"default"});
 		}
 
-		List<CategoryContent> existingCategoryContents = categoryContentRepository.findAllByContents_ContentsId(contents.getContentsId());
+		List<CategoryContent> existingCategoryContents = categoryContentRepository.findAllByContents_ContentsId(
+			contents.getContentsId());
 		List<String> requestedCategoryNames = Arrays.asList(request.getBoardCategory());
 
 		// 기존 카테고리 이름 가져오기
 		List<String> existingCategoryNames = existingCategoryContents.stream()
-				.map(categoryContent -> categoryRepository.findById(categoryContent.getCategory().getCategoryId())
-						.map(Category::getName) // Category에서 name 가져오기
-						.orElse(null)) // Category가 없을 경우 null 처리
-				.filter(Objects::nonNull) // null 값 필터링
-				.collect(Collectors.toList());
+			.map(categoryContent -> categoryRepository.findById(categoryContent.getCategory().getCategoryId())
+				.map(Category::getName) // Category에서 name 가져오기
+				.orElse(null)) // Category가 없을 경우 null 처리
+			.filter(Objects::nonNull) // null 값 필터링
+			.collect(Collectors.toList());
 
 		// 삭제할 카테고리: 요청에 없는 기존 카테고리
 		List<CategoryContent> categoriesToDelete = existingCategoryContents.stream()
-				.filter(categoryContent -> {
-					String categoryName = categoryRepository.findById(categoryContent.getCategory().getCategoryId())
-							.map(Category::getName)
-							.orElse(null);
-					return !requestedCategoryNames.contains(categoryName);
-				})
-				.collect(Collectors.toList());
+			.filter(categoryContent -> {
+				String categoryName = categoryRepository.findById(categoryContent.getCategory().getCategoryId())
+					.map(Category::getName)
+					.orElse(null);
+				return !requestedCategoryNames.contains(categoryName);
+			})
+			.collect(Collectors.toList());
 
 		// 추가할 카테고리: 기존에 없는 새 요청 카테고리
 		List<String> categoriesToAdd = requestedCategoryNames.stream()
-				.filter(categoryName -> !existingCategoryNames.contains(categoryName))
-				.collect(Collectors.toList());
+			.filter(categoryName -> !existingCategoryNames.contains(categoryName))
+			.collect(Collectors.toList());
 
 		// 삭제 처리
 		categoriesToDelete.forEach(categoryContent -> categoryContentRepository.delete(categoryContent));
@@ -517,30 +511,30 @@ public class ContentsService {
 				// 입력받은 카테고리가 없는 경우 default 카테고리 사용
 				Category defaultCategory = categoryRepository.findByMemberIdAndName(member.getId(), "default");
 				CategoryContent categoryContent = CategoryContent.builder()
-						.contents(contents)
-						.category(defaultCategory)
-						.build();
+					.contents(contents)
+					.category(defaultCategory)
+					.build();
 				categoryContentRepository.save(categoryContent);
 			} else {
 				Category existingCategory = categoryRepository.findByMemberIdAndName(member.getId(), categoryName);
 				if (existingCategory != null) {
 					CategoryContent categoryContent = CategoryContent.builder()
-							.contents(contents)
-							.category(existingCategory)
-							.build();
+						.contents(contents)
+						.category(existingCategory)
+						.build();
 					categoryContentRepository.save(categoryContent);
 				} else {
 					// 카테고리가 존재하지 않으면 새로 생성
 					Category newCategory = Category.builder()
-							.name(categoryName)
-							.member(member)
-							.build();
+						.name(categoryName)
+						.member(member)
+						.build();
 					categoryRepository.save(newCategory);
 
 					CategoryContent categoryContent = CategoryContent.builder()
-							.contents(contents)
-							.category(newCategory)
-							.build();
+						.contents(contents)
+						.category(newCategory)
+						.build();
 
 					categoryContentRepository.save(categoryContent);
 				}
@@ -550,7 +544,7 @@ public class ContentsService {
 		List<String> fileUrls = new ArrayList<>();
 
 		// 다른 DB도 접근하는 경우
-		if(contents.getContentsDataType().equals(ContentsDataType.PDF)){
+		if (contents.getContentsDataType().equals(ContentsDataType.PDF)) {
 
 			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contentsId);
 
@@ -569,7 +563,8 @@ public class ContentsService {
 					fileUrls.add(fileUrl);
 
 					// URL 저장
-					Document document = documentRepository.save(request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
+					Document document = documentRepository.save(
+						request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
 
 					if (index.get() == thumbnailIndex) {
 						document.setDocThumbnail(true);
@@ -582,8 +577,7 @@ public class ContentsService {
 					e.printStackTrace();
 				}
 			});
-		}
-		else if(contents.getContentsDataType().equals(ContentsDataType.LINK)){
+		} else if (contents.getContentsDataType().equals(ContentsDataType.LINK)) {
 			Optional<Link> existingLinkOptional = linkRepository.findByContents_ContentsId(contentsId);
 			String requestLink = request.getContentLink();
 
@@ -593,14 +587,13 @@ public class ContentsService {
 				if (!existingLink.getLink().equals(request.getContentLink())) {
 					linkRepository.delete(existingLink);
 					Link newLink = Link.builder()
-							.link(requestLink)
-							.contents(contents)
-							.build();
+						.link(requestLink)
+						.contents(contents)
+						.build();
 					linkRepository.save(newLink);
 				}
 			}
-		}
-		else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)){
+		} else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)) {
 			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
 
 			existingImages.forEach(image -> {
@@ -618,7 +611,8 @@ public class ContentsService {
 					fileUrls.add(fileUrl);
 
 					// URL 저장
-					Image image = imageRepository.save(request.toImgEntity(contents, fileUrl, file.getOriginalFilename()));
+					Image image = imageRepository.save(
+						request.toImgEntity(contents, fileUrl, file.getOriginalFilename()));
 
 					if (index.get() == thumbnailIndex) {
 						image.setImgThumbnail(true);
@@ -650,7 +644,7 @@ public class ContentsService {
 		categoryContentRepository.deleteByContents(contents);
 		contentTagRepository.deleteByContents(contents);
 
-		if(ContentsDataType.LINK.equals(contents.getContentsDataType())){
+		if (ContentsDataType.LINK.equals(contents.getContentsDataType())) {
 			linkRepository.deleteByContentsId(contents.getContentsId());
 		}
 		//IMAGE
@@ -666,7 +660,8 @@ public class ContentsService {
 		//PDF
 		else if (ContentsDataType.PDF.equals(contents.getContentsDataType())) {
 			// S3에서 삭제 코드 필요..
-			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contents.getContentsId());
+			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(
+				contents.getContentsId());
 			documentRepository.deleteByContentsId(contents.getContentsId());
 			existingDocuments.forEach(document -> {
 				s3Service.deleteDocFile(document.getDocLink());
