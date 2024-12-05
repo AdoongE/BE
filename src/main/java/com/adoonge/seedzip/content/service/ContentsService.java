@@ -170,36 +170,6 @@ public class ContentsService {
 		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 저장했습니다!", contents);
 	}
 
-	private Tag findOrCreateTag(String tagName, Member member) {
-		// 1. Default 태그 확인 (enum 클래스에서)
-		if (Arrays.stream(DefaultTagType.values())
-			.anyMatch(tag -> tag.getDisplayName().equals(tagName))) {
-
-			Tag defaultTag = tagRepository.findByTagName(tagName)
-				.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
-
-			// 사용자별 UsedDefaultTag 조회, 저장
-			usedDefaultTagRepository
-				.findByMemberIdAndTagId(member.getId(), defaultTag.getId())    //사용한적 O
-				.orElseGet(() ->    // 사용한적 없으면 저장
-					usedDefaultTagRepository.save(UsedDefaultTag.builder()
-						.member(member)
-						.tag(defaultTag)
-						.build()));
-
-			return defaultTag;
-		}
-
-		// 2. 디폴트 태그가 아닌 경우 CustomTag로 저장
-		return tagRepository.findByTagNameAndMemberId(tagName, member.getId())
-			.orElseGet(() -> {
-				return tagRepository.save(Tag.builder()
-					.tagName(tagName)
-					.member(member)
-					.build());
-			});
-	}
-
 	@Transactional
 	public List<ContentsAllResponse.contentsInfo> getAllContents(Member member) {
 		List<Contents> contentsList = contentsRepository.findByMemberId(member.getId());
@@ -237,7 +207,7 @@ public class ContentsService {
 				List<String> tagNames = tagIds.stream()
 					.map(tagId -> tagRepository.findById(tagId)
 						.map(Tag::getTagName)
-						.orElse(null))
+						.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND)))
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 
@@ -341,8 +311,7 @@ public class ContentsService {
 
 	@Transactional
 	public ContentsAllResponse.getContents getContentsDetail(Long contentsId) {
-		Contents contents = contentsRepository.findById(contentsId)
-			.orElseThrow(() -> new RuntimeException("Content not found"));        // 링크 조회
+		Contents contents = contentsRepository.findByContentsId(contentsId);    // 링크 조회
 
 		String contentLink = null;
 		List<String> contentImage = null;
@@ -397,7 +366,6 @@ public class ContentsService {
 
 		// 카테고리
 		List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(contentsId);
-		System.out.println(categoryIds);
 		List<String> categoryNames = categoryIds.stream()
 			.map(categoryId -> categoryRepository.findById(categoryId)
 				.map(Category::getName)
@@ -407,6 +375,7 @@ public class ContentsService {
 
 		// tagId에 해당하는 tagName 리스트 가져오기
 		List<Long> tagIds = contentTagRepository.findTagIdsByContentId(contentsId);
+		log.info(tagIds.toString());
 		List<String> tagNames = tagIds.stream()
 			.map(tagId -> tagRepository.findById(tagId)
 				.map(Tag::getTagName)
@@ -455,9 +424,8 @@ public class ContentsService {
 		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(
 			contents.getContentsId());
 
-		// 삭제 처리
+		// contentTag 삭제 처리
 		existingContentTags.forEach(contentTag -> contentTagRepository.delete(contentTag));
-		//여기다가 태그 삭제 코드 추가
 
 		// 태그 생성 및 사용
 		Arrays.stream(request.getTags())
@@ -669,21 +637,41 @@ public class ContentsService {
 			});
 		}
 
+		// 기존 태그 조회
+		List<ContentTag> existingContentTags = contentTagRepository.findAllByContents_ContentsId(id);
+		// contentTag 삭제 처리
+		existingContentTags.forEach(contentTag -> contentTagRepository.delete(contentTag));
+
 		contentsRepository.delete(contents);
 	}
 
-	private void findAndDeleteTag(String tagName, Member member) {
-		// 1. Default 태그면 usedDefaultTag에서 삭제
+	private Tag findOrCreateTag(String tagName, Member member) {
+		// 1. Default 태그 확인 (enum 클래스에서)
 		if (Arrays.stream(DefaultTagType.values())
 			.anyMatch(tag -> tag.getDisplayName().equals(tagName))) {
 
 			Tag defaultTag = tagRepository.findByTagName(tagName)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
 
-			usedDefaultTagRepository.deleteByMemberIdAndTagId(member.getId(), defaultTag.getId());
+			// 사용자별 UsedDefaultTag 조회, 저장
+			usedDefaultTagRepository
+				.findByMemberIdAndTagId(member.getId(), defaultTag.getId())    //사용한적 O
+				.orElseGet(() ->    // 사용한적 없으면 저장
+					usedDefaultTagRepository.save(UsedDefaultTag.builder()
+						.member(member)
+						.tag(defaultTag)
+						.build()));
+
+			return defaultTag;
 		}
 
-		// 2. 디폴트 태그가 아닌 경우 CustomTag에서 삭제
-		tagRepository.deleteByTagNameAndMemberId(tagName, member.getId());
+		// 2. 디폴트 태그가 아닌 경우 CustomTag로 저장
+		return tagRepository.findByTagNameAndMemberId(tagName, member.getId())
+			.orElseGet(() -> {
+				return tagRepository.save(Tag.builder()
+					.tagName(tagName)
+					.member(member)
+					.build());
+			});
 	}
 }
