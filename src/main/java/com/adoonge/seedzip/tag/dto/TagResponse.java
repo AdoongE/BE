@@ -1,16 +1,18 @@
 package com.adoonge.seedzip.tag.dto;
 
-import com.adoonge.seedzip.tag.domain.CustomTag;
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.tag.domain.Tag;
 import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
 
 public record TagResponse(
 	Long id,
 	String name
 ) {
-	public static TagResponse from(CustomTag customTag) {
+
+	public static TagResponse from(Tag tag) {
 		return new TagResponse(
-			customTag.getId(),
-			customTag.getTagName()
+			tag.getId(),
+			tag.getTagName()
 		);
 	}
 
