@@ -457,6 +457,7 @@ public class ContentsService {
 
 		// 삭제 처리
 		existingContentTags.forEach(contentTag -> contentTagRepository.delete(contentTag));
+		//여기다가 태그 삭제 코드 추가
 
 		// 태그 생성 및 사용
 		Arrays.stream(request.getTags())
@@ -669,5 +670,20 @@ public class ContentsService {
 		}
 
 		contentsRepository.delete(contents);
+	}
+
+	private void findAndDeleteTag(String tagName, Member member) {
+		// 1. Default 태그면 usedDefaultTag에서 삭제
+		if (Arrays.stream(DefaultTagType.values())
+			.anyMatch(tag -> tag.getDisplayName().equals(tagName))) {
+
+			Tag defaultTag = tagRepository.findByTagName(tagName)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
+
+			usedDefaultTagRepository.deleteByMemberIdAndTagId(member.getId(), defaultTag.getId());
+		}
+
+		// 2. 디폴트 태그가 아닌 경우 CustomTag에서 삭제
+		tagRepository.deleteByTagNameAndMemberId(tagName, member.getId());
 	}
 }

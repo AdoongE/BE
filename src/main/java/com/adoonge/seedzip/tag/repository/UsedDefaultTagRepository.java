@@ -13,5 +13,7 @@ public interface UsedDefaultTagRepository extends JpaRepository<UsedDefaultTag, 
 
 	Optional<UsedDefaultTag> findByMemberIdAndTagId(Long id, Long tagId);
 
+	Void deleteByMemberIdAndTagId(Long id, Long tagId);
+
 	Optional<List<UsedDefaultTag>> findByMemberId(Long id);
 }
