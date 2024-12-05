@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.summary.config;
+package com.adoonge.seedzip.recommendation.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

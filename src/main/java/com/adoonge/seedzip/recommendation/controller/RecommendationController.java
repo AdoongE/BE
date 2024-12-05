@@ -1,0 +1,40 @@
+package com.adoonge.seedzip.recommendation.controller;
+
+import com.adoonge.seedzip.global.dto.response.ApiResponse;
+import com.adoonge.seedzip.recommendation.dto.response.RecommendationResponse;
+import com.adoonge.seedzip.recommendation.service.RecommendationService;
+import com.adoonge.seedzip.recommendation.service.YouTubeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import java.io.IOException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/recommendation")
+@RequiredArgsConstructor
+@Tag(name = "RecommendationController", description = "제목, 요약, 태그 추천 관련 API")
+public class RecommendationController {
+
+    private final RecommendationService recommendationService;
+
+    private final YouTubeService youTubeService;
+
+    @PostMapping("/image")
+    @Operation(summary = "이미지 추천 관련 API", description = "이미지 링크를 넣으면 제목, 요약, 태그를 추천해주는 API입니다.")
+    public ApiResponse<RecommendationResponse> imageAnalysis(@RequestParam String imageUrl) {
+        RecommendationResponse response = recommendationService.requestImageAnalysis(imageUrl);
+        return new ApiResponse<>(response);
+    }
+
+    @PostMapping("/youtube")
+    @Operation(summary = "유튜브 추천 관련 API", description = "유튜브 링크를 넣으면 제목, 요약, 태그를 추천해주는 API입니다.")
+    public ApiResponse<RecommendationResponse> youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
+        String youtubeData = youTubeService.searchVideos(youtubeUrl);   // 유튜브 데이터 조회
+        RecommendationResponse response = recommendationService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
+        return new ApiResponse<>(response);
+    }
+}

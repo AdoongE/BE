@@ -1,10 +1,10 @@
-package com.adoonge.seedzip.summary.service;
+package com.adoonge.seedzip.recommendation.service;
 
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
-import com.adoonge.seedzip.summary.dto.request.ChatGPTRequest;
-import com.adoonge.seedzip.summary.dto.response.ChatGPTResponse;
-import com.adoonge.seedzip.summary.dto.response.SummaryResponse;
+import com.adoonge.seedzip.recommendation.dto.request.ChatGPTRequest;
+import com.adoonge.seedzip.recommendation.dto.response.ChatGPTResponse;
+import com.adoonge.seedzip.recommendation.dto.response.RecommendationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -18,7 +18,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class SummaryService {
+public class RecommendationService {
 
     @Value("${openai.model}")
     private String apiModel;
@@ -28,7 +28,7 @@ public class SummaryService {
 
     private final RestTemplate template;
 
-    public SummaryResponse requestTextAnalysis(String requestText) throws IOException {
+    public RecommendationResponse requestTextAnalysis(String requestText) {
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -36,30 +36,30 @@ public class SummaryService {
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseSummaryResponse(response);
+            return parseRecommendationResponse(response);
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
     }
 
-    public SummaryResponse requestImageAnalysis(String imageUrl) throws IOException {
+    public RecommendationResponse requestImageAnalysis(String imageUrl)  {
 //        String base64Image = Base64.encodeBase64String(image.getBytes());
 //        String imageUrl = "data:image/jpeg;base64," + base64Image;
-        ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, "user", imageUrl);
+        ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, imageUrl);
         ChatGPTResponse chatGPTResponse =  template.postForObject(apiUrl, request, ChatGPTResponse.class);
 
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseSummaryResponse(response);
+            return parseRecommendationResponse(response);
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
     }
 
-    private SummaryResponse parseSummaryResponse(String response) throws JsonProcessingException {
+    private RecommendationResponse parseRecommendationResponse(String response) throws JsonProcessingException {
         // ObjectMapper를 사용한 JSON 파싱
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(response, SummaryResponse.class);
+        return objectMapper.readValue(response, RecommendationResponse.class);
     }
 }

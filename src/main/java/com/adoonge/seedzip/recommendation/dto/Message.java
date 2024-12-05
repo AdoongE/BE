@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.summary.dto;
+package com.adoonge.seedzip.recommendation.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
