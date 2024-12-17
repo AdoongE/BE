@@ -10,6 +10,7 @@ import com.adoonge.seedzip.filter.domain.Filter;
 public record AddFilterRequest(
 	String name,
 	List<String> storageFormats,
+	List<String> tags,
 	LocalDate startDate,
 	LocalDate endDate,
 	Long dDayStart,

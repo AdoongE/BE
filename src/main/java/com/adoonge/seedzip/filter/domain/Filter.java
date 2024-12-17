@@ -21,6 +21,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.validation.constraints.Min;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -51,8 +52,10 @@ public class Filter extends BaseEntity {
 
 	private LocalDate endDate;
 
+	@Min(0)
 	private Long dDayStart;
 
+	@Min(0)
 	private Long dDayEnd;
 
 	@ManyToOne(fetch = FetchType.LAZY)

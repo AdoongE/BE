@@ -94,8 +94,14 @@ public enum ErrorCode {
     TAG_USAGE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "이 태그는 사용할 수 없습니다."),
     TAG_ASSOCIATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "태그를 콘텐츠에 연결하는 데 실패했습니다."),
     TAG_DISASSOCIATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "태그를 콘텐츠에서 제거하는 데 실패했습니다."),
-    TAG_PERMISSION_REQUIRED(HttpStatus.FORBIDDEN, "이 태그를 보려면 추가 권한이 필요합니다.");
+    TAG_PERMISSION_REQUIRED(HttpStatus.FORBIDDEN, "이 태그를 보려면 추가 권한이 필요합니다."),
 
+    // filter
+    FILTER_NOT_FOUND(HttpStatus.NOT_FOUND, "필터를 찾을 수 없습니다."),
+    EMPTY_FILTER(HttpStatus.OK, "필터가 존재하지 않습니다."),
+    FILTER_QUOTA_EXCEEDED(HttpStatus.PAYLOAD_TOO_LARGE, "필터 저장 한도를 초과했습니다."),
+    FILTER_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "필터 생성에 실패했습니다."),
+    FILTER_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "필터 유효성 검사가 실패했습니다.");
 
     private final HttpStatus status;
     private final String message;

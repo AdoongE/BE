@@ -6,5 +6,4 @@ import com.adoonge.seedzip.filter.domain.Filter;
 
 public interface FilterRepository extends JpaRepository<Filter, Long> {
 
-
 }
