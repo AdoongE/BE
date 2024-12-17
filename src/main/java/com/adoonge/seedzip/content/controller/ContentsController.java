@@ -1,8 +1,10 @@
 package com.adoonge.seedzip.content.controller;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
+import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse.contentsInfo;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsImageResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsLinkResponse;
@@ -137,7 +139,7 @@ public class ContentsController {
 		return new ApiResponse<>(modifyContents);
 	}
 
-	@DeleteMapping("/api/v1/content/{contentsId}")
+	@DeleteMapping("/{contentsId}")
 	@Operation(summary = "콘텐츠 삭제 API", description = "콘텐츠 삭제 API입니다.")
 	@ApiResponses(value = {
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
@@ -153,6 +155,15 @@ public class ContentsController {
 		contentsService.deleteContent(contentsId, member);
 
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
+	@PostMapping("/filtering")
+	@Operation(summary = "전체 콘텐츠 필터링 및 검색 API", description = "전체 콘텐츠 필터링 및 검색 API입니다.")
+	public ApiResponse<ContentsAllResponse.contentsInfo> filterContent(@RequestBody ContentsFilterRequest request
+			, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+
+		return new ApiResponse<>(contentsService.getFilteredContents(member, request));
 	}
 
 }
