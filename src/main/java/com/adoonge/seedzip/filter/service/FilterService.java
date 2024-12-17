@@ -1,6 +1,5 @@
 package com.adoonge.seedzip.filter.service;
 
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +21,9 @@ public class FilterService {
 
 	@Transactional
 	public void createFilter(AddFilterRequest request, Member member) {
-		Long nextNumber = 0L;
-		if(request.name() == null){
-			nextNumber = filterRepositoryCustom.findNextNumber();
-		}
+
+		// name이 null이면 필터 이름을 생성하기 위해 넘버 할당
+		Long nextNumber = request.name() == null ? filterRepositoryCustom.findNextNumber() : 0L;
 
 		Filter filter = request.toEntity(member, nextNumber);
 
