@@ -1,7 +1,9 @@
 package com.adoonge.seedzip.content.repository;
 
+import com.adoonge.seedzip.category.domain.QCategory;
 import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.content.domain.QContents;
+import com.adoonge.seedzip.content.domain.mapping.QCategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.QContentTag;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.tag.domain.QTag;
@@ -38,6 +40,37 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
             query.groupBy(contents.contentsId)
                     .having(tag.countDistinct().goe(tags.size())); // 최소 태그 개수 조건
         }
+
+        return query.fetch();
+    }
+
+    @Override
+    public List<Contents> findCategoryContentsByFilters(Predicate predicate, Member member, Long categoryId,
+                                                        List<String> tags) {
+        QContents contents = QContents.contents;
+        QContentTag contentTag = QContentTag.contentTag;
+        QCategory category = QCategory.category;
+        QCategoryContent categoryContent = QCategoryContent.categoryContent;
+        QTag tag = QTag.tag;
+
+        // 메인 쿼리
+        JPAQuery<Contents> query = queryFactory
+                .selectFrom(contents)
+                .leftJoin(categoryContent).on(categoryContent.contents.eq(contents)) // CategoryContent와 조인
+                .leftJoin(categoryContent.category, category) // Category와 조인
+                .leftJoin(contentTag).on(contentTag.contents.eq(contents)) // ContentTag와 조인
+                .leftJoin(contentTag.tag, tag) // Tag와 조인
+                .where(contents.member.eq(member)
+                        .and(categoryContent.category.categoryId.eq(categoryId))
+                        .and(predicate)) // 추가 필터 조건
+                .distinct(); // 중복 제거
+
+        // 태그 필터링 조건 추가 (필요할 경우에만)
+        if (tags != null && !tags.isEmpty()) {
+            query.groupBy(contents.contentsId)
+                    .having(tag.countDistinct().goe(tags.size())); // 최소 태그 개수 조건
+        }
+        System.out.println(query.fetch());
 
         return query.fetch();
     }

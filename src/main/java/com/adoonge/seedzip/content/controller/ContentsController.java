@@ -166,4 +166,14 @@ public class ContentsController {
 		return new ApiResponse<>(contentsService.getFilteredContents(member, request));
 	}
 
+	@PostMapping("/filtering/{categoryId}")
+	@Operation(summary = "카테고리 내 콘텐츠 필터링 및 검색 API", description = "카테고리 내 콘텐츠 필터링 및 검색 API입니다.")
+	public ApiResponse<ContentsAllResponse.contentsInfo> filterContent(@PathVariable("categoryId") Long categoryId,
+			@RequestBody ContentsFilterRequest request
+			, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+
+		return new ApiResponse<>(contentsService.getFilteredCategoryContents(member, categoryId, request));
+	}
+
 }

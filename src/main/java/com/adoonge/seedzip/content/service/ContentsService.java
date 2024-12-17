@@ -521,32 +521,20 @@ public class ContentsService {
 
 	//전체 콘텐츠 필터링 & 검색
 	public List<ContentsAllResponse.contentsInfo> getFilteredContents(Member member, ContentsFilterRequest request) {
-		QContents contents = QContents.contents;
-		QContentTag contentTag = QContentTag.contentTag;
-		QTag tag = QTag.tag;
 
-		BooleanBuilder builder = new BooleanBuilder();
-
-		// Member 필터
-		builder.and(contents.member.eq(member));
-
-		// 저장 형식 필터
-		if (request.dataType() != null) {
-			builder.and(contents.contentsDataType.eq(request.dataType()));
-		}
-
-		// 태그 필터
-		if (request.tags() != null && !request.tags().isEmpty()) {
-			builder.and(tag.tagName.in(request.tags())); // 태그 이름 필터링
-		}
-
-		// 키워드 검색
-		if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
-			builder.and(contents.contentsName.containsIgnoreCase(request.keyword())
-					.or(contents.contentsDetail.containsIgnoreCase(request.keyword())));
-		}
+		BooleanBuilder builder = buildFilterConditions(request);
 
 		List<Contents> result = contentsRepositoryCustom.findContentsByFilters(builder, member, request.tags());
+
+		return generateResponseFromContentsList(result);
+	}
+
+	//카테고리 내 콘텐츠 필터링 & 검색
+	public List<ContentsAllResponse.contentsInfo> getFilteredCategoryContents(Member member, Long categoryId, ContentsFilterRequest request) {
+
+		BooleanBuilder builder = buildFilterConditions(request);
+
+		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilters(builder, member, categoryId, request.tags());
 
 		return generateResponseFromContentsList(result);
 	}
@@ -645,5 +633,30 @@ public class ContentsService {
 					);
 				})
 				.collect(Collectors.toList());
+	}
+
+	private BooleanBuilder buildFilterConditions(ContentsFilterRequest request) {
+		QContents contents = QContents.contents;
+		QTag tag = QTag.tag;
+
+		BooleanBuilder builder = new BooleanBuilder();
+
+		// 저장 형식 필터
+		if (request.dataType() != null) {
+			builder.and(contents.contentsDataType.eq(request.dataType()));
+		}
+
+		// 태그 필터
+		if (request.tags() != null && !request.tags().isEmpty()) {
+			builder.and(tag.tagName.in(request.tags())); // 태그 이름 필터링
+		}
+
+		// 키워드 검색
+		if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
+			builder.and(contents.contentsName.containsIgnoreCase(request.keyword())
+					.or(contents.contentsDetail.containsIgnoreCase(request.keyword())));
+		}
+
+		return builder;
 	}
 }

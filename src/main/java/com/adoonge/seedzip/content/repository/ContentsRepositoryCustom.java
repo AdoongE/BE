@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ContentsRepositoryCustom {
     List<Contents> findContentsByFilters(Predicate predicate, Member member, List<String> tags);
+    List<Contents> findCategoryContentsByFilters(Predicate predicate, Member member, Long categoryId, List<String> tags);
 }
