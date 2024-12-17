@@ -5,18 +5,23 @@ import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.content.domain.*;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
+import com.adoonge.seedzip.content.domain.mapping.QContentTag;
+import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.tag.domain.QTag;
 import com.adoonge.seedzip.tag.domain.Tag;
 import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
 import com.adoonge.seedzip.tag.domain.type.DefaultTagType;
 import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.JPAExpressions;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,32 +41,18 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class ContentsService {
-	@Autowired
+
 	private final ContentsRepository contentsRepository;
-
-	@Autowired
 	private final DocumentRepository documentRepository;
-
 	private final TagRepository tagRepository;
-
 	private final UsedDefaultTagRepository usedDefaultTagRepository;
-
-	@Autowired
 	private final ContentTagRepository contentTagRepository;
-
-	@Autowired
 	private final CategoryRepository categoryRepository;
-
-	@Autowired
 	private final CategoryContentRepository categoryContentRepository;
-
-	@Autowired
 	private final LinkRepository linkRepository;
-
-	@Autowired
 	private final S3Service s3Service;
-	@Autowired
 	private final ImageRepository imageRepository;
+	private final ContentsRepositoryCustom contentsRepositoryCustom;
 
 	@Transactional
 	public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request,
@@ -176,69 +167,8 @@ public class ContentsService {
 
 		if (contentsList.isEmpty())
 			return null;
-		return contentsList.stream()
-			.map(content -> {
-				// contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
-				String thumbnailUrl = null;
-				if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
-					Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(
-						content.getContentsId(), true);
-					if (thumbnailImage.isPresent()) {
-						thumbnailUrl = thumbnailImage.get().getImgLink();
-					}
-				} else if (ContentsDataType.PDF.equals(content.getContentsDataType())) {
-					Optional<Document> thumbnailDoc = documentRepository.findByContentsIdAndDocThumbnail(
-						content.getContentsId(), true);
-					if (thumbnailDoc.isPresent()) {
-						thumbnailUrl = thumbnailDoc.get().getDocLink();
-					}
-				}
-				// contentId에 해당하는 카테고리 리스트 조회
-				List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
-				List<String> categoryNames = categoryIds.stream()
-					.map(categoryId -> categoryRepository.findById(categoryId)
-						.map(Category::getName)
-						.orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
 
-				// contentId에 해당하는 태그 리스트 조회
-				List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
-				List<String> tagNames = tagIds.stream()
-					.map(tagId -> tagRepository.findById(tagId)
-						.map(Tag::getTagName)
-						.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND)))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-				// D-day 계산
-				int dDayValue = 1;
-				if (content.getDDay() != null) {
-					LocalDate today = LocalDate.now();
-					long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
-
-					if (daysBetween > 0) {
-						dDayValue = -(int)daysBetween;
-					} else if (daysBetween == 0) {
-						dDayValue = 0;
-					}
-				}
-
-				// ContentResponse 객체에 필요한 정보 담기
-				return new ContentsAllResponse.contentsInfo(
-					content.getContentsId(),
-					content.getContentsName(),
-					categoryIds,
-					categoryNames,
-					content.getContentsDataType(),
-					thumbnailUrl, // IMAGE 아니면 null
-					content.getUpdatedAt(),
-					tagIds,
-					tagNames,
-					dDayValue
-				);
-			})
-			.collect(Collectors.toList());
+		return generateResponseFromContentsList(contentsList);
 	}
 
 	@Transactional
@@ -250,63 +180,7 @@ public class ContentsService {
 		if (contentsList.isEmpty())
 			return null;
 		// 있다면
-		return contentsList.stream()
-			.map(content -> {
-				// contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
-				String thumbnailUrl = null;
-				if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
-					Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(
-						content.getContentsId(), true);
-					if (thumbnailImage.isPresent()) {
-						thumbnailUrl = thumbnailImage.get().getImgLink();
-					}
-				}
-				// contentId에 해당하는 카테고리 리스트 조회
-				List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
-				List<String> categoryNames = categoryIds.stream()
-					.map(categoryI -> categoryRepository.findById(categoryId)
-						.map(Category::getName)
-						.orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-				// contentId에 해당하는 태그 리스트 조회
-				List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
-				List<String> tagNames = tagIds.stream()
-					.map(tagId -> tagRepository.findById(tagId)
-						.map(Tag::getTagName)
-						.orElse(null))
-					.filter(Objects::nonNull)
-					.collect(Collectors.toList());
-
-				// D-day 계산
-				int dDayValue = 1;
-				if (content.getDDay() != null) {
-					LocalDate today = LocalDate.now();
-					long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
-
-					if (daysBetween > 0) {
-						dDayValue = -(int)daysBetween;
-					} else if (daysBetween == 0) {
-						dDayValue = 0;
-					}
-				}
-
-				// ContentResponse 객체에 필요한 정보 담기
-				return new ContentsAllResponse.contentsInfo(
-					content.getContentsId(),
-					content.getContentsName(),
-					categoryIds,
-					categoryNames,
-					content.getContentsDataType(),
-					thumbnailUrl, // IMAGE 아니면 null
-					content.getUpdatedAt(),
-					tagIds,
-					tagNames,
-					dDayValue
-				);
-			})
-			.collect(Collectors.toList());
+		return generateResponseFromContentsList(contentsList);
 	}
 
 	@Transactional
@@ -645,6 +519,26 @@ public class ContentsService {
 		contentsRepository.delete(contents);
 	}
 
+	//전체 콘텐츠 필터링 & 검색
+	public List<ContentsAllResponse.contentsInfo> getFilteredContents(Member member, ContentsFilterRequest request) {
+
+		BooleanBuilder builder = buildFilterConditions(request);
+
+		List<Contents> result = contentsRepositoryCustom.findContentsByFilters(builder, member, request.tags());
+
+		return generateResponseFromContentsList(result);
+	}
+
+	//카테고리 내 콘텐츠 필터링 & 검색
+	public List<ContentsAllResponse.contentsInfo> getFilteredCategoryContents(Member member, Long categoryId, ContentsFilterRequest request) {
+
+		BooleanBuilder builder = buildFilterConditions(request);
+
+		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilters(builder, member, categoryId, request.tags());
+
+		return generateResponseFromContentsList(result);
+	}
+
 	private Tag findOrCreateTag(String tagName, Member member) {
 		// 1. Default 태그 확인 (enum 클래스에서)
 		if (Arrays.stream(DefaultTagType.values())
@@ -673,5 +567,96 @@ public class ContentsService {
 					.member(member)
 					.build());
 			});
+	}
+
+	private List<ContentsAllResponse.contentsInfo> generateResponseFromContentsList(List<Contents> contentsList) {
+		return contentsList.stream()
+				.map(content -> {
+					// contentDateType이 IMAGE인 경우에만 썸네일 이미지 URL 전송, 아닌 경우 null
+					String thumbnailUrl = null;
+					if (ContentsDataType.IMAGE.equals(content.getContentsDataType())) {
+						Optional<Image> thumbnailImage = imageRepository.findByContentsIdAndImgThumbnail(
+								content.getContentsId(), true);
+						if (thumbnailImage.isPresent()) {
+							thumbnailUrl = thumbnailImage.get().getImgLink();
+						}
+					} else if (ContentsDataType.PDF.equals(content.getContentsDataType())) {
+						Optional<Document> thumbnailDoc = documentRepository.findByContentsIdAndDocThumbnail(
+								content.getContentsId(), true);
+						if (thumbnailDoc.isPresent()) {
+							thumbnailUrl = thumbnailDoc.get().getDocLink();
+						}
+					}
+					// contentId에 해당하는 카테고리 리스트 조회
+					List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
+					List<String> categoryNames = categoryIds.stream()
+							.map(categoryId -> categoryRepository.findById(categoryId)
+									.map(Category::getName)
+									.orElse(null))
+							.filter(Objects::nonNull)
+							.collect(Collectors.toList());
+
+					// contentId에 해당하는 태그 리스트 조회
+					List<Long> tagIds = contentTagRepository.findTagIdsByContentId(content.getContentsId());
+					List<String> tagNames = tagIds.stream()
+							.map(tagId -> tagRepository.findById(tagId)
+									.map(Tag::getTagName)
+									.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND)))
+							.filter(Objects::nonNull)
+							.collect(Collectors.toList());
+
+					// D-day 계산
+					int dDayValue = 1;
+					if (content.getDDay() != null) {
+						LocalDate today = LocalDate.now();
+						long daysBetween = ChronoUnit.DAYS.between(today, content.getDDay());
+
+						if (daysBetween > 0) {
+							dDayValue = -(int)daysBetween;
+						} else if (daysBetween == 0) {
+							dDayValue = 0;
+						}
+					}
+
+					// ContentResponse 객체에 필요한 정보 담기
+					return new ContentsAllResponse.contentsInfo(
+							content.getContentsId(),
+							content.getContentsName(),
+							categoryIds,
+							categoryNames,
+							content.getContentsDataType(),
+							thumbnailUrl, // IMAGE 아니면 null
+							content.getUpdatedAt(),
+							tagIds,
+							tagNames,
+							dDayValue
+					);
+				})
+				.collect(Collectors.toList());
+	}
+
+	private BooleanBuilder buildFilterConditions(ContentsFilterRequest request) {
+		QContents contents = QContents.contents;
+		QTag tag = QTag.tag;
+
+		BooleanBuilder builder = new BooleanBuilder();
+
+		// 저장 형식 필터
+		if (request.dataType() != null) {
+			builder.and(contents.contentsDataType.eq(request.dataType()));
+		}
+
+		// 태그 필터
+		if (request.tags() != null && !request.tags().isEmpty()) {
+			builder.and(tag.tagName.in(request.tags())); // 태그 이름 필터링
+		}
+
+		// 키워드 검색
+		if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
+			builder.and(contents.contentsName.containsIgnoreCase(request.keyword())
+					.or(contents.contentsDetail.containsIgnoreCase(request.keyword())));
+		}
+
+		return builder;
 	}
 }
