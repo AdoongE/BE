@@ -62,19 +62,6 @@ public class Filter extends BaseEntity {
 	@JoinColumn(name = "member_id")
 	private Member member;
 
-	@Transient
-	private final ObjectMapper objectMapper = new ObjectMapper();
-
-	// storageFormats(JSON)를 List<String>으로 변환
-	// public List<String> getStorageForamtList() {
-	// 	try {
-	// 		if(storageFormats == null){return null;}
-	// 		return objectMapper.readValue((JsonParser)storageFormats, new TypeReference<List<String>>() {});
-	// 	} catch (JsonProcessingException  e) {
-	// 		throw new RuntimeException("Failed to parse storageFormats");
-	// 	}
-	// }
-
 
 	@Builder
 	public Filter(String name, List<String> storageFormats, LocalDate startDate, LocalDate endDate, Long dDayStart, Long dDayEnd, Member member, Long filterNum) {

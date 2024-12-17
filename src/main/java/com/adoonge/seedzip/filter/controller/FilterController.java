@@ -2,6 +2,7 @@ package com.adoonge.seedzip.filter.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,16 +37,14 @@ public class FilterController {
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}
 
-	// @GetMapping
-	// @Operation(summary = "필터 생성 API", description = "필터 생성 API입니다.")
-	// public ApiResponse<Void> createFilter(
-	// 	@AuthenticationPrincipal CustomUserDetails customUserDetails,
-	// 	@RequestBody AddFilterRequest request) {
-	//
-	// 	filterService.createFilter(request, customUserDetails.getMember());
-	//
-	// 	return new ApiResponse<>(ErrorCode.REQUEST_OK);
-	// }
+	@GetMapping("/{filterId}")
+	@Operation(summary = "필터를 통한 컨텐츠 조회 API", description = "필터를 통해 컨텐츠를 조회하는 API입니다.")
+	public ApiResponse<Void> getContentsByFilter(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails,
+		@PathVariable Long filterId)
+	{
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
 
 
 
