@@ -40,6 +40,7 @@ public class Filter extends BaseEntity {
 	@Column(length = 20, nullable = false)
 	private String name;
 
+	// 이름이 null로 들어온 경우에 사용
 	@ColumnDefault("0")
 	private Long filterNum;
 
@@ -52,11 +53,9 @@ public class Filter extends BaseEntity {
 
 	private LocalDate endDate;
 
-	@Min(0)
-	private Long dDayStart;
+	private Long fromDDay;	// D-Day 시작 범위
 
-	@Min(0)
-	private Long dDayEnd;
+	private Long toDDay;	// D-Day 끝 범위
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
@@ -64,13 +63,13 @@ public class Filter extends BaseEntity {
 
 
 	@Builder
-	public Filter(String name, List<String> storageFormats, LocalDate startDate, LocalDate endDate, Long dDayStart, Long dDayEnd, Member member, Long filterNum) {
+	public Filter(String name, List<String> storageFormats, LocalDate startDate, LocalDate endDate, Long fromDDay, Long toDDay, Member member, Long filterNum) {
 		this.name = name;
 		this.storageFormats = storageFormats;
 		this.startDate = startDate;
 		this.endDate = endDate;
-		this.dDayStart = dDayStart;
-		this.dDayEnd = dDayEnd;
+		this.fromDDay = fromDDay;
+		this.toDDay = toDDay;
 		this.member = member;
 		this.filterNum = filterNum;
 	}

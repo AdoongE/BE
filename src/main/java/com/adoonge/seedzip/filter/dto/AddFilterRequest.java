@@ -13,8 +13,8 @@ public record AddFilterRequest(
 	List<String> tags,
 	LocalDate startDate,
 	LocalDate endDate,
-	Long dDayStart,
-	Long dDayEnd
+	Long fromDDay,
+	Long toDDay
 ) {
 
 	public Filter toEntity(Member member, Long number) {
@@ -23,8 +23,8 @@ public record AddFilterRequest(
 			.storageFormats(storageFormats)
 			.startDate(startDate)
 			.endDate(endDate)
-			.dDayStart(dDayStart)
-			.dDayEnd(dDayEnd)
+			.fromDDay(fromDDay)
+			.toDDay(toDDay)
 			.member(member)
 			.filterNum(number)
 			.build();

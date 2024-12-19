@@ -101,7 +101,8 @@ public enum ErrorCode {
     EMPTY_FILTER(HttpStatus.OK, "필터가 존재하지 않습니다."),
     FILTER_QUOTA_EXCEEDED(HttpStatus.PAYLOAD_TOO_LARGE, "필터 저장 한도를 초과했습니다."),
     FILTER_CREATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "필터 생성에 실패했습니다."),
-    FILTER_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "필터 유효성 검사가 실패했습니다.");
+    FILTER_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "필터 유효성 검사가 실패했습니다."),
+    FILTER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 필터에 대한 접근 권한이 없습니다.");
 
     private final HttpStatus status;
     private final String message;

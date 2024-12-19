@@ -10,6 +10,8 @@ import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.repository.*;
+import com.adoonge.seedzip.filter.domain.Filter;
+import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -53,6 +55,7 @@ public class ContentsService {
 	private final S3Service s3Service;
 	private final ImageRepository imageRepository;
 	private final ContentsRepositoryCustom contentsRepositoryCustom;
+	private final FilterRepository filterRepository;
 
 	@Transactional
 	public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request,
@@ -659,4 +662,29 @@ public class ContentsService {
 
 		return builder;
 	}
+
+	// 커스텀 필터
+	public List<ContentsAllResponse.contentsInfo> getCustomFilterContents(Member member, Long filterId) {
+		Filter filter = filterRepository.findById(filterId)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		// 필터 소유자 검증
+		if (!filter.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
+		}
+
+		List<Contents> result = contentsRepositoryCustom.findContentsByCustomFilter(
+			filter.getStartDate(),
+			filter.getEndDate(),
+			filter.getStorageFormats(),
+			filter.getFromDDay(),
+			filter.getToDDay(),
+			filterId,
+			member.getId()
+		);
+
+		return generateResponseFromContentsList(result);
+	}
+
+
 }
