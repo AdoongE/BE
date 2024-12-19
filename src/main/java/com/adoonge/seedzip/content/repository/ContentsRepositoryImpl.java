@@ -15,6 +15,7 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DatePath;
 import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -107,6 +108,9 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		DateTimePath<LocalDateTime> createdAt = QContents.contents.createdAt;
 
 		if (startDate != null && endDate != null) {
+			if(startDate.equals(endDate)) {
+				return createdAt.between(startDate.atStartOfDay(), startDate.atStartOfDay().plusDays(1));
+			}
 			return createdAt.between(startDate.atStartOfDay(), endDate.atStartOfDay());
 		} else if (startDate != null) {
 			return createdAt.goe(startDate.atStartOfDay());
@@ -121,23 +125,34 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		QContents contents = QContents.contents;
 
 		if (storageFormats != null && !storageFormats.isEmpty()) {
+			BooleanExpression expression = null;
+
 			for (String storageFormat : storageFormats) {
-				return contents.contentsDataType.eq(ContentsDataType.valueOf(storageFormat));
+				BooleanExpression condition = contents.contentsDataType.eq(ContentsDataType.valueOf(storageFormat));
+				expression = (expression == null) ? condition : expression.or(condition);
 			}
+
+			return expression;
 		}
-		return null;
+		return null; // 필터 조건이 없으면 null 반환
 	}
 
 	// D-Day 필터 조건
 	private BooleanExpression filterByDDay(Long fromDDay, Long toDDay) {
+		if(fromDDay > toDDay) {
+			throw new IllegalArgumentException("fromDDay must be less than toDDay");
+		}
 		QContents contents = QContents.contents;
 
 		if (fromDDay != null && toDDay != null) {
+			if(fromDDay.equals(toDDay)) {
+				return contents.dDay.eq(LocalDate.now().plusDays(fromDDay));
+			}
 			return contents.dDay.between(LocalDate.now().plusDays(fromDDay), LocalDate.now().plusDays(toDDay));
 		} else if (fromDDay != null) {
-			return contents.dDay.goe(LocalDate.now().plusDays(fromDDay));
+			return contents.dDay.goe(LocalDate.now().plusDays(fromDDay));	// D-Day 시작 범위
 		} else if (toDDay != null) {
-			return contents.dDay.loe(LocalDate.now().plusDays(toDDay));
+			return contents.dDay.loe(LocalDate.now().plusDays(toDDay));	// D-Day 끝 범위
 		}
 		return null;
 	}
@@ -149,12 +164,21 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		QFilterTag filterTag = QFilterTag.filterTag;
 
 		if (filterId != null) {
+			List<Long> tagIds = queryFactory.select(filterTag.tag.id)
+				.from(filterTag)
+				.where(filterTag.filter.filterId.eq(filterId))
+				.fetch();
+
 			return contents.contentsId.in(
 				queryFactory
 					.select(contentTag.contents.contentsId)
 					.from(contentTag)
-					.join(filterTag).on(filterTag.tag.id.eq(contentTag.tag.id))
-					.where(filterTag.filterTagId.eq(filterId))
+					.where(contentTag.tag.id.in(tagIds))
+					.groupBy(contentTag.contents.contentsId)
+					.having(
+						Expressions.asNumber(contentTag.tag.id.countDistinct()) // 콘텐츠에 있는 태그의 개수
+							.eq((long) tagIds.size()) // 필터 태그 개수만큼 태그가 있어야 함
+					)
 			);
 		} else
 			return null;

@@ -35,9 +35,9 @@ public class FilterService {
 	@Transactional
 	public void createFilter(AddFilterRequest request, Member member) {
 		// 필터 생성 제한
-		if (filterRepository.count() >= 5) {
-			throw SeedzipException.from(ErrorCode.FILTER_QUOTA_EXCEEDED);
-		}
+		// if (filterRepository.count() >= 5) {
+		// 	throw SeedzipException.from(ErrorCode.FILTER_QUOTA_EXCEEDED);
+		// }
 
 		// name이 null이면 필터 이름을 생성하기 위해 넘버 할당
 		Long nextNumber = request.name() == null ? filterRepositoryCustom.findNextNumber() : 0L;
