@@ -55,8 +55,7 @@ public class ContentsService {
 	private final FilterRepository filterRepository;
 
 	@Transactional
-	public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request,
-		List<MultipartFile> files, Member member) {
+	public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request, Member member) {
 		if (Objects.isNull(request.getContentName())) {
 			request.setContentName(null);
 		}
@@ -66,6 +65,7 @@ public class ContentsService {
 		if (Objects.isNull(request.getContentDetail())) {
 			request.setContentDetail(null);
 		}
+
 		Contents contents = contentsRepository.save(request.toContentEntity(member));
 
 		// 태그 저장
@@ -94,13 +94,29 @@ public class ContentsService {
 				categoryContentRepository.save(categoryContent);
 			});
 
+		if (request.getDataType().equals(ContentsDataType.LINK)) {
+			// LINK
+			Link link = Link.builder()
+					.link(request.getContentLink())
+					.contents(contents)
+					.build();
+			linkRepository.save(link);
+		}
+
+		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 저장했습니다!", contents);
+	}
+
+	@Transactional
+	public ContentsAllResponse.contentResponse uploadContents(Long contentsId, List<MultipartFile> files, Member member) {
+
+		Contents contents = contentsRepository.findByContentsId(contentsId);
 		List<String> fileUrls = new ArrayList<>();
 
-		if (request.getDataType().equals(ContentsDataType.PDF)) {
+		if (contents.getContentsDataType().equals(ContentsDataType.PDF)) {
 			// PDF
 
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
-			int thumbnailIndex = request.getThumbnailImage();
+			int thumbnailIndex = contents.getThumbnailIdx();
 
 			files.stream().forEach(file -> {
 				try {
@@ -110,7 +126,11 @@ public class ContentsService {
 
 					// URL 저장
 					Document document = documentRepository.save(
-						request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
+							Document.builder()
+							.docLink(fileUrl)
+							.contents(contents)
+							.docName(file.getOriginalFilename())
+							.build());
 
 					if (index.get() == thumbnailIndex) {
 						document.setDocThumbnail(true);
@@ -124,17 +144,10 @@ public class ContentsService {
 				}
 			});
 
-		} else if (request.getDataType().equals(ContentsDataType.LINK)) {
-			// LINK
-			Link link = Link.builder()
-				.link(request.getContentLink())
-				.contents(contents)
-				.build();
-			linkRepository.save(link);
-		} else if (request.getDataType().equals(ContentsDataType.IMAGE)) {
+		} else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)) {
 			// IMAGE
 			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
-			int thumbnailIndex = request.getThumbnailImage();
+			int thumbnailIndex = contents.getThumbnailIdx();
 
 			files.stream().forEach(file -> {
 				try {
@@ -143,7 +156,11 @@ public class ContentsService {
 					fileUrls.add(fileUrl);
 
 					// Image 엔티티 생성
-					Image image = request.toImgEntity(contents, fileUrl, file.getOriginalFilename());
+					Image image = Image.builder()
+							.imgLink(fileUrl)
+							.contents(contents)
+							.imgName(file.getOriginalFilename())
+							.build();
 
 					// 인덱스가 thumbnailIndex와 일치하면 imgThumbnail을 true로 설정
 					if (index.get() == thumbnailIndex) {
@@ -158,7 +175,7 @@ public class ContentsService {
 				}
 			});
 		}
-		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 저장했습니다!", contents);
+		return ContentsAllResponse.contentResponse.fromEntity("파일을 저장했습니다!", contents);
 	}
 
 	@Transactional

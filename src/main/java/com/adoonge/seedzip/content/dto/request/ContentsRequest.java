@@ -34,6 +34,7 @@ public class ContentsRequest {
                     .contentsName(contentName)
                     .dDay(dDay)
                     .contentsDetail(contentDetail)
+                    .thumbnailIdx(thumbnailImage)
                     .contentsDataType(dataType)
                     .member(member)
                     .build();
