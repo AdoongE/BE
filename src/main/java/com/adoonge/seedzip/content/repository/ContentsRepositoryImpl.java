@@ -32,7 +32,7 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public List<Contents> findContentsByFilters(Predicate predicate, Member member, List<String> tags) {
+	public List<Contents> findContentsByFilter(Predicate predicate, Member member, List<String> tags) {
 		QContents contents = QContents.contents;
 		QContentTag contentTag = QContentTag.contentTag;
 		QTag tag = QTag.tag;
@@ -56,8 +56,8 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 	}
 
 	@Override
-	public List<Contents> findCategoryContentsByFilters(Predicate predicate, Member member, Long categoryId,
-		List<String> tags) {
+	public List<Contents> findCategoryContentsByFilter(Predicate predicate, Member member, Long categoryId,
+													   List<String> tags) {
 		QContents contents = QContents.contents;
 		QContentTag contentTag = QContentTag.contentTag;
 		QCategory category = QCategory.category;

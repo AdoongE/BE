@@ -5,7 +5,6 @@ import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.content.domain.*;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
-import com.adoonge.seedzip.content.domain.mapping.QContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
@@ -23,12 +22,10 @@ import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.jpa.JPAExpressions;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -527,7 +524,7 @@ public class ContentsService {
 
 		BooleanBuilder builder = buildFilterConditions(request);
 
-		List<Contents> result = contentsRepositoryCustom.findContentsByFilters(builder, member, request.tags());
+		List<Contents> result = contentsRepositoryCustom.findContentsByFilter(builder, member, request.tags());
 
 		return generateResponseFromContentsList(result);
 	}
@@ -537,7 +534,7 @@ public class ContentsService {
 
 		BooleanBuilder builder = buildFilterConditions(request);
 
-		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilters(builder, member, categoryId, request.tags());
+		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilter(builder, member, categoryId, request.tags());
 
 		return generateResponseFromContentsList(result);
 	}
