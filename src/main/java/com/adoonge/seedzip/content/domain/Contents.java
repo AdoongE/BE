@@ -28,6 +28,8 @@ public class Contents extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ContentsDataType contentsDataType;
 
+    private int thumbnailIdx;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
