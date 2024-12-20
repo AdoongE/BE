@@ -5,11 +5,12 @@ import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.content.domain.*;
 import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
-import com.adoonge.seedzip.content.domain.mapping.QContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.repository.*;
+import com.adoonge.seedzip.filter.domain.Filter;
+import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -21,12 +22,10 @@ import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.jpa.JPAExpressions;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -53,6 +52,7 @@ public class ContentsService {
 	private final S3Service s3Service;
 	private final ImageRepository imageRepository;
 	private final ContentsRepositoryCustom contentsRepositoryCustom;
+	private final FilterRepository filterRepository;
 
 	@Transactional
 	public ContentsAllResponse.contentResponse createContents(ContentsRequest.allContentsRequest request,
@@ -524,7 +524,7 @@ public class ContentsService {
 
 		BooleanBuilder builder = buildFilterConditions(request);
 
-		List<Contents> result = contentsRepositoryCustom.findContentsByFilters(builder, member, request.tags());
+		List<Contents> result = contentsRepositoryCustom.findContentsByFilter(builder, member, request.tags());
 
 		return generateResponseFromContentsList(result);
 	}
@@ -534,7 +534,7 @@ public class ContentsService {
 
 		BooleanBuilder builder = buildFilterConditions(request);
 
-		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilters(builder, member, categoryId, request.tags());
+		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilter(builder, member, categoryId, request.tags());
 
 		return generateResponseFromContentsList(result);
 	}
@@ -659,4 +659,29 @@ public class ContentsService {
 
 		return builder;
 	}
+
+	// 커스텀 필터
+	public List<ContentsAllResponse.contentsInfo> getCustomFilterContents(Member member, Long filterId) {
+		Filter filter = filterRepository.findById(filterId)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		// 필터 소유자 검증
+		if (!filter.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
+		}
+
+		List<Contents> result = contentsRepositoryCustom.findContentsByCustomFilter(
+			filter.getStartDate(),
+			filter.getEndDate(),
+			filter.getStorageFormats(),
+			filter.getFromDDay(),
+			filter.getToDDay(),
+			filterId,
+			member.getId()
+		);
+
+		return generateResponseFromContentsList(result);
+	}
+
+
 }
