@@ -68,8 +68,6 @@ public class ContentsService {
 
 		Contents contents = contentsRepository.save(request.toContentEntity(member));
 
-		System.out.println(request);
-
 		// 태그 저장
 		for (String tagName : request.getTags()) {
 			Tag tag = findOrCreateTag(tagName, member);
