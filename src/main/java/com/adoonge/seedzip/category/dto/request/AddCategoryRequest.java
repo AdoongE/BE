@@ -1,17 +1,16 @@
 package com.adoonge.seedzip.category.dto.request;
 
 import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.category.domain.Visibility;
 import com.adoonge.seedzip.member.domain.Member;
 
 public record AddCategoryRequest(
 	String name,
-	Visibility visibility
+	Boolean isPublic
 ) {
 	public Category toEntity(Member member) {
 		return Category.builder()
-			.name(name)
-			.visibility(visibility)
+			.name(name == null ? "새 카테고리" : name)
+			.isPublic(isPublic)
 			.member(member)
 			.build();
 	}

@@ -23,6 +23,7 @@ import com.adoonge.seedzip.member.domain.Member;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -30,12 +31,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Tag(name = "CategoryController", description = "카테고리 관련 API")
 public class CategoryController {
+
 	private final CategoryService categoryService;
 
 	@PostMapping
 	@Operation(summary = "카테고리 생성 API", description = "카테고리 생성 API입니다.")
-	public ApiResponse<CategoryResponse> createCategory(@RequestBody AddCategoryRequest request,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ApiResponse<CategoryResponse> createCategory(
+		@RequestBody AddCategoryRequest request,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 
 		Member member = customUserDetails.getMember();
 		CategoryResponse createdCategory = categoryService.createCategory(request, member);
@@ -46,31 +50,35 @@ public class CategoryController {
 	@GetMapping
 	@Operation(summary = "카테고리 조회 API", description = "카테고리 조회 API입니다.")
 	public ApiResponse<CategoryResponse> getCategories(
-		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 		List<CategoryResponse> categories = categoryService.getCategories(customUserDetails.getMember());
 
 		return new ApiResponse<>(categories);
 	}
 
-	@PatchMapping("/{id}")
+	@PatchMapping
 	@Operation(summary = "카테고리 수정 API", description = "카테고리 수정 API입니다.")
-	public ApiResponse<CategoryResponse> updateCategory(@PathVariable Long id,
-		@RequestBody UpdateCategoryRequest request,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ApiResponse<CategoryResponse> updateCategory(
+		@RequestBody @Valid UpdateCategoryRequest request,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 
 		Member member = customUserDetails.getMember();
-		CategoryResponse updatedCategory = categoryService.updateCategory(id, request, member);
+		CategoryResponse updatedCategory = categoryService.updateCategory(request, member);
 
 		return new ApiResponse<>(updatedCategory);
 	}
 
-	@DeleteMapping("/{id}")
+	@DeleteMapping("/{categoryId}")
 	@Operation(summary = "카테고리 삭제 API", description = "카테고리 삭제 API입니다.")
-	public ApiResponse<Void> deleteCategory(@PathVariable Long id,
-		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+	public ApiResponse<Void> deleteCategory(
+		@PathVariable Long categoryId,
+		@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
 
 		Member member = customUserDetails.getMember();
-		categoryService.deleteCategory(id, member);
+		categoryService.deleteCategory(categoryId, member);
 
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}

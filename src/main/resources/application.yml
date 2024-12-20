@@ -87,6 +87,16 @@ cloud:
       docBucket: ${DOC_BUCKET}
       imgBucket: ${IMG_BUCKET}
 
+openai:
+  api:
+    key: ${openai_api_key}
+  url: ${openai_url}
+  model: ${openai_model}
+
+youtube :
+  api :
+    key : ${YOUTUBE_API_KEY}
+
 server:
   tomcat:
     max-swallow-size: 50MB
