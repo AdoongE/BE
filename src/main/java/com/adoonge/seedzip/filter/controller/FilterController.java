@@ -5,10 +5,12 @@ import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
@@ -16,12 +18,14 @@ import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.service.ContentsService;
 import com.adoonge.seedzip.filter.dto.AddFilterRequest;
 import com.adoonge.seedzip.filter.dto.FilterResponse;
+import com.adoonge.seedzip.filter.dto.UpdateFilterNameRequest;
 import com.adoonge.seedzip.filter.service.FilterService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -70,6 +74,17 @@ public class FilterController {
 		@PathVariable Long filterId)
 	{
 		filterService.deleteFilter(customUserDetails.getMember(), filterId);
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
+	@PatchMapping("/{filterId}/name")
+	@Operation(summary = "필터 이름 변경 API", description = "필터 이름만 변경하는 API입니다.")
+	public ApiResponse<Void> updateFilter(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails,
+		@PathVariable Long filterId,
+		@Valid @RequestBody UpdateFilterNameRequest request)
+	{
+		filterService.updateFilter(customUserDetails.getMember(), filterId, request);
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}
 

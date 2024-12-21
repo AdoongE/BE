@@ -76,4 +76,9 @@ public class Filter extends BaseEntity {
 		this.member = member;
 		this.filterNum = filterNum;
 	}
+
+	public void updateName(String name) {
+		this.name = name;
+	}
+
 }

@@ -11,6 +11,7 @@ import com.adoonge.seedzip.filter.domain.Filter;
 import com.adoonge.seedzip.filter.domain.FilterTag;
 import com.adoonge.seedzip.filter.dto.AddFilterRequest;
 import com.adoonge.seedzip.filter.dto.FilterResponse;
+import com.adoonge.seedzip.filter.dto.UpdateFilterNameRequest;
 import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.filter.repository.FilterRepositoryCustom;
 import com.adoonge.seedzip.filter.repository.FilterTagRepository;
@@ -87,5 +88,13 @@ public class FilterService {
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
 
 		filterRepository.delete(filter);
+	}
+
+	@Transactional
+	public void updateFilter(Member member, Long filterId, UpdateFilterNameRequest request) {
+		Filter filter = filterRepository.findByFilterIdAndMemberId(filterId, member.getId())
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		filter.updateName(request.name());
 	}
 }
