@@ -1,6 +1,7 @@
 package com.adoonge.seedzip.member.domain;
 
 import com.adoonge.seedzip.global.entity.BaseEntity;
+import com.adoonge.seedzip.member.dto.request.UpdateMemberRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -100,4 +101,12 @@ public class Member extends BaseEntity implements UserDetails {
         return this.role.toString();
     }
 
+    public void update(UpdateMemberRequest request) {
+        this.nickname = request.nickname();
+        this.birthday = request.birthday();
+        this.gender = request.gender();
+        this.occupation = request.occupation();
+        this.field = request.field();
+        this.consentToMarketingAndAds = request.consentToMarketingAndAds();
+    }
 }
