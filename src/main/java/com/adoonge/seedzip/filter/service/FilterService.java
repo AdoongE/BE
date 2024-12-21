@@ -1,6 +1,7 @@
 package com.adoonge.seedzip.filter.service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.adoonge.seedzip.filter.domain.Filter;
 import com.adoonge.seedzip.filter.domain.FilterTag;
 import com.adoonge.seedzip.filter.dto.AddFilterRequest;
+import com.adoonge.seedzip.filter.dto.FilterResponse;
 import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.filter.repository.FilterRepositoryCustom;
 import com.adoonge.seedzip.filter.repository.FilterTagRepository;
@@ -34,7 +36,7 @@ public class FilterService {
 
 	@Transactional
 	public void createFilter(AddFilterRequest request, Member member) {
-		// 필터 생성 제한
+		// 필터 생성 개수 제한
 		// if (filterRepository.count() >= 5) {
 		// 	throw SeedzipException.from(ErrorCode.FILTER_QUOTA_EXCEEDED);
 		// }
@@ -45,12 +47,14 @@ public class FilterService {
 		Filter save = filterRepository.save(request.toEntity(member, nextNumber));
 
 		// 태그 저장
-		for (String tag : request.tags()) {
-			filterTagRepository.save(FilterTag.builder()
-				.tag(findTag(tag, member))
-				.filter(save)
-				.build()
-			);
+		if(request.tags() != null){
+			for (String tag : request.tags()) {
+				filterTagRepository.save(FilterTag.builder()
+					.tag(findTag(tag, member))
+					.filter(save)
+					.build()
+				);
+			}
 		}
 
 	}
@@ -67,5 +71,13 @@ public class FilterService {
 		// 2. 디폴트 태그가 아닌 경우 CustomTag에서 찾기
 		return tagRepository.findByTagNameAndMemberId(tagName, member.getId())
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
+	}
+
+	public List<FilterResponse> getFilters(Member member) {
+		List<Filter> filters = filterRepository.findAllByMemberId(member.getId());
+
+		return filters.stream()
+			.map(FilterResponse::from)
+			.toList();
 	}
 }

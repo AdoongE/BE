@@ -1,16 +1,21 @@
 package com.adoonge.seedzip.filter.dto;
 
+import java.util.Collections;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.Optional;
 
 import com.adoonge.seedzip.content.domain.ContentsDataType;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.filter.domain.Filter;
 
+import jakarta.annotation.Nullable;
 
 public record AddFilterRequest(
 	String name,
+	@Nullable
 	List<ContentsDataType> storageFormats,
+	@Nullable
 	List<String> tags,
 	LocalDate startDate,
 	LocalDate endDate,
@@ -21,7 +26,13 @@ public record AddFilterRequest(
 	public Filter toEntity(Member member, Long number) {
 		return Filter.builder()
 			.name(number == 0L ? name : "새 필터 "+number)
-			.storageFormats(storageFormats.stream().map(Enum::name).toList())
+			.storageFormats(
+				Optional.ofNullable(storageFormats)
+					.orElse(Collections.emptyList()) // null이면 빈 리스트 반환
+					.stream()
+					.map(Enum::name)
+					.toList()
+			)
 			.startDate(startDate)
 			.endDate(endDate)
 			.fromDDay(fromDDay)
