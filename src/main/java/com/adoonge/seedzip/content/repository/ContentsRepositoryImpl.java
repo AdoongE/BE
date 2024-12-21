@@ -91,12 +91,14 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		List<String> storageFormats, Long dDayStart, Long dDayEnd, Long filterId, Long memberID) {
 		QContents contents = QContents.contents;
 
-		BooleanExpression condition =
-			contents.member.id.eq(memberID)
-				.and(filterByDate(startDate, endDate))
-				.and(filterByDDay(dDayStart, dDayEnd))
-				.and(filterByStorageFormat(storageFormats))
-				.and(filterByTags(filterId));
+		BooleanExpression condition = contents.member.id.eq(memberID);
+
+		condition = safeAnd(condition, filterByDate(startDate, endDate));
+		condition = safeAnd(condition, filterByDDay(dDayStart, dDayEnd));
+		condition = safeAnd(condition, filterByStorageFormat(storageFormats));
+		condition = safeAnd(condition, filterByTags(filterId));
+
+		System.out.println(condition);
 
 		return queryFactory.selectFrom(contents)
 			.where(condition)
@@ -139,13 +141,13 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 
 	// D-Day 필터 조건
 	private BooleanExpression filterByDDay(Long fromDDay, Long toDDay) {
-		if(fromDDay > toDDay) {
-			throw new IllegalArgumentException("fromDDay must be less than toDDay");
-		}
 		QContents contents = QContents.contents;
 
 		if (fromDDay != null && toDDay != null) {
-			if(fromDDay.equals(toDDay)) {
+			if(fromDDay > toDDay) {	// 시작 D-Day가 끝 D-Day보다 클 수 없음
+				throw new IllegalArgumentException("fromDDay must be less than toDDay");
+			}
+			if(fromDDay.equals(toDDay)) {	// D-Day가 같은 경우
 				return contents.dDay.eq(LocalDate.now().plusDays(fromDDay));
 			}
 			return contents.dDay.between(LocalDate.now().plusDays(fromDDay), LocalDate.now().plusDays(toDDay));
@@ -164,11 +166,18 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		QFilterTag filterTag = QFilterTag.filterTag;
 
 		if (filterId != null) {
+			// 필터에 해당하는 태그 ID 조회
 			List<Long> tagIds = queryFactory.select(filterTag.tag.id)
 				.from(filterTag)
 				.where(filterTag.filter.filterId.eq(filterId))
 				.fetch();
 
+			// 필터에 태그가 없으면 null 반환
+			if(tagIds.isEmpty()) {
+				return null;
+			}
+
+			// 콘텐츠에 필터 태그가 모두 포함되어야 함
 			return contents.contentsId.in(
 				queryFactory
 					.select(contentTag.contents.contentsId)
@@ -182,6 +191,10 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 			);
 		} else
 			return null;
+	}
+
+	private BooleanExpression safeAnd(BooleanExpression base, BooleanExpression condition) {
+		return condition == null ? base : base.and(condition);
 	}
 
 }

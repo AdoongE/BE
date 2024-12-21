@@ -36,7 +36,7 @@ public class FilterService {
 
 	@Transactional
 	public void createFilter(AddFilterRequest request, Member member) {
-		// 필터 생성 제한
+		// 필터 생성 개수 제한
 		// if (filterRepository.count() >= 5) {
 		// 	throw SeedzipException.from(ErrorCode.FILTER_QUOTA_EXCEEDED);
 		// }
@@ -47,12 +47,14 @@ public class FilterService {
 		Filter save = filterRepository.save(request.toEntity(member, nextNumber));
 
 		// 태그 저장
-		for (String tag : request.tags()) {
-			filterTagRepository.save(FilterTag.builder()
-				.tag(findTag(tag, member))
-				.filter(save)
-				.build()
-			);
+		if(request.tags() != null){
+			for (String tag : request.tags()) {
+				filterTagRepository.save(FilterTag.builder()
+					.tag(findTag(tag, member))
+					.filter(save)
+					.build()
+				);
+			}
 		}
 
 	}
