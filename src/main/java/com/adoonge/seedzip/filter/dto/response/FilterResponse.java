@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.filter.dto;
+package com.adoonge.seedzip.filter.dto.response;
 
 import com.adoonge.seedzip.filter.domain.Filter;
 

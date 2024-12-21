@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.filter.dto;
+package com.adoonge.seedzip.filter.dto.request;
 
 import java.util.Collections;
 import java.util.List;
@@ -6,6 +6,8 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 import com.adoonge.seedzip.content.domain.ContentsDataType;
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.filter.domain.Filter;
 
@@ -24,6 +26,13 @@ public record AddFilterRequest(
 ) {
 
 	public Filter toEntity(Member member, Long number) {
+		if(startDate != null && endDate != null && startDate.isAfter(endDate)) {
+			throw SeedzipException.from(ErrorCode.FILTER_CREATION_FAILED);
+		}
+		if(fromDDay != null && toDDay != null && fromDDay > toDDay) {
+			throw SeedzipException.from(ErrorCode.FILTER_CREATION_FAILED);
+		}
+
 		return Filter.builder()
 			.name(number == 0L ? name : "새 필터 "+number)
 			.storageFormats(

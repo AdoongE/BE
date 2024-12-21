@@ -144,9 +144,6 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		QContents contents = QContents.contents;
 
 		if (fromDDay != null && toDDay != null) {
-			if(fromDDay > toDDay) {	// 시작 D-Day가 끝 D-Day보다 클 수 없음
-				throw new IllegalArgumentException("fromDDay must be less than toDDay");
-			}
 			if(fromDDay.equals(toDDay)) {	// D-Day가 같은 경우
 				return contents.dDay.eq(LocalDate.now().plusDays(fromDDay));
 			}
