@@ -13,6 +13,7 @@ import com.adoonge.seedzip.member.domain.Member;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.hypersistence.utils.hibernate.type.json.JsonType;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -21,6 +22,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 import jakarta.validation.constraints.Min;
@@ -43,7 +45,6 @@ public class Filter extends BaseEntity {
 	private String name;
 
 	// 이름이 null로 들어온 경우에 사용
-	@ColumnDefault("0")
 	private Long filterNum;
 
 	// JSON 형태로 저장 (ex. ["pdf", "image"])
@@ -64,6 +65,8 @@ public class Filter extends BaseEntity {
 	@OnDelete(action = OnDeleteAction.CASCADE)  // Member 삭제 시 Filter도 삭제
 	private Member member;
 
+	@OneToMany(mappedBy = "filter", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<FilterTag> filterTags;
 
 	@Builder
 	public Filter(String name, List<String> storageFormats, LocalDate startDate, LocalDate endDate, Long fromDDay, Long toDDay, Member member, Long filterNum) {
@@ -79,6 +82,16 @@ public class Filter extends BaseEntity {
 
 	public void updateName(String name) {
 		this.name = name;
+	}
+
+	public Filter update(List<String> storageFormats, LocalDate startDate, LocalDate endDate, Long fromDDay, Long toDDay) {
+		this.storageFormats = storageFormats;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.fromDDay = fromDDay;
+		this.toDDay = toDDay;
+
+		return this;
 	}
 
 }
