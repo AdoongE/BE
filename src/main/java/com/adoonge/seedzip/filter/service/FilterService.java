@@ -80,4 +80,12 @@ public class FilterService {
 			.map(FilterResponse::from)
 			.toList();
 	}
+
+	@Transactional
+	public void deleteFilter(Member member, Long filterId) {
+		Filter filter = filterRepository.findByFilterIdAndMemberId(filterId, member.getId())
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		filterRepository.delete(filter);
+	}
 }
