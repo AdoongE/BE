@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.filter.dto;
+package com.adoonge.seedzip.filter.dto.request;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;

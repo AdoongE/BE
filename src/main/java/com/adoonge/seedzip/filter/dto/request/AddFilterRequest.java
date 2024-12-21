@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.filter.dto;
+package com.adoonge.seedzip.filter.dto.request;
 
 import java.util.Collections;
 import java.util.List;
