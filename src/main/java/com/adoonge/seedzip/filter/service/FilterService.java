@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.filter.service;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -83,9 +84,6 @@ public class FilterService {
 		Filter filter = filterRepository.findByFilterIdAndMemberId(filterId, member.getId())
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
 
-		log.info("filter: {}", filter.getName());
-
-
 		return FilterInfoResponse.from(filter);
 	}
 
@@ -94,10 +92,15 @@ public class FilterService {
 		Filter filter = filterRepository.findByFilterIdAndMemberId(filterId, member.getId())
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
 
-		if(request.startDate().isAfter(request.endDate())) {
+		LocalDate startDate = request.startDate();
+		LocalDate endDate = request.endDate();
+		Long fromDDay = request.fromDDay();
+		Long toDDay = request.toDDay();
+
+		if(startDate != null && endDate != null && startDate.isAfter(endDate)) {
 			throw SeedzipException.from(ErrorCode.FILTER_CREATION_FAILED);
 		}
-		if(request.fromDDay() > request.toDDay()) {
+		if(fromDDay != null && toDDay != null && fromDDay > toDDay) {
 			throw SeedzipException.from(ErrorCode.FILTER_CREATION_FAILED);
 		}
 
@@ -107,10 +110,10 @@ public class FilterService {
 				.stream()
 				.map(Enum::name)
 				.toList(),
-			request.startDate(),
-			request.endDate(),
-			request.fromDDay(),
-			request.toDDay()
+			startDate,
+			endDate,
+			fromDDay,
+			toDDay
 		);
 
 		filterTagRepository.deleteByFilter(filter);	// 기존 태그 삭제

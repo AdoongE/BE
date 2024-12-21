@@ -26,10 +26,10 @@ public record AddFilterRequest(
 ) {
 
 	public Filter toEntity(Member member, Long number) {
-		if(startDate.isAfter(endDate)) {
+		if(startDate != null && endDate != null && startDate.isAfter(endDate)) {
 			throw SeedzipException.from(ErrorCode.FILTER_CREATION_FAILED);
 		}
-		if(fromDDay > toDDay) {
+		if(fromDDay != null && toDDay != null && fromDDay > toDDay) {
 			throw SeedzipException.from(ErrorCode.FILTER_CREATION_FAILED);
 		}
 
