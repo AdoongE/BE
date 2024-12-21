@@ -15,7 +15,7 @@ spring:
   jpa:
     show-sql: 'false'
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     open-in-view: 'false'
     database-platform: org.hibernate.dialect.MySQLDialect
     properties:
