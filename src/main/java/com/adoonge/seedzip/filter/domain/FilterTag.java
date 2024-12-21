@@ -14,6 +14,8 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @NoArgsConstructor
 @Entity
@@ -27,10 +29,12 @@ public class FilterTag extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "tag_id")
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Tag tag;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "filter_id")
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Filter filter;
 
 	@Builder

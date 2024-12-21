@@ -38,6 +38,7 @@ public class Bookmark extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
+	@OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Bookmark도 삭제
 	private Member member;
 
 	@Builder
