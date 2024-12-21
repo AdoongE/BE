@@ -14,6 +14,7 @@ import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.service.ContentsService;
 import com.adoonge.seedzip.filter.dto.AddFilterRequest;
+import com.adoonge.seedzip.filter.dto.FilterResponse;
 import com.adoonge.seedzip.filter.service.FilterService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
@@ -48,9 +49,17 @@ public class FilterController {
 		@AuthenticationPrincipal CustomUserDetails customUserDetails,
 		@PathVariable Long filterId)
 	{
-
 		return new ApiResponse<>(contentsService.getCustomFilterContents(
 			customUserDetails.getMember(), filterId));
+	}
+
+	@GetMapping
+	@Operation(summary = "사용자의 모든 필터 조회 API", description = "사용자의 모든 필터를 조회하는 API입니다.")
+	public ApiResponse<FilterResponse> getFilters(
+		@AuthenticationPrincipal CustomUserDetails customUserDetails)
+	{
+		List<FilterResponse> filter = filterService.getFilters(customUserDetails.getMember());
+		return new ApiResponse<>(filter);
 	}
 
 

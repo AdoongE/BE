@@ -15,9 +15,10 @@ public class FilterRepositoryCustom {
 		QFilter filter = QFilter.filter;
 
 		Long maxNumber = queryFactory.select(filter.filterNum.max())
-			.from(filter)
-			.fetchOne();
+				.from(filter)
+				.fetchOne();
 
-		return maxNumber + 1;
+		// 필터가 없으면 1부터 시작
+		return maxNumber != null ? maxNumber + 1 : 1;
 	}
 }

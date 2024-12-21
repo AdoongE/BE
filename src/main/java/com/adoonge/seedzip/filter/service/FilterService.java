@@ -1,6 +1,7 @@
 package com.adoonge.seedzip.filter.service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -9,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.adoonge.seedzip.filter.domain.Filter;
 import com.adoonge.seedzip.filter.domain.FilterTag;
 import com.adoonge.seedzip.filter.dto.AddFilterRequest;
+import com.adoonge.seedzip.filter.dto.FilterResponse;
 import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.filter.repository.FilterRepositoryCustom;
 import com.adoonge.seedzip.filter.repository.FilterTagRepository;
@@ -67,5 +69,13 @@ public class FilterService {
 		// 2. 디폴트 태그가 아닌 경우 CustomTag에서 찾기
 		return tagRepository.findByTagNameAndMemberId(tagName, member.getId())
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
+	}
+
+	public List<FilterResponse> getFilters(Member member) {
+		List<Filter> filters = filterRepository.findAllByMemberId(member.getId());
+
+		return filters.stream()
+			.map(FilterResponse::from)
+			.toList();
 	}
 }
