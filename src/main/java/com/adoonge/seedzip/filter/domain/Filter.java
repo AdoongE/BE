@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import com.adoonge.seedzip.global.entity.BaseEntity;
@@ -59,6 +61,7 @@ public class Filter extends BaseEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id")
+	@OnDelete(action = OnDeleteAction.CASCADE)  // Member 삭제 시 Filter도 삭제
 	private Member member;
 
 

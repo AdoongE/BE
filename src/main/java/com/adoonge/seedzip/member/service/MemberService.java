@@ -5,7 +5,6 @@ import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.member.dto.request.UpdateMemberRequest;
 import com.adoonge.seedzip.member.repository.MemberRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,5 +20,10 @@ public class MemberService {
                 .orElseThrow(() -> SeedzipException.from(ErrorCode.MEMBER_NOT_FOUND));
 
         findMember.update(request);
+    }
+
+    @Transactional
+    public void delete(Member member) {
+        memberRepository.delete(member);
     }
 }
