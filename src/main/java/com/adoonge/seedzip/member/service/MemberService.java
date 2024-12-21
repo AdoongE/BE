@@ -4,6 +4,7 @@ import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.member.dto.request.UpdateMemberRequest;
+import com.adoonge.seedzip.member.dto.response.MemberInformationResponse;
 import com.adoonge.seedzip.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+
+    @Transactional(readOnly = true)
+    public MemberInformationResponse getMemberInformation(Member member) {
+        return MemberInformationResponse.toDto(member);
+    }
 
     @Transactional
     public void update(Member member, UpdateMemberRequest request) {
