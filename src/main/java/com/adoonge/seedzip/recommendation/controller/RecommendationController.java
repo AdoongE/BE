@@ -1,17 +1,24 @@
 package com.adoonge.seedzip.recommendation.controller;
 
+import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.recommendation.dto.response.RecommendationResponse;
 import com.adoonge.seedzip.recommendation.service.RecommendationService;
 import com.adoonge.seedzip.recommendation.service.YouTubeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/recommendation")
@@ -23,10 +30,11 @@ public class RecommendationController {
 
     private final YouTubeService youTubeService;
 
-    @PostMapping("/image")
+    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "이미지 추천 관련 API", description = "이미지 링크를 넣으면 제목, 요약, 태그를 추천해주는 API입니다.")
-    public ApiResponse<RecommendationResponse> imageAnalysis(@RequestParam String imageUrl) {
-        RecommendationResponse response = recommendationService.requestImageAnalysis(imageUrl);
+    public ApiResponse<RecommendationResponse> imageAnalysis(@Parameter(description = "업로드할 이미지", content = @Content(mediaType = "application/octet-stream"))
+                                                                 @RequestParam(value = "file", required = false) MultipartFile file) {
+        RecommendationResponse response = recommendationService.requestImageAnalysis(file);
         return new ApiResponse<>(response);
     }
 
