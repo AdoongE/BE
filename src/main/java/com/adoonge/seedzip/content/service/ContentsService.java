@@ -291,10 +291,93 @@ public class ContentsService {
 		);
 	}
 
+	// 콘텐츠 수정 후 업로드
+	@Transactional
+	public ContentsAllResponse.contentResponse uploadModifiedContents(Long contentsId, List<MultipartFile> files, Member member) {
+
+		Contents contents = contentsRepository.findByContentsId(contentsId);
+		List<String> fileUrls = new ArrayList<>();
+
+		// 다른 DB도 접근하는 경우
+		if (contents.getContentsDataType().equals(ContentsDataType.PDF)) {
+
+			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contentsId);
+
+			existingDocuments.forEach(document -> {
+//				s3Service.deleteDocFile(document.getDocLink());
+				documentRepository.delete(document);
+			});
+
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = contents.getThumbnailIdx();
+
+			files.stream().forEach(file -> {
+				try {
+					// S3에 파일 업로드 및 URL 가져오기
+					String fileUrl = s3Service.uploadDocFile(file);
+					fileUrls.add(fileUrl);
+
+					// URL 저장
+					Document document = documentRepository.save(
+							Document.builder()
+									.docLink(fileUrl)
+									.contents(contents)
+									.docName(file.getOriginalFilename())
+									.build());
+
+					if (index.get() == thumbnailIndex) {
+						document.setDocThumbnail(true);
+					}
+
+					documentRepository.save(document);
+					index.getAndIncrement();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		} else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)) {
+			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
+//
+			existingImages.forEach(image -> {
+//				s3Service.deleteImgFile(image.getImgLink());
+				imageRepository.delete(image);
+			});
+
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = contents.getThumbnailIdx();
+
+			files.stream().forEach(file -> {
+				try {
+					// S3에 파일 업로드 및 URL 가져오기
+					String fileUrl = s3Service.uploadImgFile(file);
+					fileUrls.add(fileUrl);
+
+					// URL 저장
+					Image image = Image.builder()
+							.imgLink(fileUrl)
+							.contents(contents)
+							.imgName(file.getOriginalFilename())
+							.build();
+
+					if (index.get() == thumbnailIndex) {
+						image.setImgThumbnail(true);
+					}
+
+					imageRepository.save(image);
+					index.getAndIncrement();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		}
+		return ContentsAllResponse.contentResponse.fromEntity("파일을 수정했습니다!", contents);
+	}
+
 	// 콘텐츠 수정
 	public ContentsAllResponse.contentResponse modifyContents(ContentsRequest.allContentsRequest request,
-		Long contentsId,
-		List<MultipartFile> files, Member member) {
+		Long contentsId, Member member) {
 		Contents contents = contentsRepository.findById(contentsId)
 			.orElseThrow(() -> new RuntimeException("Content not found"));
 
@@ -401,43 +484,7 @@ public class ContentsService {
 			}
 		});
 
-		List<String> fileUrls = new ArrayList<>();
-
-		// 다른 DB도 접근하는 경우
-		if (contents.getContentsDataType().equals(ContentsDataType.PDF)) {
-
-			List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contentsId);
-
-			existingDocuments.forEach(document -> {
-				s3Service.deleteDocFile(document.getDocLink());
-				documentRepository.delete(document);
-			});
-
-			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
-			int thumbnailIndex = request.getThumbnailImage();
-
-			files.stream().forEach(file -> {
-				try {
-					// S3에 파일 업로드 및 URL 가져오기
-					String fileUrl = s3Service.uploadDocFile(file);
-					fileUrls.add(fileUrl);
-
-					// URL 저장
-					Document document = documentRepository.save(
-						request.toDocEntity(contents, fileUrl, file.getOriginalFilename()));
-
-					if (index.get() == thumbnailIndex) {
-						document.setDocThumbnail(true);
-					}
-
-					documentRepository.save(document);
-					index.getAndIncrement();
-
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
-		} else if (contents.getContentsDataType().equals(ContentsDataType.LINK)) {
+		if (contents.getContentsDataType().equals(ContentsDataType.LINK)) {
 			Optional<Link> existingLinkOptional = linkRepository.findByContents_ContentsId(contentsId);
 			String requestLink = request.getContentLink();
 
@@ -447,44 +494,12 @@ public class ContentsService {
 				if (!existingLink.getLink().equals(request.getContentLink())) {
 					linkRepository.delete(existingLink);
 					Link newLink = Link.builder()
-						.link(requestLink)
-						.contents(contents)
-						.build();
+							.link(requestLink)
+							.contents(contents)
+							.build();
 					linkRepository.save(newLink);
 				}
 			}
-		} else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)) {
-			List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
-
-			existingImages.forEach(image -> {
-				s3Service.deleteImgFile(image.getImgLink());
-				imageRepository.delete(image);
-			});
-
-			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
-			int thumbnailIndex = request.getThumbnailImage();
-
-			files.stream().forEach(file -> {
-				try {
-					// S3에 파일 업로드 및 URL 가져오기
-					String fileUrl = s3Service.uploadImgFile(file);
-					fileUrls.add(fileUrl);
-
-					// URL 저장
-					Image image = imageRepository.save(
-						request.toImgEntity(contents, fileUrl, file.getOriginalFilename()));
-
-					if (index.get() == thumbnailIndex) {
-						image.setImgThumbnail(true);
-					}
-
-					imageRepository.save(image);
-					index.getAndIncrement();
-
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
 		}
 		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 수정했습니다!", contents);
 	}
