@@ -551,21 +551,38 @@ public class ContentsService {
 		contentsRepository.delete(contents);
 	}
 
-	//전체 콘텐츠 필터링 & 검색
+	/**
+	 * 전체 콘텐츠를 필터링 및 검색하여 결과 반환
+	 *
+	 * @param member  요청을 보낸 회원 정보
+	 * @param request 필터 조건을 포함한 요청 객체
+	 * @return        필터링된 콘텐츠 리스트를 ContentsInfo 형태로 반환
+	 */
 	public List<ContentsAllResponse.contentsInfo> getFilteredContents(Member member, ContentsFilterRequest request) {
 
+		// 필터 조건 생성 (BooleanBuilder를 활용한 동적 조건 구성)
 		BooleanBuilder builder = buildFilterConditions(request);
 
+		// 필터 조건과 태그를 기반으로 콘텐츠 조회
 		List<Contents> result = contentsRepositoryCustom.findContentsByFilter(builder, member, request.tags());
 
 		return generateResponseFromContentsList(result);
 	}
 
-	//카테고리 내 콘텐츠 필터링 & 검색
+	/**
+	 * 특정 카테고리 내 콘텐츠를 필터링 및 검색하여 결과 반환
+	 *
+	 * @param member     요청을 보낸 회원 정보
+	 * @param categoryId 필터링할 카테고리 ID
+	 * @param request    필터 조건을 포함한 요청 객체
+	 * @return           필터링된 콘텐츠 리스트를 ContentsInfo 형태로 반환
+	 */
 	public List<ContentsAllResponse.contentsInfo> getFilteredCategoryContents(Member member, Long categoryId, ContentsFilterRequest request) {
 
+		// 필터 조건 생성 (BooleanBuilder를 활용한 동적 조건 구성)
 		BooleanBuilder builder = buildFilterConditions(request);
 
+		// 카테고리 ID와 필터 조건, 태그를 기반으로 콘텐츠 조회
 		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilter(builder, member, categoryId, request.tags());
 
 		return generateResponseFromContentsList(result);
@@ -667,6 +684,12 @@ public class ContentsService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * 요청 객체(ContentsFilterRequest)를 기반으로 콘텐츠를 필터링할 조건 생성
+	 *
+	 * @param request 필터 조건을 포함한 요청 객체
+	 * @return        필터링 조건이 포함된 BooleanBuilder 객체
+	 */
 	private BooleanBuilder buildFilterConditions(ContentsFilterRequest request) {
 		QContents contents = QContents.contents;
 		QTag tag = QTag.tag;
@@ -674,16 +697,19 @@ public class ContentsService {
 		BooleanBuilder builder = new BooleanBuilder();
 
 		// 저장 형식 필터
+		// 요청 객체에 데이터 타입(dataType)이 있을 경우 조건 추가
 		if (request.dataType() != null) {
 			builder.and(contents.contentsDataType.eq(request.dataType()));
 		}
 
 		// 태그 필터
+		// 요청 객체에 태그 리스트가 있을 경우 태그 이름으로 필터링 조건 추가
 		if (request.tags() != null && !request.tags().isEmpty()) {
 			builder.and(tag.tagName.in(request.tags())); // 태그 이름 필터링
 		}
 
 		// 키워드 검색
+		// 요청 객체에 키워드가 존재할 경우 콘텐츠 이름 또는 상세 설명에서 검색
 		if (request.keyword() != null && !request.keyword().trim().isEmpty()) {
 			builder.and(contents.contentsName.containsIgnoreCase(request.keyword())
 					.or(contents.contentsDetail.containsIgnoreCase(request.keyword())));
@@ -692,8 +718,17 @@ public class ContentsService {
 		return builder;
 	}
 
-	// 커스텀 필터
+	/**
+	 * 사용자 정의 필터를 적용하여 콘텐츠를 검색
+	 *
+	 * @param member   요청을 보낸 회원 정보
+	 * @param filterId 적용할 사용자 정의 필터의 ID
+	 * @return         필터링된 콘텐츠 리스트를 ContentsInfo 형태로 반환
+	 * @throws         SeedzipException 필터가 없거나 접근 권한이 없을 경우 예외 발생
+	 */
 	public List<ContentsAllResponse.contentsInfo> getCustomFilterContents(Member member, Long filterId) {
+
+		// 필터 ID를 기반으로 사용자 정의 필터 조회
 		Filter filter = filterRepository.findById(filterId)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
 
@@ -702,6 +737,7 @@ public class ContentsService {
 			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
 		}
 
+		// 사용자 정의 필터 조건을 사용하여 콘텐츠 조회
 		List<Contents> result = contentsRepositoryCustom.findContentsByCustomFilter(
 			filter.getStartDate(),
 			filter.getEndDate(),

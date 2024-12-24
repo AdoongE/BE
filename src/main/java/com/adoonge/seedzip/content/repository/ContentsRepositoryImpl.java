@@ -26,11 +26,23 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+/**
+ * ContentsRepositoryImpl
+ * - QueryDSL을 활용한 동적 쿼리 및 필터링 로직 제공
+ */
 @RequiredArgsConstructor
 public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 
 	private final JPAQueryFactory queryFactory;
 
+	/**
+	 * 특정 조건(predicate)과 태그를 기반으로 사용자가 저장한 콘텐츠를 조회
+	 *
+	 * @param predicate 추가 조건을 정의한 QueryDSL Predicate
+	 * @param member    조회할 콘텐츠의 소유자인 회원 정보
+	 * @param tags      필터링할 태그 리스트 (null 또는 빈 리스트 가능)
+	 * @return          필터링된 콘텐츠 리스트
+	 */
 	@Override
 	public List<Contents> findContentsByFilter(Predicate predicate, Member member, List<String> tags) {
 		QContents contents = QContents.contents;
@@ -55,6 +67,15 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		return query.fetch();
 	}
 
+	/**
+	 * 특정 카테고리(categoryId)와 조건(predicate), 태그를 기반으로 콘텐츠를 조회
+	 *
+	 * @param predicate 추가 조건을 정의한 QueryDSL Predicate
+	 * @param member    조회할 콘텐츠의 소유자인 회원 정보
+	 * @param categoryId 조회 대상 카테고리 ID
+	 * @param tags      필터링할 태그 리스트 (null 또는 빈 리스트 가능)
+	 * @return          필터링된 콘텐츠 리스트
+	 */
 	@Override
 	public List<Contents> findCategoryContentsByFilter(Predicate predicate, Member member, Long categoryId,
 													   List<String> tags) {
@@ -86,6 +107,18 @@ public class ContentsRepositoryImpl implements ContentsRepositoryCustom {
 		return query.fetch();
 	}
 
+	/**
+	 * 사용자 정의 필터 조건을 기반으로 콘텐츠 조회
+	 *
+	 * @param startDate       시작 날짜 (null 가능)
+	 * @param endDate         종료 날짜 (null 가능)
+	 * @param storageFormats  필터링할 저장 형식 리스트 (null 가능)
+	 * @param dDayStart       시작 D-Day 값 (null 가능)
+	 * @param dDayEnd         종료 D-Day 값 (null 가능)
+	 * @param filterId        필터 ID (null 가능)
+	 * @param memberID        조회 대상 회원 ID
+	 * @return                필터링된 콘텐츠 리스트
+	 */
 	@Override
 	public List<Contents> findContentsByCustomFilter(LocalDate startDate, LocalDate endDate,
 		List<String> storageFormats, Long dDayStart, Long dDayEnd, Long filterId, Long memberID) {
