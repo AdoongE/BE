@@ -52,7 +52,7 @@ public class NaverNewsService {
 		ResponseEntity<String> response = restTemplate.exchange(req, String.class);
 
 		String body = response.getBody();
-		return null;
+		return body;
 	}
 
 	private String parseUrl(String title) throws UnsupportedEncodingException {

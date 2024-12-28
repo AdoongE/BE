@@ -44,6 +44,12 @@ public class ChatGPTRequest {
         return createChatGPTRequest(model, maxTokens, List.of(systemMessage,userMessage));
     }
 
+    public static ChatGPTRequest createNewsRequest(String model, int maxTokens, String requestText) {
+        Message systemMessage = new TextMessage("system", "You are a helpful assistant for generating hashtags for news. Please answer in Korean.");
+        Message userMessage = new TextMessage("user", "Analyze the given text about a news, suggest a title, provide a 3-sentence summary, and 3 tags as a comma-separated string without #. Return the result as a raw JSON object without any code block or additional formatting.\n" + requestText);
+        return createChatGPTRequest(model, maxTokens, List.of(systemMessage,userMessage));
+    }
+
     private static ChatGPTRequest createChatGPTRequest(String model, int maxTokens, List<Message> messages) {
         return ChatGPTRequest.builder()
                 .model(model)

@@ -78,8 +78,18 @@ public class RecommendationService {
         String newsTitle = getNewsTitle(naverNewsUrl);
 
         String newsDescription = naverNewsService.searchNews(newsTitle);
+        log.info(newsDescription);
 
-        return null;
+        ChatGPTRequest newsRequest = ChatGPTRequest.createNewsRequest(apiModel, 500, newsDescription);
+        ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, newsRequest, ChatGPTResponse.class);
+        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+
+        try{
+            return parseRecommendationResponse(response);
+        } catch (JsonProcessingException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+
     }
 
     public RecommendationResponse requestPdfAnalysis(MultipartFile file) throws IOException {

@@ -57,7 +57,7 @@ public class RecommendationController {
     @PostMapping(value = "/naver-news")
     @Operation(summary = "네이버 뉴스 추천 관련 API", description = "네이버 뉴스 링크를 넣으면 제목, 요약, 태그를 추천해주는 API입니다.")
     public ApiResponse<RecommendationResponse> naverNewsAnalysis(@RequestParam String naverNewsUrl) throws IOException {
-        recommendationService.requestNaverNewsAnalysis(naverNewsUrl);
-        return null;
+        RecommendationResponse recommendationResponse = recommendationService.requestNaverNewsAnalysis(naverNewsUrl);
+        return new ApiResponse<>(recommendationResponse);
     }
 }
