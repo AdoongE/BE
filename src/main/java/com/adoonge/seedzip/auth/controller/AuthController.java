@@ -44,10 +44,22 @@ public class AuthController {
         return authService.login(code, SocialType.KAKAO, response);
     }
 
+    @PostMapping("/login/kakao/app")
+    @Operation(summary = "앱용 카카오 로그인 API", description = "카카오 서버에 접근할 수 있는 accessToken을 받고 JWT 토큰을 리턴합니다.")
+    ApiResponse<LoginResponse> loginKakaoForApp(@RequestParam String accessToken, HttpServletResponse response) {
+        return authService.loginForApp(accessToken, SocialType.KAKAO, response);
+    }
+
     @PostMapping("/login/naver")
     @Operation(summary = "네이버 로그인 API", description = "네이버 인가코드를 받고 JWT 토큰을 리턴합니다.")
     ApiResponse<LoginResponse> loginNaver(@RequestParam String code, HttpServletResponse response) {
         return authService.login(code, SocialType.NAVER, response);
+    }
+
+    @PostMapping("/login/naver/app")
+    @Operation(summary = "앱용 네이버 로그인 API", description = "네이버 인가코드를 받고 JWT 토큰을 리턴합니다.")
+    ApiResponse<LoginResponse> loginNaverForApp(@RequestParam String accessToken, HttpServletResponse response) {
+        return authService.loginForApp(accessToken, SocialType.NAVER, response);
     }
 
     @GetMapping("/test")
