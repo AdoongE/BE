@@ -8,10 +8,14 @@ import com.adoonge.seedzip.recommendation.dto.response.RecommendationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.InputStream;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -64,9 +68,36 @@ public class RecommendationService {
         }
     }
 
+    public RecommendationResponse requestPdfAnalysis(MultipartFile file) throws IOException {
+        ChatGPTRequest pdfRequest = ChatGPTRequest.createPdfRequest(apiModel, 500, extractTextFromPdf(file));
+
+        ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, pdfRequest, ChatGPTResponse.class);
+
+        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+
+        try{
+            return parseRecommendationResponse(response);
+        } catch (JsonProcessingException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+    }
+
     private RecommendationResponse parseRecommendationResponse(String response) throws JsonProcessingException {
         // ObjectMapper를 사용한 JSON 파싱
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(response, RecommendationResponse.class);
+    }
+
+    private String extractTextFromPdf(MultipartFile file) throws IOException {
+        try (InputStream inputStream = file.getInputStream()) {
+            PDDocument document = PDDocument.load(inputStream);
+
+            // PDFBox를 사용한 PDF 텍스트 추출
+            PDFTextStripper pdfTextStripper = new PDFTextStripper();
+            return pdfTextStripper.getText(document);
+        } catch (IOException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+
     }
 }

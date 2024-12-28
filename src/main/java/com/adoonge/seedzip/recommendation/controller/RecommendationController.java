@@ -45,4 +45,12 @@ public class RecommendationController {
         RecommendationResponse response = recommendationService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
         return new ApiResponse<>(response);
     }
+
+    @PostMapping(value = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "PDF 추천 관련 API", description = "PDF 파일을 넣으면 제목, 요약, 태그를 추천해주는 API입니다.")
+    public ApiResponse<RecommendationResponse> pdfAnalysis(@Parameter(description = "업로드할 pdf", content = @Content(mediaType = "application/octet-stream"))
+    @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
+        RecommendationResponse recommendationResponse = recommendationService.requestPdfAnalysis(file);
+        return new ApiResponse<>(recommendationResponse);
+    }
 }
