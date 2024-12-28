@@ -92,15 +92,6 @@ public class AuthService {
         memberRepository.save(member);
         memberRepository.flush();
 
-        // Category 자동 생성
-        Category defaultCategory = Category.builder()
-                .name("default")
-                .isPublic(false)
-                .member(member)
-                .build();
-
-        categoryRepository.save(defaultCategory);
-
        generateToken(loginId, response);
     }
 
