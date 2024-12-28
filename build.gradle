@@ -79,6 +79,9 @@ dependencies {
 
 	// PDFBox
 	implementation 'org.apache.pdfbox:pdfbox:2.0.24'
+
+	//Jsoup
+	implementation 'org.jsoup:jsoup:1.15.4'
 }
 
 bootJar {

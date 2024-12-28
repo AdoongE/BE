@@ -10,12 +10,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 
+import jdk.jfr.consumer.RecordedObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -33,6 +36,7 @@ public class RecommendationService {
     private String apiUrl;
 
     private final RestTemplate template;
+    private final NaverNewsService naverNewsService;
 
     public RecommendationResponse requestTextAnalysis(String requestText) {
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
@@ -68,6 +72,16 @@ public class RecommendationService {
         }
     }
 
+    // 네이버 뉴스 분석 요청
+    public RecommendationResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+        // 네이버 뉴스 제목 가져오기
+        String newsTitle = getNewsTitle(naverNewsUrl);
+
+        String newsDescription = naverNewsService.searchNews(newsTitle);
+
+        return null;
+    }
+
     public RecommendationResponse requestPdfAnalysis(MultipartFile file) throws IOException {
         ChatGPTRequest pdfRequest = ChatGPTRequest.createPdfRequest(apiModel, 500, extractTextFromPdf(file));
 
@@ -99,5 +113,10 @@ public class RecommendationService {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
 
+    }
+
+    private String getNewsTitle(String naverNewsUrl) throws IOException {
+        Document document = Jsoup.connect(naverNewsUrl).get();
+        return document.title();
     }
 }
