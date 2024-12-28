@@ -30,9 +30,7 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final OAuthServiceFactory oauthServiceFactory;
     private final PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
 
     private Boolean isMemberRegistered(String loginId) {
         return memberRepository.existsByLoginId(loginId);
@@ -44,6 +42,22 @@ public class AuthService {
         OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
         String accessToken = oauthService.getAccessToken(code);
+
+        String loginId = oauthService.getLoginId(accessToken);
+
+        if (!isMemberRegistered(loginId)) {
+            return new ApiResponse<>(LoginResponse.builder().result(accessToken).socialType(socialType).build(), ErrorCode.MEMBER_NOT_FOUND);
+        }
+
+        generateToken(loginId, response);
+
+        return new ApiResponse<>(LoginResponse.builder().result("").socialType(socialType).build(), ErrorCode.REQUEST_OK);
+    }
+
+    @Transactional(readOnly = true)
+    public ApiResponse<LoginResponse> loginForApp(String accessToken, SocialType socialType,HttpServletResponse response) {
+
+        OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
         String loginId = oauthService.getLoginId(accessToken);
 
