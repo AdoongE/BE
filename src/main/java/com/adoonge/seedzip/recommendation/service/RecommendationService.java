@@ -39,6 +39,10 @@ public class RecommendationService {
     private final NaverNewsService naverNewsService;
 
     public RecommendationResponse requestTextAnalysis(String requestText) {
+        if(!requestText.contains("https://www.youtube.com/watch?v=")){
+            throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -74,6 +78,10 @@ public class RecommendationService {
 
     // 네이버 뉴스 분석 요청
     public RecommendationResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+        if(!naverNewsUrl.contains("https://n.news.naver.com")) {
+            throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
         // 네이버 뉴스 제목 가져오기
         String newsTitle = getNewsTitle(naverNewsUrl);
 
