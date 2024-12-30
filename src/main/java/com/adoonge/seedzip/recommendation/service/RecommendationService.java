@@ -39,10 +39,6 @@ public class RecommendationService {
     private final NaverNewsService naverNewsService;
 
     public RecommendationResponse requestTextAnalysis(String requestText) {
-        if(!requestText.contains("https://www.youtube.com/watch?v=")){
-            throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
-        }
-
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -86,7 +82,6 @@ public class RecommendationService {
         String newsTitle = getNewsTitle(naverNewsUrl);
 
         String newsDescription = naverNewsService.searchNews(newsTitle);
-        log.info(newsDescription);
 
         ChatGPTRequest newsRequest = ChatGPTRequest.createNewsRequest(apiModel, 500, newsDescription);
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, newsRequest, ChatGPTResponse.class);
@@ -137,4 +132,5 @@ public class RecommendationService {
         Document document = Jsoup.connect(naverNewsUrl).get();
         return document.title();
     }
+
 }
