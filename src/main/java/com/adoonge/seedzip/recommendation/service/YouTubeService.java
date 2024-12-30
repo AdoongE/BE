@@ -3,6 +3,8 @@ package com.adoonge.seedzip.recommendation.service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.model.SearchListResponse;
@@ -25,6 +27,10 @@ public class YouTubeService {
 
     // url로 비디오 검색하는 함수
     public String searchVideos(String query) throws IOException {
+        // 유효하지 않은 URL인 경우 예외 처리
+        if(!query.contains("https://www.youtube.com/watch?v=")){
+            throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
+        }
 
         JacksonFactory jacksonFactory = new JacksonFactory();
 
