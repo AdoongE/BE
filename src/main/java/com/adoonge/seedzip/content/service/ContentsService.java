@@ -500,6 +500,31 @@ public class ContentsService {
 					linkRepository.save(newLink);
 				}
 			}
+		}else{	// 이미지, PDF
+			Contents byContentsId = contentsRepository.findByContentsId(contentsId);
+			if(byContentsId.getThumbnailIdx() != request.getThumbnailImage()){
+				byContentsId.setThumbnailIdx(request.getThumbnailImage());
+				contentsRepository.save(byContentsId);
+			}
+
+			if(contents.getContentsDataType().equals(ContentsDataType.IMAGE)) {
+				List<Image> existingImages = imageRepository.findAllByContents_ContentsId(contentsId);
+				for (Image existingImage : existingImages) {
+					existingImage.setImgThumbnail(false);
+					imageRepository.save(existingImage);
+				}
+				existingImages.get(request.getThumbnailImage()).setImgThumbnail(true);
+				imageRepository.save(existingImages.get(request.getThumbnailImage()));
+			}else if(contents.getContentsDataType().equals(ContentsDataType.PDF)){
+				List<Document> existingDocuments = documentRepository.findAllByContents_ContentsId(contentsId);
+				for (Document existingDocument : existingDocuments) {
+					existingDocument.setDocThumbnail(false);
+					documentRepository.save(existingDocument);
+				}
+				existingDocuments.get(request.getThumbnailImage()).setDocThumbnail(true);
+				documentRepository.save(existingDocuments.get(request.getThumbnailImage()));
+			}
+
 		}
 		return ContentsAllResponse.contentResponse.fromEntity("콘텐츠를 수정했습니다!", contents);
 	}
