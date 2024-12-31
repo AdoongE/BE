@@ -6,11 +6,16 @@ import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
+    @Value("${server.url}")
+    private String serverUrl;
     @Bean
     public OpenAPI openAPI() {
         String jwt = "JWT";
@@ -21,10 +26,16 @@ public class SwaggerConfig {
                 .scheme("bearer")
                 .bearerFormat("JWT")
         );
+
+        ArrayList<Server> servers = new ArrayList<>();
+        servers.add(new Server().url("http://localhost:8080").description("Local Server"));
+        servers.add(new Server().url("http://"+serverUrl).description("AdoongE Server"));
+
         return new OpenAPI()
                 .components(new Components())
                 .info(apiInfo())
                 .addSecurityItem(securityRequirement)
+                .servers(servers)
                 .components(components);
     }
     private Info apiInfo() {
