@@ -5,6 +5,7 @@ import com.adoonge.seedzip.auth.service.JwtTokenService;
 import com.adoonge.seedzip.global.filter.FilterExceptionHandler;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,6 +26,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final JwtTokenService jwtTokenService;
+
+    @Value("${server.url}")
+    private String serverUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -65,7 +69,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // 프론트엔드 도메인
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://"+serverUrl)); // 프론트엔드 도메인
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH","OPTIONS", "HEAD")); // 허용할 HTTP 메서드
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "withCredentials")); // 허용할 헤더
         configuration.setExposedHeaders(Arrays.asList("Authorization")); // 응답에서 노출할 헤더
