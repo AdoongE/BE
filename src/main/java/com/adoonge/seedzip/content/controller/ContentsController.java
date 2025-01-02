@@ -4,6 +4,7 @@ import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsUrlRequest;
+import com.adoonge.seedzip.content.dto.request.S3DeleteRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse.contentsInfo;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
@@ -229,5 +230,22 @@ public class ContentsController {
 
 		return new ApiResponse<>(contentsService.getFilteredCategoryContents(member, categoryId, request));
 	}
+
+	@DeleteMapping("/url/image")
+	@Operation(summary = "s3 내 이미지를 삭제하는 API", description ="s3 내 이미지를 삭제하는 API입니다.")
+	public ApiResponse<Void> deleteS3Image(@RequestBody S3DeleteRequest request, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+		contentsService.deleteS3Image(request);
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
+	@DeleteMapping("/url/document")
+	@Operation(summary = "s3 내 이미지를 삭제하는 API", description ="s3 내 이미지를 삭제하는 API입니다.")
+	public ApiResponse<Void> deleteS3Document(@RequestBody S3DeleteRequest request, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+		contentsService.deleteS3Document(request);
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
 
 }

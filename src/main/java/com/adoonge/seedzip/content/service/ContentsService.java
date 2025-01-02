@@ -8,6 +8,7 @@ import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsUrlRequest;
+import com.adoonge.seedzip.content.dto.request.S3DeleteRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.filter.domain.Filter;
@@ -800,5 +801,20 @@ public class ContentsService {
 		return generateResponseFromContentsList(result);
 	}
 
+	//s3 이미지 삭제
+	public void deleteS3Image(S3DeleteRequest request) {
+		List<String> fileUrls = request.fileUrls();
+		fileUrls.forEach(url -> {
+			s3Service.deleteImgFile(url);
+		});
+	}
+
+	//s3 문서 삭제
+	public void deleteS3Document(S3DeleteRequest request) {
+		List<String> fileUrls = request.fileUrls();
+		fileUrls.forEach(url -> {
+			s3Service.deleteDocFile(url);
+		});
+	}
 
 }
