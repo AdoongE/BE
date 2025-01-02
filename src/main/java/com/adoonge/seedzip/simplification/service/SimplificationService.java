@@ -1,15 +1,19 @@
 package com.adoonge.seedzip.simplification.service;
 
+import com.adoonge.seedzip.content.service.S3Service;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.simplification.dto.request.ChatGPTRequest;
 import com.adoonge.seedzip.simplification.dto.response.ChatGPTResponse;
-import com.adoonge.seedzip.simplification.dto.response.SimplificationResponse;
+import com.adoonge.seedzip.simplification.dto.response.SimplificationAllResponse;
+import com.adoonge.seedzip.simplification.dto.response.SimplificationInfoResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,8 +40,9 @@ public class SimplificationService {
 
     private final RestTemplate template;
     private final NaverNewsService naverNewsService;
+    private final S3Service s3Service;
 
-    public SimplificationResponse requestTextAnalysis(String requestText) {
+    public SimplificationInfoResponse requestTextAnalysis(String requestText) {
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -45,34 +50,36 @@ public class SimplificationService {
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseRecommendationResponse(response);
+            return parseSimplificationResponse(response);
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
     }
 
-    public SimplificationResponse requestImageAnalysis(MultipartFile file)  {
-        String base64Image;
-        try {
-            base64Image = Base64.encodeBase64String(file.getBytes());
-        } catch (IOException e) {
-            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
-        }
-        String imageUrl = "data:image/jpeg;base64," + base64Image;
-        ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, imageUrl);
-        ChatGPTResponse chatGPTResponse =  template.postForObject(apiUrl, request, ChatGPTResponse.class);
+    public SimplificationAllResponse.simplificationFileResponse requestImageAnalysis(List<MultipartFile> files, int thumbnailIdx)  {
 
-        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+        List<String> fileUrls = new ArrayList<>();
+        MultipartFile thumbnail = files.get(thumbnailIdx);
 
-        try{
-            return parseRecommendationResponse(response);
-        } catch (JsonProcessingException e) {
-            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
-        }
+        files.stream().forEach(file -> {
+            try {
+                // S3에 파일 업로드 및 URL 가져오기
+                String fileUrl = s3Service.uploadImgFile(file);
+                fileUrls.add(fileUrl);
+
+            } catch (IOException e) {
+                throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+            }
+        });
+        SimplificationInfoResponse info = processThumbnailImage(thumbnail);
+        return SimplificationAllResponse.simplificationFileResponse.builder()
+                .files(fileUrls)
+                .simplificationInfo(info)
+                .build();
     }
 
     // 네이버 뉴스 분석 요청
-    public SimplificationResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+    public SimplificationInfoResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
         if(!naverNewsUrl.contains("https://n.news.naver.com")) {
             throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -87,14 +94,81 @@ public class SimplificationService {
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseRecommendationResponse(response);
+            return parseSimplificationResponse(response);
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
 
     }
 
-    public SimplificationResponse requestPdfAnalysis(MultipartFile file) throws IOException {
+    public SimplificationAllResponse.simplificationFileResponse requestPdfAnalysis(List<MultipartFile> files, int thumbnailIdx) throws IOException {
+        List<String> fileUrls = new ArrayList<>();
+        MultipartFile thumbnail = files.get(thumbnailIdx);
+
+        files.stream().forEach(file -> {
+            try {
+                // S3에 파일 업로드 및 URL 가져오기
+                String fileUrl = s3Service.uploadDocFile(file);
+                fileUrls.add(fileUrl);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+            }
+        });
+        SimplificationInfoResponse info = processThumbnailPdf(thumbnail);
+        return SimplificationAllResponse.simplificationFileResponse.builder()
+                .files(fileUrls)
+                .simplificationInfo(info)
+                .build();
+
+    }
+
+    private SimplificationInfoResponse parseSimplificationResponse(String response) throws JsonProcessingException {
+        // ObjectMapper를 사용한 JSON 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(response, SimplificationInfoResponse.class);
+    }
+
+    private String extractTextFromPdf(MultipartFile file) throws IOException {
+        PDDocument document = null;
+        try (InputStream inputStream = file.getInputStream()) {
+            document = PDDocument.load(inputStream);
+
+            // PDFBox를 사용한 PDF 텍스트 추출
+            PDFTextStripper pdfTextStripper = new PDFTextStripper();
+            return pdfTextStripper.getText(document);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        } finally {
+            if (document != null) {
+                document.close(); // 리소스 해제
+            }
+        }
+    }
+
+    private String getNewsTitle(String naverNewsUrl) throws IOException {
+        Document document = Jsoup.connect(naverNewsUrl).get();
+        return document.title();
+    }
+
+    private SimplificationInfoResponse processThumbnailImage(MultipartFile file) {
+        try {
+            String base64Image = Base64.encodeBase64String(file.getBytes());
+            String imageUrl = "data:image/jpeg;base64," + base64Image;
+
+            ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, imageUrl);
+            ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
+
+            String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+            return parseSimplificationResponse(response);
+        } catch (Exception e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+    }
+
+    private SimplificationInfoResponse processThumbnailPdf(MultipartFile file) throws IOException {
         ChatGPTRequest pdfRequest = ChatGPTRequest.createPdfRequest(apiModel, 500, extractTextFromPdf(file));
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, pdfRequest, ChatGPTResponse.class);
@@ -102,34 +176,10 @@ public class SimplificationService {
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseRecommendationResponse(response);
+            return parseSimplificationResponse(response);
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
-    }
-
-    private SimplificationResponse parseRecommendationResponse(String response) throws JsonProcessingException {
-        // ObjectMapper를 사용한 JSON 파싱
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(response, SimplificationResponse.class);
-    }
-
-    private String extractTextFromPdf(MultipartFile file) throws IOException {
-        try (InputStream inputStream = file.getInputStream()) {
-            PDDocument document = PDDocument.load(inputStream);
-
-            // PDFBox를 사용한 PDF 텍스트 추출
-            PDFTextStripper pdfTextStripper = new PDFTextStripper();
-            return pdfTextStripper.getText(document);
-        } catch (IOException e) {
-            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
-        }
-
-    }
-
-    private String getNewsTitle(String naverNewsUrl) throws IOException {
-        Document document = Jsoup.connect(naverNewsUrl).get();
-        return document.title();
     }
 
 }

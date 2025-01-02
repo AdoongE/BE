@@ -1,7 +1,8 @@
 package com.adoonge.seedzip.simplification.controller;
 
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
-import com.adoonge.seedzip.simplification.dto.response.SimplificationResponse;
+import com.adoonge.seedzip.simplification.dto.response.SimplificationAllResponse;
+import com.adoonge.seedzip.simplification.dto.response.SimplificationInfoResponse;
 import com.adoonge.seedzip.simplification.service.SimplificationService;
 import com.adoonge.seedzip.simplification.service.YouTubeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,32 +31,32 @@ public class SimplificationController {
 
     @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "이미지 간략화 관련 API", description = "이미지를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationResponse> imageAnalysis(@Parameter(description = "업로드할 이미지", content = @Content(mediaType = "application/octet-stream"))
-                                                                 @RequestParam(value = "file", required = false) MultipartFile file) {
-        SimplificationResponse response = simplificationService.requestImageAnalysis(file);
+    public ApiResponse<SimplificationAllResponse.simplificationFileResponse> imageAnalysis(@Parameter(description = "업로드할 이미지", content = @Content(mediaType = "application/octet-stream"))
+                                                                 @RequestParam(value = "files", required = false) List<MultipartFile> files, @RequestParam(value = "thumbnailIdx", required = false) int thumbnailIdx) {
+        SimplificationAllResponse.simplificationFileResponse response = simplificationService.requestImageAnalysis(files, thumbnailIdx);
         return new ApiResponse<>(response);
     }
 
     @PostMapping("/youtube")
     @Operation(summary = "유튜브 간략화 관련 API", description = "유튜브 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationResponse> youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
+    public ApiResponse<SimplificationInfoResponse> youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
         String youtubeData = youTubeService.searchVideos(youtubeUrl);   // 유튜브 데이터 조회
-        SimplificationResponse response = simplificationService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
+        SimplificationInfoResponse response = simplificationService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
         return new ApiResponse<>(response);
     }
 
     @PostMapping(value = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "PDF 간략화 관련 API", description = "PDF 파일을 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationResponse> pdfAnalysis(@Parameter(description = "업로드할 pdf", content = @Content(mediaType = "application/octet-stream"))
-    @RequestParam(value = "file", required = false) MultipartFile file) throws IOException {
-        SimplificationResponse simplificationResponse = simplificationService.requestPdfAnalysis(file);
-        return new ApiResponse<>(simplificationResponse);
+    public ApiResponse<SimplificationAllResponse.simplificationFileResponse> pdfAnalysis(@Parameter(description = "업로드할 pdf", content = @Content(mediaType = "application/octet-stream"))
+                                                               @RequestParam(value = "files", required = false) List<MultipartFile> files, @RequestParam(value = "thumbnailIdx", required = false) int thumbnailIdx) throws IOException {
+        SimplificationAllResponse.simplificationFileResponse response = simplificationService.requestPdfAnalysis(files, thumbnailIdx);
+        return new ApiResponse<>(response);
     }
 
     @PostMapping(value = "/naver-news")
     @Operation(summary = "네이버 뉴스 간략화 관련 API", description = "네이버 뉴스 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationResponse> naverNewsAnalysis(@RequestParam String naverNewsUrl) throws IOException {
-        SimplificationResponse simplificationResponse = simplificationService.requestNaverNewsAnalysis(naverNewsUrl);
-        return new ApiResponse<>(simplificationResponse);
+    public ApiResponse<SimplificationInfoResponse> naverNewsAnalysis(@RequestParam String naverNewsUrl) throws IOException {
+        SimplificationInfoResponse simplificationInfoResponse = simplificationService.requestNaverNewsAnalysis(naverNewsUrl);
+        return new ApiResponse<>(simplificationInfoResponse);
     }
 }
