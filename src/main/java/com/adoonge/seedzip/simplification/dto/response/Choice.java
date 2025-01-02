@@ -1,6 +1,6 @@
-package com.adoonge.seedzip.recommendation.dto.response;
+package com.adoonge.seedzip.simplification.dto.response;
 
-import com.adoonge.seedzip.recommendation.dto.TextMessage;
+import com.adoonge.seedzip.simplification.dto.TextMessage;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

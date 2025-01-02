@@ -1,15 +1,17 @@
-package com.adoonge.seedzip.recommendation.dto.response;
+package com.adoonge.seedzip.simplification.dto.response;
 
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class RecommendationResponse {
+public class SimplificationResponse {
     private String title;     // 제목
     private String summary;   // 요약 (3문장)
     private String tags;      // 태그 (쉼표로 구분된 문자열)
+    private List<String> files;
 
     // 기본 생성자 (필수)
-    public RecommendationResponse() {}
+    public SimplificationResponse() {}
 }

@@ -1,16 +1,15 @@
-package com.adoonge.seedzip.recommendation.service;
+package com.adoonge.seedzip.simplification.service;
 
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
-import com.adoonge.seedzip.recommendation.dto.request.ChatGPTRequest;
-import com.adoonge.seedzip.recommendation.dto.response.ChatGPTResponse;
-import com.adoonge.seedzip.recommendation.dto.response.RecommendationResponse;
+import com.adoonge.seedzip.simplification.dto.request.ChatGPTRequest;
+import com.adoonge.seedzip.simplification.dto.response.ChatGPTResponse;
+import com.adoonge.seedzip.simplification.dto.response.SimplificationResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 
-import jdk.jfr.consumer.RecordedObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RecommendationService {
+public class SimplificationService {
 
     @Value("${openai.model}")
     private String apiModel;
@@ -38,7 +37,7 @@ public class RecommendationService {
     private final RestTemplate template;
     private final NaverNewsService naverNewsService;
 
-    public RecommendationResponse requestTextAnalysis(String requestText) {
+    public SimplificationResponse requestTextAnalysis(String requestText) {
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -52,7 +51,7 @@ public class RecommendationService {
         }
     }
 
-    public RecommendationResponse requestImageAnalysis(MultipartFile file)  {
+    public SimplificationResponse requestImageAnalysis(MultipartFile file)  {
         String base64Image;
         try {
             base64Image = Base64.encodeBase64String(file.getBytes());
@@ -73,7 +72,7 @@ public class RecommendationService {
     }
 
     // 네이버 뉴스 분석 요청
-    public RecommendationResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+    public SimplificationResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
         if(!naverNewsUrl.contains("https://n.news.naver.com")) {
             throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -95,7 +94,7 @@ public class RecommendationService {
 
     }
 
-    public RecommendationResponse requestPdfAnalysis(MultipartFile file) throws IOException {
+    public SimplificationResponse requestPdfAnalysis(MultipartFile file) throws IOException {
         ChatGPTRequest pdfRequest = ChatGPTRequest.createPdfRequest(apiModel, 500, extractTextFromPdf(file));
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, pdfRequest, ChatGPTResponse.class);
@@ -109,10 +108,10 @@ public class RecommendationService {
         }
     }
 
-    private RecommendationResponse parseRecommendationResponse(String response) throws JsonProcessingException {
+    private SimplificationResponse parseRecommendationResponse(String response) throws JsonProcessingException {
         // ObjectMapper를 사용한 JSON 파싱
         ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.readValue(response, RecommendationResponse.class);
+        return objectMapper.readValue(response, SimplificationResponse.class);
     }
 
     private String extractTextFromPdf(MultipartFile file) throws IOException {
