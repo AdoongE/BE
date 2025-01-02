@@ -39,9 +39,10 @@ public class SimplificationController {
 
     @PostMapping("/youtube")
     @Operation(summary = "유튜브 간략화 관련 API", description = "유튜브 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationInfoResponse> youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
+    public ApiResponse<SimplificationAllResponse.simplificationLinkResponse> youtubeAnalysis(@RequestParam String youtubeUrl) throws IOException {
         String youtubeData = youTubeService.searchVideos(youtubeUrl);   // 유튜브 데이터 조회
-        SimplificationInfoResponse response = simplificationService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
+        SimplificationAllResponse.simplificationLinkResponse response = simplificationService.requestTextAnalysis(youtubeData); // 요약 데이터 조회
+        response.setLink(youtubeUrl);
         return new ApiResponse<>(response);
     }
 
@@ -55,8 +56,8 @@ public class SimplificationController {
 
     @PostMapping(value = "/naver-news")
     @Operation(summary = "네이버 뉴스 간략화 관련 API", description = "네이버 뉴스 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationInfoResponse> naverNewsAnalysis(@RequestParam String naverNewsUrl) throws IOException {
-        SimplificationInfoResponse simplificationInfoResponse = simplificationService.requestNaverNewsAnalysis(naverNewsUrl);
+    public ApiResponse<SimplificationAllResponse.simplificationLinkResponse> naverNewsAnalysis(@RequestParam String naverNewsUrl) throws IOException {
+        SimplificationAllResponse.simplificationLinkResponse simplificationInfoResponse = simplificationService.requestNaverNewsAnalysis(naverNewsUrl);
         return new ApiResponse<>(simplificationInfoResponse);
     }
 }

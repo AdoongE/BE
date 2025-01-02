@@ -42,7 +42,7 @@ public class SimplificationService {
     private final NaverNewsService naverNewsService;
     private final S3Service s3Service;
 
-    public SimplificationInfoResponse requestTextAnalysis(String requestText) {
+    public SimplificationAllResponse.simplificationLinkResponse requestTextAnalysis(String requestText) {
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -50,7 +50,11 @@ public class SimplificationService {
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseSimplificationResponse(response);
+            SimplificationInfoResponse info = parseSimplificationResponse(response);
+
+            return SimplificationAllResponse.simplificationLinkResponse.builder()
+                    .simplificationInfo(info)
+                    .build();
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
@@ -79,7 +83,7 @@ public class SimplificationService {
     }
 
     // 네이버 뉴스 분석 요청
-    public SimplificationInfoResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+    public SimplificationAllResponse.simplificationLinkResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
         if(!naverNewsUrl.contains("https://n.news.naver.com")) {
             throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -94,7 +98,12 @@ public class SimplificationService {
         String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
 
         try{
-            return parseSimplificationResponse(response);
+            SimplificationInfoResponse info = parseSimplificationResponse(response);
+
+            return SimplificationAllResponse.simplificationLinkResponse.builder()
+                    .simplificationInfo(info)
+                    .link(naverNewsUrl)
+                    .build();
         } catch (JsonProcessingException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
