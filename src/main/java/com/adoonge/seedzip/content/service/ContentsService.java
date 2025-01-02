@@ -7,6 +7,7 @@ import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
 import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
+import com.adoonge.seedzip.content.dto.request.ContentsUrlRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.repository.*;
 import com.adoonge.seedzip.filter.domain.Filter;
@@ -173,6 +174,65 @@ public class ContentsService {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			});
+		}
+		return ContentsAllResponse.contentResponse.fromEntity("파일을 저장했습니다!", contents);
+	}
+
+	@Transactional
+	public ContentsAllResponse.contentResponse synchronizeContents(Long contentsId, ContentsUrlRequest request, Member member) {
+
+		Contents contents = contentsRepository.findByContentsId(contentsId);
+		List<String> fileUrls = request.fileUrls();
+		List<String> fileNames = request.fileNames();
+
+		if (contents.getContentsDataType().equals(ContentsDataType.PDF)) {
+			// PDF
+
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = contents.getThumbnailIdx();
+
+			fileUrls.stream().forEach(fileUrl -> {
+
+					// URL 저장
+					Document document = documentRepository.save(
+							Document.builder()
+									.docLink(fileUrl)
+									.contents(contents)
+									.docName(fileNames.get(index.get()))
+									.build());
+
+					if (index.get() == thumbnailIndex) {
+						document.setDocThumbnail(true);
+					}
+
+					documentRepository.save(document);
+					index.getAndIncrement();
+
+			});
+
+		} else if (contents.getContentsDataType().equals(ContentsDataType.IMAGE)) {
+			// IMAGE
+			AtomicInteger index = new AtomicInteger(0); // 현재 인덱스를 추적하기 위한 변수
+			int thumbnailIndex = contents.getThumbnailIdx();
+
+			fileUrls.stream().forEach(fileUrl -> {
+
+					// Image 엔티티 생성
+					Image image = Image.builder()
+							.imgLink(fileUrl)
+							.contents(contents)
+							.imgName(fileNames.get(index.get()))
+							.build();
+
+					// 인덱스가 thumbnailIndex와 일치하면 imgThumbnail을 true로 설정
+					if (index.get() == thumbnailIndex) {
+						image.setImgThumbnail(true);
+					}
+
+					imageRepository.save(image);
+					index.getAndIncrement();
+
 			});
 		}
 		return ContentsAllResponse.contentResponse.fromEntity("파일을 저장했습니다!", contents);
