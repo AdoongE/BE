@@ -17,6 +17,7 @@ public class SimplificationAllResponse {
     public static class simplificationFileResponse{
         SimplificationInfoResponse simplificationInfo;
         List<String> files;
+        List<String> fileNames;
     }
 
     @Builder

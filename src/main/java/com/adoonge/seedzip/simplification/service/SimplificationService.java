@@ -63,6 +63,7 @@ public class SimplificationService {
     public SimplificationAllResponse.simplificationFileResponse requestImageAnalysis(List<MultipartFile> files, int thumbnailIdx)  {
 
         List<String> fileUrls = new ArrayList<>();
+        List<String> fileNames = new ArrayList<>();
         MultipartFile thumbnail = files.get(thumbnailIdx);
 
         files.stream().forEach(file -> {
@@ -70,6 +71,7 @@ public class SimplificationService {
                 // S3에 파일 업로드 및 URL 가져오기
                 String fileUrl = s3Service.uploadImgFile(file);
                 fileUrls.add(fileUrl);
+                fileNames.add(file.getOriginalFilename());
 
             } catch (IOException e) {
                 throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
@@ -78,6 +80,7 @@ public class SimplificationService {
         SimplificationInfoResponse info = processThumbnailImage(thumbnail);
         return SimplificationAllResponse.simplificationFileResponse.builder()
                 .files(fileUrls)
+                .fileNames(fileNames)
                 .simplificationInfo(info)
                 .build();
     }
@@ -111,7 +114,9 @@ public class SimplificationService {
     }
 
     public SimplificationAllResponse.simplificationFileResponse requestPdfAnalysis(List<MultipartFile> files, int thumbnailIdx) throws IOException {
+
         List<String> fileUrls = new ArrayList<>();
+        List<String> fileNames = new ArrayList<>();
         MultipartFile thumbnail = files.get(thumbnailIdx);
 
         files.stream().forEach(file -> {
@@ -119,6 +124,7 @@ public class SimplificationService {
                 // S3에 파일 업로드 및 URL 가져오기
                 String fileUrl = s3Service.uploadDocFile(file);
                 fileUrls.add(fileUrl);
+                fileNames.add(file.getOriginalFilename());
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -128,6 +134,7 @@ public class SimplificationService {
         SimplificationInfoResponse info = processThumbnailPdf(thumbnail);
         return SimplificationAllResponse.simplificationFileResponse.builder()
                 .files(fileUrls)
+                .fileNames(fileNames)
                 .simplificationInfo(info)
                 .build();
 
