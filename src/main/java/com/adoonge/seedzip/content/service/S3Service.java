@@ -68,8 +68,8 @@ public class S3Service {
     public static String extractKeyFromUrl(String url) {
 
         String docBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
-//        String imgBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
-        String imgBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/image/";
+        String imgBaseUrl = "https://content-img.s3.ap-northeast-2.amazonaws.com/";
+//        String imgBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/image/";
 
         // URL이 docBaseUrl로 시작하는지 확인
         if (url.startsWith(docBaseUrl)) {
@@ -78,7 +78,8 @@ public class S3Service {
         }
         // URL이 imgBaseUrl로 시작하는지 확인
         else if (url.startsWith(imgBaseUrl)) {
-            return url.substring(imgBaseUrl.length()); // imgBaseUrl 뒤의 경로 추출
+            String decodedString = URLDecoder.decode(url, StandardCharsets.UTF_8);
+            return decodedString.substring(imgBaseUrl.length()); // imgBaseUrl 뒤의 경로 추출
         }
         // 어떤 기준에도 맞지 않으면 예외 처리
         else {
