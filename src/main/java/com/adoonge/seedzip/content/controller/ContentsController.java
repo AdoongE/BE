@@ -3,6 +3,8 @@ package com.adoonge.seedzip.content.controller;
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.content.dto.request.ContentsFilterRequest;
 import com.adoonge.seedzip.content.dto.request.ContentsRequest;
+import com.adoonge.seedzip.content.dto.request.ContentsUrlRequest;
+import com.adoonge.seedzip.content.dto.request.S3DeleteRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse.contentsInfo;
 import com.adoonge.seedzip.content.dto.response.ContentsDocResponse;
@@ -36,7 +38,6 @@ import java.util.List;
 @Tag(name = "ContentController", description = "콘텐츠 관련 API")
 public class ContentsController {
 
-	@Autowired
 	private final ContentsService contentsService;
 
 	@PostMapping(value = "/upload/{contentsId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -55,6 +56,25 @@ public class ContentsController {
 
 		Member member = customUserDetails.getMember();
 		ContentsAllResponse.contentResponse createdContents = contentsService.uploadContents(contentsId, files, member);
+
+		return new ApiResponse<>(createdContents);
+	}
+
+	@PostMapping(value = "/upload/url/{contentsId}")
+	@Operation(summary = "콘텐츠 업로드 (s3 링크와 콘텐츠 동기화) API", description = "콘텐츠 업로드 (s3 링크와 콘텐츠 동기화) API입니다.")
+	@ApiResponses(value = {
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+					content = @Content(mediaType = "application/json",
+							schema = @Schema(implementation = ContentsDocResponse.class))),
+			@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+	})
+	public ApiResponse<ContentsAllResponse.contentResponse> synchronizeContents(
+			@PathVariable("contentsId") Long contentsId,
+			@RequestBody ContentsUrlRequest request,
+			@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+		Member member = customUserDetails.getMember();
+		ContentsAllResponse.contentResponse createdContents = contentsService.synchronizeContents(contentsId, request, member);
 
 		return new ApiResponse<>(createdContents);
 	}
@@ -210,5 +230,22 @@ public class ContentsController {
 
 		return new ApiResponse<>(contentsService.getFilteredCategoryContents(member, categoryId, request));
 	}
+
+	@DeleteMapping("/url/image")
+	@Operation(summary = "s3 내 이미지를 삭제하는 API", description ="s3 내 이미지를 삭제하는 API입니다.")
+	public ApiResponse<Void> deleteS3Image(@RequestBody S3DeleteRequest request, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+		contentsService.deleteS3Image(request);
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
+	@DeleteMapping("/url/document")
+	@Operation(summary = "s3 내 이미지를 삭제하는 API", description ="s3 내 이미지를 삭제하는 API입니다.")
+	public ApiResponse<Void> deleteS3Document(@RequestBody S3DeleteRequest request, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+		Member member = customUserDetails.getMember();
+		contentsService.deleteS3Document(request);
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
 
 }

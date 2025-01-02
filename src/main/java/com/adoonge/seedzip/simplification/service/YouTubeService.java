@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.recommendation.service;
+package com.adoonge.seedzip.simplification.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;

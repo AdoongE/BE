@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.recommendation.dto.response;
+package com.adoonge.seedzip.simplification.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
