@@ -338,7 +338,7 @@ public class ContentsService {
 		return new ContentsAllResponse.getContents(
 			contents.getContentsId(),
 			contents.getContentsDataType(),
-				(contents.getContentsName() == null || contents.getContentsName().isEmpty()) ? String.valueOf(contents.getCreatedAt()) : contents.getContentsName(),
+				(contents.getContentsName() == null || contents.getContentsName().isEmpty()) ? String.valueOf(contents.getCreatedAt().toLocalDate()) : contents.getContentsName(),
 			contentLink,
 			contentImage,
 			contentDoc,
