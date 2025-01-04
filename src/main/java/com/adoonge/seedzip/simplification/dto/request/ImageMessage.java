@@ -1,6 +1,6 @@
-package com.adoonge.seedzip.recommendation.dto.request;
+package com.adoonge.seedzip.simplification.dto.request;
 
-import com.adoonge.seedzip.recommendation.dto.Message;
+import com.adoonge.seedzip.simplification.dto.Message;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

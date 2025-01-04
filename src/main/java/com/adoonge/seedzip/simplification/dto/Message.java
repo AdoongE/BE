@@ -1,13 +1,14 @@
-package com.adoonge.seedzip.recommendation.dto.request;
+package com.adoonge.seedzip.simplification.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter @Setter
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class Content {
-    private String type;
+public abstract class Message {
+    private String role;
 }

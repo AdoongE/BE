@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.recommendation.service;
+package com.adoonge.seedzip.simplification.service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
