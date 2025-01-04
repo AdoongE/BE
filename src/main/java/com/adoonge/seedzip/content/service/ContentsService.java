@@ -644,6 +644,8 @@ public class ContentsService {
 
 		List<Contents> result = contentsRepositoryCustom.findContentsByFilter(builder, member, request.tags());
 
+		Collections.reverse(result); // 최신순으로 하기 위해서
+
 		return generateResponseFromContentsList(result);
 	}
 
@@ -653,6 +655,8 @@ public class ContentsService {
 		BooleanBuilder builder = buildFilterConditions(request);
 
 		List<Contents> result = contentsRepositoryCustom.findCategoryContentsByFilter(builder, member, categoryId, request.tags());
+
+		Collections.reverse(result); // 최신순으로 하기 위해서
 
 		return generateResponseFromContentsList(result);
 	}
