@@ -338,7 +338,7 @@ public class ContentsService {
 		return new ContentsAllResponse.getContents(
 			contents.getContentsId(),
 			contents.getContentsDataType(),
-			contents.getContentsName(),
+				contents.getContentsName() == null ? String.valueOf(contents.getCreatedAt()) : contents.getContentsName(),
 			contentLink,
 			contentImage,
 			contentDoc,
