@@ -33,6 +33,24 @@ public class ContentsAllResponse {
     @Getter
     @NoArgsConstructor
     @AllArgsConstructor
+    public static class contentsInfoWithContentDetail{
+        Long contentId;
+        String contentName;
+        List<Long> categoryId;
+        List<String> categoryName;
+        ContentsDataType contentDateType;
+        String thumbnailImage; // 없으면 null
+        LocalDateTime updatedDt;
+        List<Long> tagId;
+        List<String> tagName;
+        int dDay;
+        String contentDetail;
+    }
+
+    @Builder
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class getAllContents{
         String nickname;
         List<contentsInfo> contentsInfoList;
