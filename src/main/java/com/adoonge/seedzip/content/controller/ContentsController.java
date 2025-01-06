@@ -214,7 +214,7 @@ public class ContentsController {
 
 	@PostMapping("/filtering")
 	@Operation(summary = "전체 콘텐츠 필터링 및 검색 API", description = "전체 콘텐츠 필터링 및 검색 API입니다.")
-	public ApiResponse<ContentsAllResponse.contentsInfo> filterContent(@RequestBody ContentsFilterRequest request
+	public ApiResponse<ContentsAllResponse.contentsInfoWithContentDetail> filterContent(@RequestBody ContentsFilterRequest request
 			, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		Member member = customUserDetails.getMember();
 
@@ -223,7 +223,7 @@ public class ContentsController {
 
 	@PostMapping("/filtering/{categoryId}")
 	@Operation(summary = "카테고리 내 콘텐츠 필터링 및 검색 API", description = "카테고리 내 콘텐츠 필터링 및 검색 API입니다.")
-	public ApiResponse<ContentsAllResponse.contentsInfo> filterContent(@PathVariable("categoryId") Long categoryId,
+	public ApiResponse<ContentsAllResponse.contentsInfoWithContentDetail> filterContent(@PathVariable("categoryId") Long categoryId,
 			@RequestBody ContentsFilterRequest request
 			, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		Member member = customUserDetails.getMember();
