@@ -42,7 +42,90 @@ public class SimplificationService {
     private final NaverNewsService naverNewsService;
     private final S3Service s3Service;
 
-    public SimplificationAllResponse.simplificationLinkResponse requestTextAnalysis(String requestText) {
+    /**
+     * 기존 버전
+     */
+    public SimplificationInfoResponse requestTextAnalysis(String requestText) {
+        ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
+
+        ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
+
+        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+
+        try{
+            return parseSimplificationResponse(response);
+        } catch (JsonProcessingException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+    }
+
+    public SimplificationInfoResponse requestImageAnalysis(MultipartFile file)  {
+        String base64Image;
+        try {
+            base64Image = Base64.encodeBase64String(file.getBytes());
+        } catch (IOException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+        String imageUrl = "data:image/jpeg;base64," + base64Image;
+        ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, imageUrl);
+        ChatGPTResponse chatGPTResponse =  template.postForObject(apiUrl, request, ChatGPTResponse.class);
+
+        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+
+        try{
+            return parseSimplificationResponse(response);
+        } catch (JsonProcessingException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+    }
+
+    // 네이버 뉴스 분석 요청
+    public SimplificationInfoResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+        if(!naverNewsUrl.contains("https://n.news.naver.com")) {
+            throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        // 네이버 뉴스 제목 가져오기
+        String newsTitle = getNewsTitle(naverNewsUrl);
+
+        String newsDescription = naverNewsService.searchNews(newsTitle);
+
+        ChatGPTRequest newsRequest = ChatGPTRequest.createNewsRequest(apiModel, 500, newsDescription);
+        ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, newsRequest, ChatGPTResponse.class);
+        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+
+        try{
+            return parseSimplificationResponse(response);
+        } catch (JsonProcessingException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+
+    }
+
+    /**
+     * PDF 간략화
+     */
+    public SimplificationInfoResponse requestPdfAnalysis(MultipartFile file) throws IOException {
+
+        ChatGPTRequest pdfRequest = ChatGPTRequest.createPdfRequest(apiModel, 500, extractTextFromPdf(file));
+
+        ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, pdfRequest, ChatGPTResponse.class);
+
+        String response = chatGPTResponse.getChoices().get(0).getMessage().getContent();
+
+        try{
+            return parseSimplificationResponse(response);
+        } catch (JsonProcessingException e) {
+            throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        }
+
+    }
+
+    /**
+     * s3에 먼저 저장하는 로직
+     */
+
+    public SimplificationAllResponse.simplificationLinkResponse requestTextAnalysisV2(String requestText) {
         ChatGPTRequest request = ChatGPTRequest.createYoutubeRequest(apiModel, 500, requestText);
 
         ChatGPTResponse chatGPTResponse = template.postForObject(apiUrl, request, ChatGPTResponse.class);
@@ -60,7 +143,7 @@ public class SimplificationService {
         }
     }
 
-    public SimplificationAllResponse.simplificationFileResponse requestImageAnalysis(List<MultipartFile> files, int thumbnailIdx)  {
+    public SimplificationAllResponse.simplificationFileResponse requestImageAnalysisV2(List<MultipartFile> files, int thumbnailIdx)  {
 
         List<String> fileUrls = new ArrayList<>();
         List<String> fileNames = new ArrayList<>();
@@ -86,7 +169,7 @@ public class SimplificationService {
     }
 
     // 네이버 뉴스 분석 요청
-    public SimplificationAllResponse.simplificationLinkResponse requestNaverNewsAnalysis(String naverNewsUrl) throws IOException {
+    public SimplificationAllResponse.simplificationLinkResponse requestNaverNewsAnalysisV2(String naverNewsUrl) throws IOException {
         if(!naverNewsUrl.contains("https://n.news.naver.com")) {
             throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
         }
@@ -113,7 +196,10 @@ public class SimplificationService {
 
     }
 
-    public SimplificationAllResponse.simplificationFileResponse requestPdfAnalysis(List<MultipartFile> files, int thumbnailIdx) throws IOException {
+    /**
+     * PDF 간략화
+     */
+    public SimplificationAllResponse.simplificationFileResponse requestPdfAnalysisV2(List<MultipartFile> files, int thumbnailIdx) throws IOException {
 
         List<String> fileUrls = new ArrayList<>();
         List<String> fileNames = new ArrayList<>();
