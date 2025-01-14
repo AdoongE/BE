@@ -13,7 +13,7 @@ public class CorsMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry corsRegistry) {
         corsRegistry.addMapping("/**")
-                .allowedOrigins("http://localhost:3000", "http://"+serverUrl, "https://seedzip.vercel.app" , "http://localhost:8080", "http://localhost:8081", "http://localhost:8082")
+                .allowedOrigins("http://localhost:3000", "https://"+serverUrl, "https://seedzip.vercel.app")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD")
                 .allowedHeaders("Authorization", "Content-Type", "withCredentials")
                 .exposedHeaders("Authorization")
