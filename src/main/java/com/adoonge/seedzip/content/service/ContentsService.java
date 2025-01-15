@@ -705,6 +705,12 @@ public class ContentsService {
 							thumbnailUrl = thumbnailDoc.get().getDocLink();
 						}
 					}
+					else{
+						Optional<Link> link = linkRepository.findByContents_ContentsId(content.getContentsId());
+						if (link.isPresent()) {
+							thumbnailUrl = link.get().getLink();
+						}
+					}
 					// contentId에 해당하는 카테고리 리스트 조회
 					List<Long> categoryIds = categoryContentRepository.findCategoryIdsByContentId(content.getContentsId());
 					List<String> categoryNames = categoryIds.stream()
