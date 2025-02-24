@@ -1,6 +1,27 @@
-# Seedzip-Backend
-## 🛠 Architecture
-<img width="2206" alt="image" src="https://github.com/user-attachments/assets/16619ccf-f1c5-4b6e-bce7-41af13225cb4" />
+# 🌱 Seedzip-Backend
+
+<div align="center">
+    <img width="800" alt="main" src="https://github.com/user-attachments/assets/c7b3a8ca-e6ef-4c0e-a353-b171aeb522ac" />
+    <br><br>
+    <a href="https://hits.seeyoufarm.com">
+        <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2FAdoongE%2FBE&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false">
+    </a>
+</div>
+
+## 🛠 About Project
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/967a67ce-fde2-4746-9a96-20349498149f", width="400">
+    <img src="https://github.com/user-attachments/assets/133de42f-42c9-4931-811a-7d40ec2f35f7", width="400">
+    <img src="https://github.com/user-attachments/assets/3ae351a7-d727-472c-b6e2-67ce384fff04", width="400">
+    <img src="https://github.com/user-attachments/assets/c60a12d6-04f4-4800-9aee-9abb931e1b40", width="400">
+    <img src="https://github.com/user-attachments/assets/99243e29-c704-4d08-872e-0fd5edfd2ffa", width="400">
+    <img src="https://github.com/user-attachments/assets/1ae577ef-7da0-4478-b8b9-954ce94b122d", width="400"> 
+</div>
+
+## 🛠 System Architecture
+<div align="center">
+    <img width="1000" alt="architecture" src="https://github.com/user-attachments/assets/16619ccf-f1c5-4b6e-bce7-41af13225cb4" />
+</div>
 
 ## 🛠 Stacks
 
