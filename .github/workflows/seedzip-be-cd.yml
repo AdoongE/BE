@@ -65,7 +65,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: ita
+          username: ubuntu
           password: ${{ secrets.EC2_SSH_KEY}}
           script: |
             sh /home/ubuntu/deploy.sh
