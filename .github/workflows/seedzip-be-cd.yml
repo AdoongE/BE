@@ -48,10 +48,6 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
 
       - name: ✨ Docker Image 빌드 후 DockerHub에 Push
-        env:
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASS: ${{ secrets.DB_PASS }}
-          DB_URL: ${{ secrets.DB_URL }}
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -70,6 +66,6 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ita
-          password: ${{ secrets.EC2_PASSWORD }}
+          password: ${{ secrets.EC2_SSH_KEY}}
           script: |
-            sh /home/ita/adoonge/deploy.sh
+            sh /home/ubuntu/deploy.sh
