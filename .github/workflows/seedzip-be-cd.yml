@@ -66,6 +66,6 @@ jobs:
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
-          password: ${{ secrets.EC2_SSH_KEY}}
+          key: ${{ secrets.EC2_SSH_KEY}}
           script: |
             sh /home/ubuntu/deploy.sh
