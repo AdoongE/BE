@@ -62,6 +62,12 @@ public class AuthController {
         return authService.loginForApp(accessToken, SocialType.NAVER, response);
     }
 
+    @PostMapping("login/google")
+    @Operation(summary = "구글 로그인 API", description = "구글 인가코드를 받고 JWT 토큰을 리턴합니다.")
+    ApiResponse<LoginResponse> loginGoogle(@RequestParam String code, HttpServletResponse response) {
+        return authService.login(code, SocialType.GOOGLE, response);
+    }
+
     @GetMapping("/test")
     @Operation(summary = "로그인 테스트 API", description = "로그인 여부를 확인할 수 있는 API입니다. 회원의 닉네임을 리턴합니다.")
     public ApiResponse<String> test(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
