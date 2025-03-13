@@ -41,7 +41,7 @@ public class AuthService {
 
         OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
-        String accessToken = oauthService.getAccessToken(code);
+        String accessToken = oauthService.getSocialAccessToken(code);
 
         String loginId = oauthService.getLoginId(accessToken);
 
