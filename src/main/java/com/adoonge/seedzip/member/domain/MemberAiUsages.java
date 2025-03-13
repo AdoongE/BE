@@ -32,7 +32,7 @@ public class MemberAiUsages extends BaseEntity {
 
 	@OneToOne
 	@JoinColumn(name = "member_id")
-	private Member memberId;
+	private Member member;
 
 	private LocalDate lastUsedDate;
 

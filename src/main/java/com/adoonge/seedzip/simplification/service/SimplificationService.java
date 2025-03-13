@@ -28,6 +28,7 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -309,10 +310,16 @@ public class SimplificationService {
 
     private MemberAiUsages createMemberAiUsage(Member member, LocalDate today) {
         return MemberAiUsages.builder()
-            .memberId(member)
+            .member(member)
             .usageCount(0L)
             .lastUsedDate(today)
             .build();
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")    // 매일 0시에 실행
+    public void resetDailyAiUsage() {
+        LocalDate today = LocalDate.now();
+        memberAiUsageRepository.deleteByLastUsedDateBefore(today);
     }
 
 
