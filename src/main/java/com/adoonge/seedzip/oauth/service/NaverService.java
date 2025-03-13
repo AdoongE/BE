@@ -1,13 +1,18 @@
 package com.adoonge.seedzip.oauth.service;
 
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -19,66 +24,95 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class NaverService implements OAuthService{
 
     @Value("${NAVER_CLIENT_ID}")
-    private String clientId;
+    private String naverClientId;
 
     @Value("${NAVER_CLIENT_SECRET}")
-    private String clientSecret;
+    private String naverClientSecret;
 
     @Value("${NAVER_REDIRECT_URI}")
-    private String redirectUri;
+    private String naverRedirectUri;
+
+    @Autowired
+    RestTemplate restTemplate;
 
     @Override
-    public String getAccessToken(String code) {
-        String reqUrl = "https://nid.naver.com/oauth2.0/token";
-        RestTemplate restTemplate = new RestTemplate();
+    public ResponseEntity<Map> requestSocialUserAccessToken(String code) {
+        String requestUrl = "https://nid.naver.com/oauth2.0/token";
 
-        // HttpHeader Object
         HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        // HttpBody Object
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", clientId);
-        params.add("client_secret", clientSecret);
-        params.add("code", code);
-        params.add("state", "seedzip");
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", naverClientId);
+        body.add("client_secret", naverClientSecret);
+        body.add("redirect_uri", naverRedirectUri);
+        body.add("state", "seedzip");
+        body.add("code", code);
 
-        // http body params 와 http headers 를 가진 엔티티
-        HttpEntity<MultiValueMap<String, String>> naverTokenRequest = new HttpEntity<>(params, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        // reqUrl로 Http 요청, POST 방식
-        ResponseEntity<String> response = restTemplate.exchange(reqUrl,
-                HttpMethod.POST,
-                naverTokenRequest,
-                String.class);
+        return restTemplate.exchange(requestUrl, HttpMethod.POST, request, Map.class);
+    }
 
-        String responseBody = response.getBody();
-        JsonObject asJsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
-        return asJsonObject.get("access_token").getAsString();
+    @Override
+    public ResponseEntity<Map> requestSocialUserInfo(String socialAccessToken) {
+        String requestUrl = "https://openapi.naver.com/v1/nid/me";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + socialAccessToken);
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        return restTemplate.exchange(requestUrl, HttpMethod.GET, request, Map.class);    }
+
+    @Override
+    public String getSocialAccessToken(String socialCode) {
+        ResponseEntity<Map> response = requestSocialUserAccessToken(socialCode);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> responseBody = response.getBody();
+            return responseBody != null ? (String) responseBody.get("access_token") : null;
+        } else {
+            throw SeedzipException.from(ErrorCode.OAUTH2_INVALID_CODE);
+        }
     }
 
     @Override
     public String getLoginId(String accessToken) {
-        Map<String, Object> naverAccount = (Map<String, Object>) getUserAttributesByToken(accessToken).get("response");
-        return naverAccount.get("id").toString();
+        ResponseEntity<Map> response = requestSocialUserInfo(accessToken);
+
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new RuntimeException("Naver API에서 사용자 정보를 가져오지 못했습니다.");
+        }
+
+        Map<String, Object> responseBody = response.getBody();
+        if (!responseBody.containsKey("response")) {
+            throw new RuntimeException("Naver API 응답에 사용자 정보가 없습니다.");
+        }
+
+        Map<String, Object> userInfo = (Map<String, Object>) responseBody.get("response");
+
+        return userInfo.get("id").toString();
     }
 
     @Override
     public String getProfileImageUrl(String accessToken) {
-        Map<String, Object> naverAccount = (Map<String, Object>) getUserAttributesByToken(accessToken).get("response");
-        if(naverAccount != null){
-            return naverAccount.get("profile_image").toString();
+        ResponseEntity<Map> response = requestSocialUserInfo(accessToken);
+
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new RuntimeException("Naver API에서 사용자 정보를 가져오지 못했습니다.");
+        }
+
+        Map<String, Object> responseBody = response.getBody();
+        if (!responseBody.containsKey("response")) {
+            throw new RuntimeException("Naver API 응답에 사용자 정보가 없습니다.");
+        }
+
+        Map<String, Object> userInfo = (Map<String, Object>) responseBody.get("response");
+        if(userInfo != null){
+            return userInfo.get("profile_image").toString();
         }
         return null; // 추후에 기본 프로필 이미지 링크 추가
     }
 
-    private Map<String, Object> getUserAttributesByToken(String accessToken){
-        return WebClient.create()
-                .get()
-                .uri("https://openapi.naver.com/v1/nid/me")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
-    }
 }
