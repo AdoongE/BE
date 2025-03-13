@@ -36,5 +36,9 @@ public class MemberAiUsages extends BaseEntity {
 
 	private LocalDate lastUsedDate;
 
-	private Long usageCount;
+	private Long usageCount = 0L;
+
+	public void increaseUsageCount() {
+		this.usageCount++;
+	}
 }
