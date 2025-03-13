@@ -37,7 +37,13 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public ApiResponse<LoginResponse> login(String code, SocialType socialType, HttpServletResponse response) {
+    public ApiResponse<LoginResponse> login(String code, String input, HttpServletResponse response) {
+        SocialType socialType;
+        try{
+            socialType = SocialType.valueOf(input);
+        } catch (IllegalStateException e) {
+            throw SeedzipException.from(ErrorCode.INVALID_SOCIAL_CODE);
+        }
 
         OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
