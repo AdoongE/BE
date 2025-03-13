@@ -300,7 +300,7 @@ public class SimplificationService {
         MemberAiUsages memberAiUsages = memberAiUsageRepository.findByMemberId(member.getId())
             .orElseGet(() -> createMemberAiUsage(member, today));
 
-        if(memberAiUsages.getUsageCount() > DAILY_AI_LIMIT) {
+        if(memberAiUsages.getUsageCount() >= DAILY_AI_LIMIT) {
             throw SeedzipException.from(ErrorCode.DAILY_AI_LIMIT_EXCEEDED);
         }
 
