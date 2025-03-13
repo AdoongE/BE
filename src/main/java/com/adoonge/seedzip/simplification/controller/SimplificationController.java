@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/simplification")
 @RequiredArgsConstructor
-@Tag(name = "SimplificationController", description = "제목, 요약, 태그 간략화 관련 API")
+@Tag(name = "SimplificationController V1", description = "제목, 요약, 태그 간략화 관련 API V1")
 public class SimplificationController {
 
     private final SimplificationService simplificationService;
