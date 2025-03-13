@@ -1,13 +1,18 @@
 package com.adoonge.seedzip.oauth.service;
 
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -27,56 +32,77 @@ public class GoogleService implements OAuthService{
     @Value("${GOOGLE_REDIRECT_URI}")
     private String googleRedirectUri;
 
+    @Autowired
+    RestTemplate restTemplate;
+
     @Override
-    public String getAccessToken(String code) {
-        String reqUrl = "https://oauth2.googleapis.com/token";
-        RestTemplate restTemplate = new RestTemplate();
-
-        // HttpHeader Object
+    public ResponseEntity<Map> requestSocialUserAccessToken(String code) {
+        // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        // HttpBody Object
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", googleClientId);
-        params.add("client_secret", googleClientSecret);
-        params.add("redirect_uri", googleRedirectUri);
-        params.add("code", code);
+        // 요청 바디 설정
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", googleClientId);
+        body.add("client_secret", googleClientSecret);
+        body.add("redirect_uri", googleRedirectUri);
+        body.add("code", code);
 
-        // http 바디 params 와 http 헤더 headers 를 가진 엔티티
-        HttpEntity<MultiValueMap<String, String>> googleTokenRequest = new HttpEntity<>(params, headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        // reqUrl 로 Http 요청, POST 방식
-        ResponseEntity<String> response = restTemplate.exchange(reqUrl,
-                HttpMethod.POST,
-                googleTokenRequest,
-                String.class);
+        // POST 요청 실행
+        String requestUrl = "https://oauth2.googleapis.com/token";
+        return restTemplate.exchange(requestUrl, HttpMethod.POST, request, Map.class);    }
 
-        String responseBody = response.getBody();
-        JsonObject asJsonObject = JsonParser.parseString(responseBody).getAsJsonObject();
+    @Override
+    public ResponseEntity<Map> requestSocialUserInfo(String socialAccessToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + socialAccessToken);
+        headers.set("Content-Type", "application/json");
 
-        return asJsonObject.get("access_token").getAsString();
+        HttpEntity<String> request = new HttpEntity<>(headers);
+        String requestUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+
+        return restTemplate.exchange(requestUrl, HttpMethod.GET, request, Map.class);    }
+
+    @Override
+    public String getSocialAccessToken(String socialCode) {
+        ResponseEntity<Map> response = requestSocialUserAccessToken(socialCode);
+        if (response.getStatusCode() == HttpStatus.OK) {
+            Map<String, Object> responseBody = response.getBody();
+            return responseBody != null ? (String) responseBody.get("access_token") : null;
+        } else {
+            throw SeedzipException.from(ErrorCode.OAUTH2_INVALID_CODE);
+        }
     }
 
     @Override
     public String getLoginId(String accessToken) {
-        return getUserAttributesByToken(accessToken).get("sub").toString();
+        // 1. Google API로 사용자 정보 요청
+        ResponseEntity<Map> response = requestSocialUserInfo(accessToken);
+
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new RuntimeException("Failed to fetch user info from Google API.");
+        }
+
+        Map<String, Object> responseBody = response.getBody();
+
+        return responseBody.get("sub").toString();
     }
 
     @Override
     public String getProfileImageUrl(String accessToken) {
-        String imageUrl = getUserAttributesByToken(accessToken).get("sub").toString();
-        return imageUrl != null ? imageUrl : ""; // 추후에 기본 이미지 링크 추가
+        // 1. Google API로 사용자 정보 요청
+        ResponseEntity<Map> response = requestSocialUserInfo(accessToken);
+
+        if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
+            throw new RuntimeException("Failed to fetch user info from Google API.");
+        }
+
+        Map<String, Object> responseBody = response.getBody();
+
+        return responseBody.get("picture").toString();
     }
 
-    private Map<String, Object> getUserAttributesByToken(String accessToken){
-        return WebClient.create()
-                .get()
-                .uri("https://www.googleapis.com/oauth2/v3/userinfo")
-                .headers(httpHeaders -> httpHeaders.setBearerAuth(accessToken))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
-                .block();
-    }
 }
