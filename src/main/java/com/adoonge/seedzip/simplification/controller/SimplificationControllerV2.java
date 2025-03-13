@@ -34,7 +34,7 @@ public class SimplificationControllerV2 {
 	/**
 	 * s3 먼저 저장하는 버전
 	 */
-	@PostMapping(value = "/image/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(summary = "이미지 간략화 관련 API(v2)", description = "이미지를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
 	public ApiResponse<SimplificationAllResponse.simplificationFileResponse> imageAnalysisV2(@Parameter(description = "업로드할 이미지", content = @Content(mediaType = "application/octet-stream"))
 	@RequestParam(value = "files", required = false) List<MultipartFile> files, @RequestParam(value = "thumbnailIdx", required = false) int thumbnailIdx) {
@@ -42,7 +42,7 @@ public class SimplificationControllerV2 {
 		return new ApiResponse<>(response);
 	}
 
-	@PostMapping("/youtube/v2")
+	@PostMapping("/youtube")
 	@Operation(summary = "유튜브 간략화 관련 API(v2)", description = "유튜브 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
 	public ApiResponse<SimplificationAllResponse.simplificationLinkResponse> youtubeAnalysisV2(@RequestParam String youtubeUrl) throws
 		IOException {
@@ -52,7 +52,7 @@ public class SimplificationControllerV2 {
 		return new ApiResponse<>(response);
 	}
 
-	@PostMapping(value = "/pdf/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = "/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(summary = "PDF 간략화 관련 API(v2)", description = "PDF 파일을 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
 	public ApiResponse<SimplificationAllResponse.simplificationFileResponse> pdfAnalysisV2(@Parameter(description = "업로드할 pdf", content = @Content(mediaType = "application/octet-stream"))
 	@RequestParam(value = "files", required = false) List<MultipartFile> files, @RequestParam(value = "thumbnailIdx", required = false) int thumbnailIdx) throws IOException {
@@ -60,7 +60,7 @@ public class SimplificationControllerV2 {
 		return new ApiResponse<>(response);
 	}
 
-	@PostMapping(value = "/naver-news/v2")
+	@PostMapping(value = "/naver-news")
 	@Operation(summary = "네이버 뉴스 간략화 관련 API(v2)", description = "네이버 뉴스 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
 	public ApiResponse<SimplificationAllResponse.simplificationLinkResponse> naverNewsAnalysisV2(@RequestParam String naverNewsUrl) throws IOException {
 		SimplificationAllResponse.simplificationLinkResponse simplificationInfoResponse = simplificationService.requestNaverNewsAnalysisV2(naverNewsUrl);
