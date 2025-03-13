@@ -32,7 +32,6 @@ public class AuthController {
     /**
      * 로그인
      */
-
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "테스트용 기본 로그인 API입니다.")
     public ApiResponse<LoginResponse> login(@RequestParam String code, HttpServletResponse response) {
@@ -46,20 +45,11 @@ public class AuthController {
         return authService.login(code, socialType.toUpperCase(), response);
     }
 
-    @PostMapping("/login/kakao/app")
-    @Operation(summary = "앱용 카카오 로그인 API", description = "카카오 서버에 접근할 수 있는 accessToken을 받고 JWT 토큰을 리턴합니다.")
-    ApiResponse<LoginResponse> loginKakaoForApp(@RequestParam String accessToken, HttpServletResponse response) {
-        return authService.loginForApp(accessToken, SocialType.KAKAO, response);
+    @PostMapping("/login/{socialType}/app")
+    @Operation(summary = "앱용 소셜 로그인 API", description = "소셜 로그인 서버에 접근할 수 있는 accessToken을 받고 JWT 토큰을 리턴합니다. socialType -> {KAKAO, NAVER, GOOGLE}")
+    ApiResponse<LoginResponse> loginKakaoForApp(@RequestParam String accessToken, @PathVariable String socialType, HttpServletResponse response) {
+        return authService.loginForApp(accessToken, socialType, response);
     }
-
-
-
-    @PostMapping("/login/naver/app")
-    @Operation(summary = "앱용 네이버 로그인 API", description = "네이버 인가코드를 받고 JWT 토큰을 리턴합니다.")
-    ApiResponse<LoginResponse> loginNaverForApp(@RequestParam String accessToken, HttpServletResponse response) {
-        return authService.loginForApp(accessToken, SocialType.NAVER, response);
-    }
-
 
     @GetMapping("/test")
     @Operation(summary = "로그인 테스트 API", description = "로그인 여부를 확인할 수 있는 API입니다. 회원의 닉네임을 리턴합니다.")
@@ -70,6 +60,9 @@ public class AuthController {
         return new ApiResponse<>(result);
     }
 
+    /**
+     * 회원가입
+     */
     @PostMapping("/signup")
     @Operation(summary = "회원가입 API", description = "회원가입을 진행하는 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
     public ApiResponse<Void> signUp(@RequestBody @Valid SignUpRequest signUpRequest, HttpServletResponse response) {
