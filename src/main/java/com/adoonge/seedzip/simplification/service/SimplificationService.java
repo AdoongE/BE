@@ -3,6 +3,10 @@ package com.adoonge.seedzip.simplification.service;
 import com.adoonge.seedzip.content.service.S3Service;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
+import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.member.domain.MemberAiUsages;
+import com.adoonge.seedzip.member.repository.MemberAiUsageRepository;
+import com.adoonge.seedzip.member.repository.MemberRepository;
 import com.adoonge.seedzip.simplification.dto.request.ChatGPTRequest;
 import com.adoonge.seedzip.simplification.dto.response.ChatGPTResponse;
 import com.adoonge.seedzip.simplification.dto.response.SimplificationAllResponse;
@@ -12,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +46,11 @@ public class SimplificationService {
     private final RestTemplate template;
     private final NaverNewsService naverNewsService;
     private final S3Service s3Service;
+
+    private final MemberAiUsageRepository memberAiUsageRepository;
+    private final MemberRepository memberRepository;
+
+    private final static int DAILY_AI_LIMIT = 5;
 
     /**
      * 기존 버전
@@ -283,5 +293,27 @@ public class SimplificationService {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
     }
+
+    public void checkDailyAiUsage(Member member) {
+        LocalDate today = LocalDate.now();
+        MemberAiUsages memberAiUsages = memberAiUsageRepository.findByMemberId(member.getId())
+            .orElseGet(() -> createMemberAiUsage(member, today));
+
+        if(memberAiUsages.getUsageCount() > DAILY_AI_LIMIT) {
+            throw SeedzipException.from(ErrorCode.DAILY_AI_LIMIT_EXCEEDED);
+        }
+
+        memberAiUsages.increaseUsageCount();
+        memberAiUsageRepository.save(memberAiUsages);
+    }
+
+    private MemberAiUsages createMemberAiUsage(Member member, LocalDate today) {
+        return MemberAiUsages.builder()
+            .memberId(member)
+            .usageCount(0L)
+            .lastUsedDate(today)
+            .build();
+    }
+
 
 }

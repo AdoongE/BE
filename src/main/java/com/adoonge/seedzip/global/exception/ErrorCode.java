@@ -106,7 +106,10 @@ public enum ErrorCode {
     FILTER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 필터에 대한 접근 권한이 없습니다."),
 
     // recommendation
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.");
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다."),
+
+    // AI
+    DAILY_AI_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 분석 요청 횟수를 초과했습니다.");
 
     private final HttpStatus status;
     private final String message;
