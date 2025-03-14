@@ -51,7 +51,7 @@ public class SimplificationService {
     private final MemberAiUsageRepository memberAiUsageRepository;
     private final MemberRepository memberRepository;
 
-    private final static int DAILY_AI_LIMIT = 5;
+    private final static int DAILY_AI_LIMIT = 10;
 
     /**
      * 기존 버전
