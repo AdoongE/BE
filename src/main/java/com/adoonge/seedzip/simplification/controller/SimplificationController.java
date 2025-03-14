@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/v1/simplification")
 @RequiredArgsConstructor
-@Tag(name = "SimplificationController", description = "제목, 요약, 태그 간략화 관련 API")
+@Tag(name = "SimplificationController V1", description = "제목, 요약, 태그 간략화 관련 API V1")
 public class SimplificationController {
 
     private final SimplificationService simplificationService;
@@ -57,38 +57,4 @@ public class SimplificationController {
         return new ApiResponse<>(simplificationResponse);
     }
 
-    /**
-     * s3 먼저 저장하는 버전
-     */
-    @PostMapping(value = "/image/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "이미지 간략화 관련 API(v2)", description = "이미지를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationAllResponse.simplificationFileResponse> imageAnalysisV2(@Parameter(description = "업로드할 이미지", content = @Content(mediaType = "application/octet-stream"))
-                                                                 @RequestParam(value = "files", required = false) List<MultipartFile> files, @RequestParam(value = "thumbnailIdx", required = false) int thumbnailIdx) {
-        SimplificationAllResponse.simplificationFileResponse response = simplificationService.requestImageAnalysisV2(files, thumbnailIdx);
-        return new ApiResponse<>(response);
-    }
-
-    @PostMapping("/youtube/v2")
-    @Operation(summary = "유튜브 간략화 관련 API(v2)", description = "유튜브 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationAllResponse.simplificationLinkResponse> youtubeAnalysisV2(@RequestParam String youtubeUrl) throws IOException {
-        String youtubeData = youTubeService.searchVideos(youtubeUrl);   // 유튜브 데이터 조회
-        SimplificationAllResponse.simplificationLinkResponse response = simplificationService.requestTextAnalysisV2(youtubeData); // 요약 데이터 조회
-        response.setLink(youtubeUrl);
-        return new ApiResponse<>(response);
-    }
-
-    @PostMapping(value = "/pdf/v2", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "PDF 간략화 관련 API(v2)", description = "PDF 파일을 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationAllResponse.simplificationFileResponse> pdfAnalysisV2(@Parameter(description = "업로드할 pdf", content = @Content(mediaType = "application/octet-stream"))
-                                                               @RequestParam(value = "files", required = false) List<MultipartFile> files, @RequestParam(value = "thumbnailIdx", required = false) int thumbnailIdx) throws IOException {
-        SimplificationAllResponse.simplificationFileResponse response = simplificationService.requestPdfAnalysisV2(files, thumbnailIdx);
-        return new ApiResponse<>(response);
-    }
-
-    @PostMapping(value = "/naver-news/v2")
-    @Operation(summary = "네이버 뉴스 간략화 관련 API(v2)", description = "네이버 뉴스 링크를 넣으면 제목, 요약, 태그를 간략화해주는 API입니다.")
-    public ApiResponse<SimplificationAllResponse.simplificationLinkResponse> naverNewsAnalysisV2(@RequestParam String naverNewsUrl) throws IOException {
-        SimplificationAllResponse.simplificationLinkResponse simplificationInfoResponse = simplificationService.requestNaverNewsAnalysisV2(naverNewsUrl);
-        return new ApiResponse<>(simplificationInfoResponse);
-    }
 }
