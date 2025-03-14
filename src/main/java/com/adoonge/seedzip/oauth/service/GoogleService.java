@@ -17,49 +17,49 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class NaverService implements OAuthService{
+public class GoogleService implements OAuthService{
 
-    @Value("${NAVER_CLIENT_ID}")
-    private String naverClientId;
+    @Value("${GOOGLE_CLIENT_ID}")
+    private String googleClientId;
 
-    @Value("${NAVER_CLIENT_SECRET}")
-    private String naverClientSecret;
+    @Value("${GOOGLE_CLIENT_SECRET}")
+    private String googleClientSecret;
 
-    @Value("${NAVER_REDIRECT_URI}")
-    private String naverRedirectUri;
+    @Value("${GOOGLE_REDIRECT_URI}")
+    private String googleRedirectUri;
 
     @Autowired
     RestTemplate restTemplate;
 
     @Override
     public ResponseEntity<Map> requestSocialUserAccessToken(String code) {
-        String requestUrl = "https://nid.naver.com/oauth2.0/token";
-
+        // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
+        // 요청 바디 설정
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
-        body.add("client_id", naverClientId);
-        body.add("client_secret", naverClientSecret);
-        body.add("redirect_uri", naverRedirectUri);
-        body.add("state", "seedzip");
+        body.add("client_id", googleClientId);
+        body.add("client_secret", googleClientSecret);
+        body.add("redirect_uri", googleRedirectUri);
         body.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
-        return restTemplate.exchange(requestUrl, HttpMethod.POST, request, Map.class);
-    }
+        // POST 요청 실행
+        String requestUrl = "https://oauth2.googleapis.com/token";
+        return restTemplate.exchange(requestUrl, HttpMethod.POST, request, Map.class);    }
 
     @Override
     public ResponseEntity<Map> requestSocialUserInfo(String socialAccessToken) {
-        String requestUrl = "https://openapi.naver.com/v1/nid/me";
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + socialAccessToken);
-        headers.set("Content-Type", "application/x-www-form-urlencoded");
+        headers.set("Content-Type", "application/json");
 
         HttpEntity<String> request = new HttpEntity<>(headers);
+        String requestUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
+
         return restTemplate.exchange(requestUrl, HttpMethod.GET, request, Map.class);    }
 
     @Override
@@ -75,40 +75,30 @@ public class NaverService implements OAuthService{
 
     @Override
     public String getLoginId(String accessToken) {
+        // 1. Google API로 사용자 정보 요청
         ResponseEntity<Map> response = requestSocialUserInfo(accessToken);
 
         if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
-            throw new RuntimeException("Naver API에서 사용자 정보를 가져오지 못했습니다.");
+            throw new RuntimeException("Failed to fetch user info from Google API.");
         }
 
         Map<String, Object> responseBody = response.getBody();
-        if (!responseBody.containsKey("response")) {
-            throw new RuntimeException("Naver API 응답에 사용자 정보가 없습니다.");
-        }
 
-        Map<String, Object> userInfo = (Map<String, Object>) responseBody.get("response");
-
-        return userInfo.get("id").toString();
+        return responseBody.get("sub").toString();
     }
 
     @Override
     public String getProfileImageUrl(String accessToken) {
+        // 1. Google API로 사용자 정보 요청
         ResponseEntity<Map> response = requestSocialUserInfo(accessToken);
 
         if (response.getStatusCode() != HttpStatus.OK || response.getBody() == null) {
-            throw new RuntimeException("Naver API에서 사용자 정보를 가져오지 못했습니다.");
+            throw new RuntimeException("Failed to fetch user info from Google API.");
         }
 
         Map<String, Object> responseBody = response.getBody();
-        if (!responseBody.containsKey("response")) {
-            throw new RuntimeException("Naver API 응답에 사용자 정보가 없습니다.");
-        }
 
-        Map<String, Object> userInfo = (Map<String, Object>) responseBody.get("response");
-        if(userInfo != null){
-            return userInfo.get("profile_image").toString();
-        }
-        return null; // 추후에 기본 프로필 이미지 링크 추가
+        return responseBody.get("picture").toString();
     }
 
 }

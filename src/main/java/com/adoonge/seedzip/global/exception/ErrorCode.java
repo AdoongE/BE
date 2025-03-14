@@ -31,6 +31,8 @@ public enum ErrorCode {
     OAUTH2_PROVIDER_NOT_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "OAuth2 제공자 서버에 문제가 발생했습니다."),
     OAUTH2_INVALID_REQUEST(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 OAuth2 에러가 발생했습니다."),
     OPEN_ID_PROVIDER_NOT_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "OpenID 제공자 서버에 문제가 발생했습니다."),
+    OAUTH2_INVALID_CODE(HttpStatus.BAD_REQUEST, "올바르지 않은 인가 코드입니다."),
+    INVALID_SOCIAL_CODE(HttpStatus.BAD_REQUEST, "잘못된 소셜코드입니다."),
 
     // file
     EMPTY_IMAGE(HttpStatus.BAD_REQUEST, "이미지 파일이 비어있습니다."),

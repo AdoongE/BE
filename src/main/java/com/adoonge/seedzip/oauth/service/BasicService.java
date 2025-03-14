@@ -1,14 +1,27 @@
 package com.adoonge.seedzip.oauth.service;
 
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class BasicService implements OAuthService{
 
+
     @Override
-    public String getAccessToken(String code) {
+    public ResponseEntity<Map> requestSocialUserAccessToken(String code) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Map> requestSocialUserInfo(String socialAccessToken) {
+        return null;
+    }
+
+    @Override
+    public String getSocialAccessToken(String code) {
         return code;
     }
 

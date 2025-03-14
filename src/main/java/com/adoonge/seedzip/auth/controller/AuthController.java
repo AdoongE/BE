@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,35 +32,23 @@ public class AuthController {
     /**
      * 로그인
      */
-
     @PostMapping("/login")
     @Operation(summary = "로그인 API", description = "테스트용 기본 로그인 API입니다.")
     public ApiResponse<LoginResponse> login(@RequestParam String code, HttpServletResponse response) {
-        return authService.login(code, SocialType.BASIC, response);
+        return authService.login(code, "BASIC", response);
     }
 
-    @PostMapping("/login/kakao")
-    @Operation(summary = "카카오 로그인 API", description = "카카오 인가코드를 받고 JWT 토큰을 리턴합니다.")
-    ApiResponse<LoginResponse> loginKakao(@RequestParam String code, HttpServletResponse response) {
-        return authService.login(code, SocialType.KAKAO, response);
+
+    @PostMapping("/login/{socialType}")
+    @Operation(summary = "소셜 로그인 API", description = "소셜 인가코드를 받고 JWT 토큰을 리턴합니다. socialType -> {KAKAO, NAVER, GOOGLE}")
+    ApiResponse<LoginResponse> socialLogin(@RequestParam String code, @PathVariable String socialType, HttpServletResponse response) {
+        return authService.login(code, socialType.toUpperCase(), response);
     }
 
-    @PostMapping("/login/kakao/app")
-    @Operation(summary = "앱용 카카오 로그인 API", description = "카카오 서버에 접근할 수 있는 accessToken을 받고 JWT 토큰을 리턴합니다.")
-    ApiResponse<LoginResponse> loginKakaoForApp(@RequestParam String accessToken, HttpServletResponse response) {
-        return authService.loginForApp(accessToken, SocialType.KAKAO, response);
-    }
-
-    @PostMapping("/login/naver")
-    @Operation(summary = "네이버 로그인 API", description = "네이버 인가코드를 받고 JWT 토큰을 리턴합니다.")
-    ApiResponse<LoginResponse> loginNaver(@RequestParam String code, HttpServletResponse response) {
-        return authService.login(code, SocialType.NAVER, response);
-    }
-
-    @PostMapping("/login/naver/app")
-    @Operation(summary = "앱용 네이버 로그인 API", description = "네이버 인가코드를 받고 JWT 토큰을 리턴합니다.")
-    ApiResponse<LoginResponse> loginNaverForApp(@RequestParam String accessToken, HttpServletResponse response) {
-        return authService.loginForApp(accessToken, SocialType.NAVER, response);
+    @PostMapping("/login/{socialType}/app")
+    @Operation(summary = "앱용 소셜 로그인 API", description = "소셜 로그인 서버에 접근할 수 있는 accessToken을 받고 JWT 토큰을 리턴합니다. socialType -> {KAKAO, NAVER, GOOGLE}")
+    ApiResponse<LoginResponse> loginKakaoForApp(@RequestParam String accessToken, @PathVariable String socialType, HttpServletResponse response) {
+        return authService.loginForApp(accessToken, socialType, response);
     }
 
     @GetMapping("/test")
@@ -71,6 +60,9 @@ public class AuthController {
         return new ApiResponse<>(result);
     }
 
+    /**
+     * 회원가입
+     */
     @PostMapping("/signup")
     @Operation(summary = "회원가입 API", description = "회원가입을 진행하는 API입니다. (SocialType : BASIC, GOOGLE, NAVER, KAKAO")
     public ApiResponse<Void> signUp(@RequestBody @Valid SignUpRequest signUpRequest, HttpServletResponse response) {

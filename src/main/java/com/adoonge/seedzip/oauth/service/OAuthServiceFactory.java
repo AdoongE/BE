@@ -26,6 +26,9 @@ public class OAuthServiceFactory {
         else if(service instanceof NaverService) {
             return SocialType.NAVER;
         }
+        else if(service instanceof GoogleService) {
+            return SocialType.GOOGLE;
+        }
         else if (service instanceof BasicService) {
             return SocialType.BASIC;
         }

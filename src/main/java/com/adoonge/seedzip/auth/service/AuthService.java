@@ -30,18 +30,23 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final OAuthServiceFactory oauthServiceFactory;
     private final PasswordEncoder passwordEncoder;
-    private final CategoryRepository categoryRepository;
 
     private Boolean isMemberRegistered(String loginId) {
         return memberRepository.existsByLoginId(loginId);
     }
 
     @Transactional(readOnly = true)
-    public ApiResponse<LoginResponse> login(String code, SocialType socialType, HttpServletResponse response) {
+    public ApiResponse<LoginResponse> login(String code, String input, HttpServletResponse response) {
+        SocialType socialType;
+        try{
+            socialType = SocialType.valueOf(input);
+        } catch (IllegalStateException e) {
+            throw SeedzipException.from(ErrorCode.INVALID_SOCIAL_CODE);
+        }
 
         OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
-        String accessToken = oauthService.getAccessToken(code);
+        String accessToken = oauthService.getSocialAccessToken(code);
 
         String loginId = oauthService.getLoginId(accessToken);
 
@@ -55,7 +60,13 @@ public class AuthService {
     }
 
     @Transactional(readOnly = true)
-    public ApiResponse<LoginResponse> loginForApp(String accessToken, SocialType socialType,HttpServletResponse response) {
+    public ApiResponse<LoginResponse> loginForApp(String accessToken, String input, HttpServletResponse response) {
+        SocialType socialType;
+        try{
+            socialType = SocialType.valueOf(input);
+        } catch (IllegalStateException e) {
+            throw SeedzipException.from(ErrorCode.INVALID_SOCIAL_CODE);
+        }
 
         OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
