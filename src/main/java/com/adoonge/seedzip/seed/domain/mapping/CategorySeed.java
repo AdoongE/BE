@@ -1,7 +1,6 @@
 package com.adoonge.seedzip.seed.domain.mapping;
 
 import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.seed.domain.Seed;
 import jakarta.persistence.Entity;
