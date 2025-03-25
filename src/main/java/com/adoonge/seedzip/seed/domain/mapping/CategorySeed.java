@@ -35,7 +35,7 @@ public class CategorySeed extends BaseEntity {
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seeds_id")
+    @JoinColumn(name = "seed_id")
     @OnDelete(action = OnDeleteAction.CASCADE)  //Seed 삭제시 CategorySeed 삭제됨
     private Seed seed;
 }
