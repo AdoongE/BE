@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.content.service;
+package com.adoonge.seedzip.global.service;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;

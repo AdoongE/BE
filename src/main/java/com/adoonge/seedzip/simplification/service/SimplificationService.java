@@ -1,6 +1,6 @@
 package com.adoonge.seedzip.simplification.service;
 
-import com.adoonge.seedzip.content.service.S3Service;
+import com.adoonge.seedzip.global.service.S3Service;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
