@@ -39,13 +39,10 @@ public class File extends BaseEntity {
 
 	private String fileName;
 
-	@Column(nullable = false)
-	private SeedType seedType;
-
 	private Boolean isThumbnail;	// 링크, pdf는 null
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "seed_id")
 	@OnDelete(action = OnDeleteAction.CASCADE)
-	private Contents contents;
+	private Seed seed;
 }

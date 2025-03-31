@@ -47,6 +47,8 @@ public class Seed extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private SeedType seedType;
 
+    private Long thumbnailIdx;  // seedType = LINK, PDF인 경우 null
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     @OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Content도 삭제
