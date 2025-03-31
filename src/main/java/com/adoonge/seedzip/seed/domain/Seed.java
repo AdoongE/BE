@@ -24,39 +24,33 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Getter
-@Setter
 @Builder
 @Entity
 @Table(name = "seeds")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Seed extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long seedId;
+    @Column(name = "seed_id")
+    private Long id;
 
+    @Column(name = "seed_name", nullable = false)
     private String seedName;
 
     private LocalDate dDay;
 
     private String seedDetail;
 
+    @Column(name = "seed_type", nullable = false)
     @Enumerated(EnumType.STRING)
     private SeedType seedType;
 
-    private int thumbnailIdx;
+    private Long thumbnailIdx;  // seedType = LINK, PDF인 경우 null
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     @OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Content도 삭제
     private Member member;
-
-    @Column(nullable = false, length = 1000)
-    private String link; // (링크 -> 입력으로 들어온 링크), (이미지, PDF -> s3 저장 링크)
-
-    @Column(nullable = false)
-    private String fileName; // 파일명 (이미지, PDF, 링크는 null 값)
-
-    @Column(nullable = false)
-    private Boolean fileThumbnail; // 썸네일 여부 (이미지, PDF, 링크는 null 값)
 }
