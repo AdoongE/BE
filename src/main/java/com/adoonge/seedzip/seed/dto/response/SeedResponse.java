@@ -1,6 +1,7 @@
 package com.adoonge.seedzip.seed.dto.response;
 
 import com.adoonge.seedzip.content.domain.ContentsDataType;
+import com.adoonge.seedzip.seed.domain.SeedType;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -31,7 +32,7 @@ public class SeedResponse {
         String seedName;
         List<Long> categoryId;
         List<String> categoryName;
-        ContentsDataType seedDateType;
+        SeedType seedType;
         String thumbnailImage; // 없으면 null
         LocalDateTime updatedDt;
         List<Long> tagId;
