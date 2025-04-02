@@ -15,4 +15,7 @@ public interface CategorySeedRepository extends JpaRepository<CategorySeed, Long
     // 자동으로 Inner 조인 사용 , n+1 문제 발생 X
     @Query("SELECT cs.category.name FROM CategorySeed cs WHERE cs.seed = :seed")
     List<String> findCategoryNamesBySeed(@Param("seed") Seed seed);
+
+    @Query("SELECT cs.seed.id FROM CategorySeed cs WHERE cs.category.categoryId = :categoryId")
+    List<Long> findSeedIdsByCategoryId(@Param("categoryId") Long categoryId);
 }

@@ -91,6 +91,62 @@ public class SeedService {
         return getAllSeeds;
     }
 
+    @Transactional(readOnly = true)
+    public SeedResponse.getAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType, long categoryId) {
+        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+
+        String sortField = switch (sortBy) {
+            case "name" -> "seedName";
+            case "latest" -> "createdAt";
+            default -> "createdAt";
+        };
+
+        // 문자열 -> Enum 변환 (대소문자 구분 없이 처리)
+        SeedType parsedSeedType = null;
+        if (seedType != null && !seedType.isBlank()) {
+            try {
+                parsedSeedType = SeedType.valueOf(seedType.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        }
+
+        //페이징을 위한 Pageable 객체
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+        List<Long> seedIds = categorySeedRepository.findSeedIdsByCategoryId(categoryId);
+
+        //페이징으로 얻어온 Seed 리스트
+        Page<Seed> seedList;
+        if (seedType != null) {
+            seedList = seedRepository.findBySeedIdInAndSeedType(seedIds, parsedSeedType, pageable);
+        } else {
+            seedList = seedRepository.findBySeedIdIn(seedIds, pageable);
+        }
+
+        if (seedList.isEmpty())
+            return null;
+
+        List<SeedResponse.seedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
+
+        //페이징 정보 추가
+        SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+                .page(seedList.getNumber())
+                .size(seedList.getSize())
+                .totalPages(seedList.getTotalPages())
+                .totalElements(seedList.getTotalElements())
+                .isLast(seedList.isLast())
+                .build();
+
+        SeedResponse.getAllSeeds getAllSeeds = new getAllSeeds().builder()
+                .nickname(member.getNickname())
+                .seedInfoList(seedInfoList)
+                .pageInfo(pageInfo)
+                .build();
+
+        return getAllSeeds;
+    }
+
     //List<Seed> -> List<SeedResponse.seedInfo>로 변환
     private List<SeedResponse.seedInfo> generateResponseFromSeedList(List<Seed> seedList) {
         //여기 작성하기 + 카테고리 이름이랑 태그 이름 어떻게 효과적으로 가져올지 찾아보기
