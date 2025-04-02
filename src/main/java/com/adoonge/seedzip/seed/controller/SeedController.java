@@ -35,7 +35,7 @@ public class SeedController {
     })
     public ApiResponse<SeedResponse.getAllSeeds> getAllSeeds(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "latest") String sortBy, // latest or name
             @RequestParam(defaultValue = "false") boolean isAsc,
             @RequestParam(required = false) String seedType,
