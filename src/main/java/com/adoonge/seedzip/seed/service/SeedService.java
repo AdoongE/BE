@@ -37,23 +37,10 @@ public class SeedService {
 
     @Transactional(readOnly = true)
     public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType) {
-        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        String sortField = switch (sortBy) {
-            case "name" -> "seedName";
-            case "latest" -> "createdAt";
-            default -> "createdAt";
-        };
-
-        // 문자열 -> Enum 변환 (대소문자 구분 없이 처리)
-        SeedType parsedSeedType = null;
-        if (seedType != null && !seedType.isBlank()) {
-            try {
-                parsedSeedType = SeedType.valueOf(seedType.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
-            }
-        }
+        Sort.Direction direction = getSortDirection(isAsc);
+        String sortField = getSortField(sortBy);
+        SeedType parsedSeedType = parseSeedType(seedType);
 
         //페이징을 위한 Pageable 객체
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
@@ -80,34 +67,20 @@ public class SeedService {
                 .isLast(seedList.isLast())
                 .build();
 
-        SeedResponse.GetAllSeeds getAllSeeds = SeedResponse.GetAllSeeds.builder()
+        return SeedResponse.GetAllSeeds.builder()
                 .nickname(member.getNickname())
                 .seedInfoList(seedInfoList)
                 .pageInfo(pageInfo)
                 .build();
-
-        return getAllSeeds;
     }
 
     @Transactional(readOnly = true)
     public SeedResponse.GetAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType, long categoryId) {
-        Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
 
-        String sortField = switch (sortBy) {
-            case "name" -> "seedName";
-            case "latest" -> "createdAt";
-            default -> "createdAt";
-        };
+        Sort.Direction direction = getSortDirection(isAsc);
+        String sortField = getSortField(sortBy);
+        SeedType parsedSeedType = parseSeedType(seedType);
 
-        // 문자열 -> Enum 변환 (대소문자 구분 없이 처리)
-        SeedType parsedSeedType = null;
-        if (seedType != null && !seedType.isBlank()) {
-            try {
-                parsedSeedType = SeedType.valueOf(seedType.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
-            }
-        }
 
         //페이징을 위한 Pageable 객체
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
@@ -136,18 +109,15 @@ public class SeedService {
                 .isLast(seedList.isLast())
                 .build();
 
-        SeedResponse.GetAllSeeds getAllSeeds = SeedResponse.GetAllSeeds.builder()
+        return SeedResponse.GetAllSeeds.builder()
                 .nickname(member.getNickname())
                 .seedInfoList(seedInfoList)
                 .pageInfo(pageInfo)
                 .build();
-
-        return getAllSeeds;
     }
 
     //List<Seed> -> List<SeedResponse.SeedInfo>로 변환
     private List<SeedResponse.SeedInfo> generateResponseFromSeedList(List<Seed> seedList) {
-        //여기 작성하기 + 카테고리 이름이랑 태그 이름 어떻게 효과적으로 가져올지 찾아보기
         return seedList.stream()
                 .map(seed -> {
                     String thumbnailUrl = null;
@@ -203,5 +173,32 @@ public class SeedService {
 
                 })
                 .collect(Collectors.toList());
+    }
+
+    // 정렬 방향을 결정하는 메소드
+    private Sort.Direction getSortDirection(boolean isAsc) {
+        return isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
+    }
+
+    // sortBy 값에 따라 필드명을 결정하는 메소드
+    private String getSortField(String sortBy) {
+        return switch (sortBy) {
+            case "name" -> "seedName";
+            case "latest" -> "createdAt";
+            default -> "createdAt";  // 기본값은 "createdAt"으로 설정
+        };
+    }
+
+    // 문자열로 전달된 seedType을 Enum으로 변환하는 메소드
+    private SeedType parseSeedType(String seedType) {
+        if (seedType != null && !seedType.isBlank()) {
+            try {
+                return SeedType.valueOf(seedType.toUpperCase());  // 대소문자 구분 없이 변환
+            } catch (IllegalArgumentException e) {
+                // 잘못된 입력값에 대해 예외를 던짐
+                throw SeedzipException.from(ErrorCode.INVALID_INPUT_VALUE);
+            }
+        }
+        return null;  // seedType이 null 또는 빈 문자열일 경우 null 반환
     }
 }
