@@ -1,6 +1,5 @@
 package com.adoonge.seedzip.seed.service;
 
-import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -8,7 +7,7 @@ import com.adoonge.seedzip.seed.domain.File;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
-import com.adoonge.seedzip.seed.dto.response.SeedResponse.getAllSeeds;
+import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetAllSeeds;
 import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.FileRepository;
 import com.adoonge.seedzip.seed.repository.SeedRepository;
@@ -38,7 +37,7 @@ public class SeedService {
     private final SeedTagRepository seedTagRepository;
 
     @Transactional(readOnly = true)
-    public SeedResponse.getAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType) {
+    public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType) {
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         String sortField = switch (sortBy) {
@@ -71,7 +70,7 @@ public class SeedService {
         if (seedList.isEmpty())
             return null;
 
-        List<SeedResponse.seedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
+        List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
 
         //페이징 정보 추가
         SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -82,7 +81,7 @@ public class SeedService {
                 .isLast(seedList.isLast())
                 .build();
 
-        SeedResponse.getAllSeeds getAllSeeds = new getAllSeeds().builder()
+        SeedResponse.GetAllSeeds getAllSeeds = GetAllSeeds.builder()
                 .nickname(member.getNickname())
                 .seedInfoList(seedInfoList)
                 .pageInfo(pageInfo)
@@ -92,7 +91,7 @@ public class SeedService {
     }
 
     @Transactional(readOnly = true)
-    public SeedResponse.getAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType, long categoryId) {
+    public SeedResponse.GetAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc, String seedType, long categoryId) {
         Sort.Direction direction = isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
 
         String sortField = switch (sortBy) {
@@ -127,7 +126,7 @@ public class SeedService {
         if (seedList.isEmpty())
             return null;
 
-        List<SeedResponse.seedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
+        List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
 
         //페이징 정보 추가
         SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -138,7 +137,7 @@ public class SeedService {
                 .isLast(seedList.isLast())
                 .build();
 
-        SeedResponse.getAllSeeds getAllSeeds = new getAllSeeds().builder()
+        SeedResponse.GetAllSeeds getAllSeeds = new SeedResponse.GetAllSeeds().builder()
                 .nickname(member.getNickname())
                 .seedInfoList(seedInfoList)
                 .pageInfo(pageInfo)
@@ -147,8 +146,8 @@ public class SeedService {
         return getAllSeeds;
     }
 
-    //List<Seed> -> List<SeedResponse.seedInfo>로 변환
-    private List<SeedResponse.seedInfo> generateResponseFromSeedList(List<Seed> seedList) {
+    //List<Seed> -> List<SeedResponse.SeedInfo>로 변환
+    private List<SeedResponse.SeedInfo> generateResponseFromSeedList(List<Seed> seedList) {
         //여기 작성하기 + 카테고리 이름이랑 태그 이름 어떻게 효과적으로 가져올지 찾아보기
         return seedList.stream()
                 .map(seed -> {
@@ -190,7 +189,7 @@ public class SeedService {
                     }
 
                     // SeedResponse 객체에 필요한 정보 담기
-                    return new SeedResponse.seedInfo(
+                    return new SeedResponse.SeedInfo(
                             seed.getId(),
                             seed.getSeedName(),
                             categoryIds,

@@ -31,10 +31,10 @@ public class SeedController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = SeedResponse.getAllSeeds.class))),
+                            schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<SeedResponse.getAllSeeds> getAllSeeds(
+    public ApiResponse<SeedResponse.GetAllSeeds> getAllSeeds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "latest") String sortBy, // latest or name
@@ -42,12 +42,9 @@ public class SeedController {
             @RequestParam(required = false) String seedType,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        // 빈 값 처리
-        if (sortBy.isBlank()) sortBy = "latest";
-
         Member member = customUserDetails.getMember();
 
-        SeedResponse.getAllSeeds getAllSeeds = seedService.getAllSeeds(member, page, size, sortBy, isAsc, seedType);
+        SeedResponse.GetAllSeeds getAllSeeds = seedService.getAllSeeds(member, page, size, sortBy, isAsc, seedType);
         return new ApiResponse<>(getAllSeeds);
     }
 
@@ -56,10 +53,10 @@ public class SeedController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = SeedResponse.getAllSeeds.class))),
+                            schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<SeedResponse.getAllSeeds> getCategorySeeds(
+    public ApiResponse<SeedResponse.GetAllSeeds> getCategorySeeds(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "9") int size,
             @RequestParam(defaultValue = "latest") String sortBy, // latest or name
@@ -68,12 +65,9 @@ public class SeedController {
             @PathVariable("categoryId") Long categoryId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
-        // 빈 값 처리
-        if (sortBy.isBlank()) sortBy = "latest";
-
         Member member = customUserDetails.getMember();
 
-        SeedResponse.getAllSeeds getAllSeeds = seedService.getCategorySeeds(member, page, size, sortBy, isAsc, seedType, categoryId);
+        SeedResponse.GetAllSeeds getAllSeeds = seedService.getCategorySeeds(member, page, size, sortBy, isAsc, seedType, categoryId);
         return new ApiResponse<>(getAllSeeds);
     }
 
