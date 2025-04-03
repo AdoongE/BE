@@ -7,7 +7,6 @@ import com.adoonge.seedzip.seed.domain.File;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
-import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetAllSeeds;
 import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.FileRepository;
 import com.adoonge.seedzip.seed.repository.SeedRepository;
@@ -81,7 +80,7 @@ public class SeedService {
                 .isLast(seedList.isLast())
                 .build();
 
-        SeedResponse.GetAllSeeds getAllSeeds = GetAllSeeds.builder()
+        SeedResponse.GetAllSeeds getAllSeeds = SeedResponse.GetAllSeeds.builder()
                 .nickname(member.getNickname())
                 .seedInfoList(seedInfoList)
                 .pageInfo(pageInfo)
@@ -137,7 +136,7 @@ public class SeedService {
                 .isLast(seedList.isLast())
                 .build();
 
-        SeedResponse.GetAllSeeds getAllSeeds = new SeedResponse.GetAllSeeds().builder()
+        SeedResponse.GetAllSeeds getAllSeeds = SeedResponse.GetAllSeeds.builder()
                 .nickname(member.getNickname())
                 .seedInfoList(seedInfoList)
                 .pageInfo(pageInfo)
