@@ -90,8 +90,9 @@ public class SeedController {
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         Member member = customUserDetails.getMember();
+        SeedResponse.SeedInfo seedInfoApiResponse = seedService.uploadSeed(seedRequest, member);
 
-        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+        return new ApiResponse<>(seedInfoApiResponse);
     }
 
 }
