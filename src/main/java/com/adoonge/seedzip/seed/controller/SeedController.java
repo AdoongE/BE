@@ -77,7 +77,8 @@ public class SeedController {
     }
 
     @PostMapping
-    @Operation(summary = "씨드 업로드 API", description = "씨드를 업로드하는 API입니다.")
+    @Operation(summary = "씨드 업로드 API", description = "씨드를 업로드하는 API입니다. 타입, 카테고리, 태그 2개 이상 필수입니다. "
+        + "\n업로드 후, 업로드된 씨드의 ID를 반환합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
                     content = @Content(mediaType = "application/json",
