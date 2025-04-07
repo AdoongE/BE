@@ -174,7 +174,7 @@ public class SeedService {
 		SeedDTO seedDTO = SeedDTO.builder()
 			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
 			.seedDetail(seedRequest.seedDetail())
-			.thumbnailImage(seedRequest.seedType() == SeedType.LINK ? null : seedRequest.thumbnailImage())
+			.thumbnailImage(seedRequest.thumbnailImage() == null ? 0 : seedRequest.thumbnailImage())
 			.dDay(seedRequest.dDay())
 			.seedType(seedRequest.seedType())
 			.member(member)
