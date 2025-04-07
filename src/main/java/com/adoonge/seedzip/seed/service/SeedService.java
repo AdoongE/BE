@@ -45,6 +45,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Service
@@ -168,6 +169,15 @@ public class SeedService {
 			.seedId(seed.getId())
 			.seedName(seed.getSeedName())
 			.build();
+	}
+
+	@Transactional(readOnly = true)
+	public void uploadFiles(Long seedId, List<MultipartFile> files) {
+		Seed seed = seedRepository.findById(seedId).orElseThrow(
+			() -> SeedzipException.from(ErrorCode.CONTENT_NOT_FOUND)
+		);
+
+		fileService.saveFiles(files, seed);
 	}
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {

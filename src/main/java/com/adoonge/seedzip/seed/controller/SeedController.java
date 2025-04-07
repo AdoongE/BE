@@ -1,5 +1,7 @@
 package com.adoonge.seedzip.seed.controller;
 
+import java.util.List;
+
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
@@ -8,6 +10,7 @@ import com.adoonge.seedzip.seed.dto.reqeust.SeedRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
 import com.adoonge.seedzip.seed.service.SeedService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -22,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/seed")
@@ -94,5 +98,26 @@ public class SeedController {
 
         return new ApiResponse<>(seedInfoApiResponse);
     }
+
+    @PostMapping("/upload/{seedId}")
+    @Operation(summary = "씨드 업로드 후 파일 업로드 API", description = "씨드를 생성 후 파일을 db 및 aws에 저장하는 API입니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<?> uploadFiles(
+        @PathVariable("seedId") Long seedId,
+        @Parameter(description = "업로드할 파일 리스트", content = @Content(mediaType = "application/octet-stream"))
+        @RequestParam(value = "file", required = false) List<MultipartFile> files,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        seedService.uploadFiles(seedId, files);
+
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+
 
 }
