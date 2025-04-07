@@ -85,13 +85,14 @@ public class ContentsService {
 		}
 
 		if (Objects.isNull(request.getBoardCategory())) {
-			Category category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
+			Optional<Category> category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
 			request.setBoardCategory(new String[] {"default"});
 		}
 
 		// 카테고리 저장
 		Arrays.stream(request.getBoardCategory())  // String[]을 스트림으로 변환
-			.map(categoryName -> categoryRepository.findByMemberIdAndName(member.getId(), categoryName))
+			.map(categoryName -> categoryRepository.findByMemberIdAndName(member.getId(), categoryName)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND))) // Category 엔티티 찾기
 			.forEach(category -> {
 				CategoryContent categoryContent = new CategoryContent();
 				categoryContent.setContents(contents); // Content 엔티티는 이미 존재한다고 가정
@@ -482,7 +483,7 @@ public class ContentsService {
 
 		// 카테고리
 		if (Objects.isNull(request.getBoardCategory())) {
-			Category category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
+			Optional<Category> category = categoryRepository.findByMemberIdAndName(member.getId(), "default");
 			request.setBoardCategory(new String[] {"default"});
 		}
 
@@ -520,14 +521,16 @@ public class ContentsService {
 		categoriesToAdd.forEach(categoryName -> {
 			if (categoryName == null || categoryName.trim().isEmpty()) {
 				// 입력받은 카테고리가 없는 경우 default 카테고리 사용
-				Category defaultCategory = categoryRepository.findByMemberIdAndName(member.getId(), "default");
+				Category defaultCategory = categoryRepository.findByMemberIdAndName(member.getId(), "default")
+					.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
 				CategoryContent categoryContent = CategoryContent.builder()
 					.contents(contents)
 					.category(defaultCategory)
 					.build();
 				categoryContentRepository.save(categoryContent);
 			} else {
-				Category existingCategory = categoryRepository.findByMemberIdAndName(member.getId(), categoryName);
+				Category existingCategory = categoryRepository.findByMemberIdAndName(member.getId(), categoryName)
+					.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
 				if (existingCategory != null) {
 					CategoryContent categoryContent = CategoryContent.builder()
 						.contents(contents)
