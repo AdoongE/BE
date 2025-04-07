@@ -171,7 +171,7 @@ public class SeedService {
 			.build();
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public void uploadFiles(Long seedId, List<MultipartFile> files) {
 		Seed seed = seedRepository.findById(seedId).orElseThrow(
 			() -> SeedzipException.from(ErrorCode.CONTENT_NOT_FOUND)
