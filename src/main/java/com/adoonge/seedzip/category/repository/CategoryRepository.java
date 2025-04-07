@@ -3,6 +3,8 @@ package com.adoonge.seedzip.category.repository;
 import java.util.List;
 import java.util.Optional;
 
+import javax.swing.text.html.Option;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,5 +15,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
 	List<Category> findAllByMemberId(Long memberId);
 
-	Category findByMemberIdAndName(Long memberId, String name);
+	Optional<Category> findByMemberIdAndName(Long memberId, String name);
 }

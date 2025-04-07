@@ -185,7 +185,8 @@ public class SeedService {
 
 	private void saveSeedCategories(String[] boardCategories, Member member, Seed seed) {
 		Arrays.stream(boardCategories)
-			.map(categoryName -> categoryRepository.findByMemberIdAndName(member.getId(), categoryName))
+			.map(categoryName -> categoryRepository.findByMemberIdAndName(member.getId(), categoryName)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND)))
 			.forEach(category -> {
 				categorySeedRepository.save(
 					CategorySeed.builder()

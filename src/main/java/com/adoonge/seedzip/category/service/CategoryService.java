@@ -30,6 +30,11 @@ public class CategoryService {
 
 	@Transactional
 	public CategoryResponse createCategory(AddCategoryRequest request, Member member) {
+		categoryRepository.findByMemberIdAndName(member.getId(), request.name()).
+			ifPresent( category -> {
+				throw SeedzipException.from(ErrorCode.CATEGORY_ALREADY_EXISTS);
+			});
+
 		Category category = categoryRepository.save(request.toEntity(member));
 		return CategoryResponse.fromEntity(category);
 	}
