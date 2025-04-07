@@ -26,12 +26,14 @@ import com.adoonge.seedzip.tag.domain.type.DefaultTagType;
 import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
+import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -58,6 +60,10 @@ public class SeedService {
 	private final TagRepository tagRepository;
 	private final UsedDefaultTagRepository usedDefaultTagRepository;
 	private final CategoryRepository categoryRepository;
+
+	private static final Set<String> DEFAULT_TAG_NAMES = Arrays.stream(DefaultTagType.values())
+		.map(DefaultTagType::getDisplayName)
+		.collect(Collectors.toSet());
 
 	@Transactional(readOnly = true)
 	public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
@@ -166,7 +172,7 @@ public class SeedService {
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
-			.seedName(seedRequest.seedName() == null ? LocalDateTime.now().toString() : seedRequest.seedName())
+			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
 			.seedDetail(seedRequest.seedDetail())
 			.thumbnailImage(seedRequest.seedType() == SeedType.LINK ? null : seedRequest.thumbnailImage())
 			.dDay(seedRequest.dDay())
@@ -204,10 +210,8 @@ public class SeedService {
 	}
 
 	private Tag findOrCreateTag(String tagName, Member member) {
-		// 1. Default 태그 확인 (enum 클래스에서)
-		if (Arrays.stream(DefaultTagType.values())
-			.anyMatch(tag -> tag.getDisplayName().equals(tagName))) {
-
+		// 1.default tag 확인
+		if(DEFAULT_TAG_NAMES.contains(tagName)) {
 			Tag defaultTag = tagRepository.findByTagName(tagName)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.TAG_NOT_FOUND));
 
@@ -222,15 +226,13 @@ public class SeedService {
 
 			return defaultTag;
 		}
-
 		// 2. 디폴트 태그가 아닌 경우 CustomTag로 저장
 		return tagRepository.findByTagNameAndMemberId(tagName, member.getId())
-			.orElseGet(() -> {
-				return tagRepository.save(Tag.builder()
+			.orElseGet(() ->
+				tagRepository.save(Tag.builder()
 					.tagName(tagName)
 					.member(member)
-					.build());
-			});
+					.build()));
 	}
 
 	//List<Seed> -> List<SeedResponse.SeedInfo>로 변환
