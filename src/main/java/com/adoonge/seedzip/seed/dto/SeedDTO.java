@@ -2,6 +2,7 @@ package com.adoonge.seedzip.seed.dto;
 
 import java.time.LocalDate;
 
+import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
 
@@ -14,7 +15,8 @@ public record SeedDTO(
 	@NotNull String seedName,
 	Long thumbnailImage,    // 없으면 null
 	LocalDate dDay,    // 없으면 null
-	String seedDetail    // 없으면 null
+	String seedDetail,   // 없으면 null
+	Member member
 ) {
 
 	public Seed toEntity() {
@@ -24,6 +26,7 @@ public record SeedDTO(
 			.seedDetail(seedDetail)
 			.thumbnailIdx(thumbnailImage)
 			.seedType(seedType)
+			.member(member)
 			.build();
 	}
 }

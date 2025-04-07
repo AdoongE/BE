@@ -49,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SeedService {
 
+	private final FileService fileService;
+
 	private final SeedRepository seedRepository;
 	private final FileRepository fileRepository;
 	private final CategorySeedRepository categorySeedRepository;
@@ -140,32 +142,43 @@ public class SeedService {
 	}
 
 	@Transactional
-	public SeedResponse.SeedInfo uploadSeed(SeedRequest seedRequest, Member member) {
+	public SeedResponse.SeedInfoSimple uploadSeed(SeedRequest seedRequest, Member member) {
+		if(seedRequest.seedType() == SeedType.LINK && seedRequest.contentLink() == null) {
+			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
+		}
 
+		Seed seed = saveSeed(seedRequest, member);
+
+		// 태그 및 카테고리 저장
+		saveSeedTags(seedRequest.tags(), member, seed);
+		saveSeedCategories(seedRequest.boardCategories(), member, seed);
+
+		if (seedRequest.seedType() == SeedType.LINK) {
+			fileService.saveLink(seedRequest.contentLink(), seed);
+		}
+
+		return SeedResponse.SeedInfoSimple
+			.builder()
+			.seedId(seed.getId())
+			.seedName(seed.getSeedName())
+			.build();
+	}
+
+	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
 			.seedName(seedRequest.seedName() == null ? LocalDateTime.now().toString() : seedRequest.seedName())
 			.seedDetail(seedRequest.seedDetail())
-			.thumbnailImage(seedRequest.thumbnailImage())
+			.thumbnailImage(seedRequest.seedType() == SeedType.LINK ? null : seedRequest.thumbnailImage())
 			.dDay(seedRequest.dDay())
 			.seedType(seedRequest.seedType())
+			.member(member)
 			.build();
 
-		Seed seed = seedRepository.save(seedDTO.toEntity());
+		return seedRepository.save(seedDTO.toEntity());
+	}
 
-		// 태그 저장
-		for (String tagName : seedRequest.tags()) {
-			Tag tag = findOrCreateTag(tagName, member);
-
-			seedTagRepository.save(
-				SeedTag.builder()
-					.seed(seed)
-					.tag(tag)
-					.build()
-			);
-		}
-
-		// 카테고리 저장
-		Arrays.stream(seedRequest.boardCategory())
+	private void saveSeedCategories(String[] boardCategories, Member member, Seed seed) {
+		Arrays.stream(boardCategories)
 			.map(categoryName -> categoryRepository.findByMemberIdAndName(member.getId(), categoryName))
 			.forEach(category -> {
 				categorySeedRepository.save(
@@ -175,23 +188,19 @@ public class SeedService {
 						.build()
 				);
 			});
+	}
 
-		// LINK 타입의 경우, 링크 정보 저장
-		if (seedRequest.seedType().equals(SeedType.LINK)) {
-			fileRepository.save(
-				File.builder()
-					.link(seedRequest.contentLink())
+	private void saveSeedTags(String[] tags, Member member, Seed seed) {
+		for (String tagName : tags) {
+			Tag tag = findOrCreateTag(tagName, member);
+
+			seedTagRepository.save(
+				SeedTag.builder()
 					.seed(seed)
+					.tag(tag)
 					.build()
 			);
 		}
-
-		return SeedResponse.SeedInfo
-			.builder()
-			.seedId(seed.getId())
-			.seedName(seed.getSeedName())
-			.build();
-
 	}
 
 	private Tag findOrCreateTag(String tagName, Member member) {

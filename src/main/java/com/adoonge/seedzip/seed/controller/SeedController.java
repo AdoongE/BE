@@ -85,12 +85,12 @@ public class SeedController {
                             schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<SeedResponse.SeedInfo> uploadSeed(
+    public ApiResponse<SeedResponse.SeedInfoSimple> uploadSeed(
             @RequestBody @Valid SeedRequest seedRequest,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         Member member = customUserDetails.getMember();
-        SeedResponse.SeedInfo seedInfoApiResponse = seedService.uploadSeed(seedRequest, member);
+        SeedResponse.SeedInfoSimple seedInfoApiResponse = seedService.uploadSeed(seedRequest, member);
 
         return new ApiResponse<>(seedInfoApiResponse);
     }

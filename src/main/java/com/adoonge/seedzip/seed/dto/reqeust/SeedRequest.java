@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotNull;
 public record SeedRequest(
 	@NotNull SeedType seedType,
 	String seedName,    // 없으면 null
-	@NotNull String[] boardCategory,
+	@NotNull String[] boardCategories,
 	Long thumbnailImage,	// 없으면 null
 	String contentLink, // link만 해당, 나머지 null
 	@NotNull String[] tags,
