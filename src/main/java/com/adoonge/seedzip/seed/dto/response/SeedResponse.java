@@ -17,4 +17,7 @@ public class SeedResponse {
 
     @Builder
     public record GetAllSeeds(String nickname, List<SeedInfo> seedInfoList, PageInfo pageInfo) {}
+
+    @Builder
+    public record SeedInfoSimple(Long seedId, String seedName){}
 }

@@ -35,6 +35,7 @@ public enum ErrorCode {
     INVALID_SOCIAL_CODE(HttpStatus.BAD_REQUEST, "잘못된 소셜코드입니다."),
 
     // file
+    EMPTY_LINK(HttpStatus.BAD_REQUEST, "링크가 비어있습니다."),
     EMPTY_IMAGE(HttpStatus.BAD_REQUEST, "이미지 파일이 비어있습니다."),
     UNSUPPORTED_IMAGE_FILE_EXTENSION(HttpStatus.BAD_REQUEST, "지원하지 않는 이미지 파일 확장자입니다."),
     IMAGE_STORE_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 저장에 실패했습니다."),
