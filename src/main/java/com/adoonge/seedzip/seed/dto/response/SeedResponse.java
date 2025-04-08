@@ -1,6 +1,6 @@
 package com.adoonge.seedzip.seed.dto.response;
-import com.adoonge.seedzip.content.domain.ContentsDataType;
 import com.adoonge.seedzip.seed.domain.SeedType;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -20,4 +20,17 @@ public class SeedResponse {
 
     @Builder
     public record SeedInfoSimple(Long seedId, String seedName){}
+
+    @Builder
+    public record SeedDetail(Long seedId,
+            SeedType seedType,
+            String seedName,
+            String seedLink,
+            List<String> fileLinks,
+            List<String> titles,
+            Long thumbnailImage,
+            List<String> categoryNames,
+            List<String> tagNames,
+            LocalDate dDay,
+            String seedDetail){}
 }

@@ -1,10 +1,6 @@
 package com.adoonge.seedzip.seed.service;
 
 import com.adoonge.seedzip.category.repository.CategoryRepository;
-import com.adoonge.seedzip.content.domain.ContentsDataType;
-import com.adoonge.seedzip.content.domain.Link;
-import com.adoonge.seedzip.content.domain.mapping.CategoryContent;
-import com.adoonge.seedzip.content.domain.mapping.ContentTag;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -26,14 +22,15 @@ import com.adoonge.seedzip.tag.domain.type.DefaultTagType;
 import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
 
-import java.lang.reflect.Array;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -178,6 +175,56 @@ public class SeedService {
 		);
 
 		fileService.saveFiles(files, seed);
+	}
+
+	@Transactional(readOnly = true)
+	public SeedResponse.SeedDetail getSeedDetail(Long seedId, Member member) {
+		Seed seed = seedRepository.findById(seedId)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+		List<File> files = fileRepository.findAllBySeed(seed)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+
+		String seedLink = null;
+		List<String> fileLinks = null;
+		Long thumbnailImage = -1L;
+		List<String> titles = null;
+
+		//링크와 파일들 링크 얻고, 썸네일 처리
+        if (seed.getSeedType().equals(SeedType.LINK)) {
+            seedLink = files.get(0).getLink();
+        } else {
+			fileLinks = new ArrayList<>();
+			titles = new ArrayList<>();
+			AtomicInteger idx = new AtomicInteger(0);
+
+			for(File file : files){
+				fileLinks.add(file.getLink());
+				titles.add(file.getFileName());
+				if(Boolean.TRUE.equals(file.getIsThumbnail())) {
+					thumbnailImage = (long) idx.get();
+				}
+				idx.getAndIncrement();
+			}
+        }
+
+		//카테고리
+		List<String> categoryNames = categorySeedRepository.findCategoryNamesBySeed(seed);
+		//태그
+		List<String> tagNames = seedTagRepository.findTagNamesBySeed(seed);
+
+		return SeedResponse.SeedDetail.builder()
+				.seedId(seed.getId())
+				.seedType(seed.getSeedType())
+				.seedName(seed.getSeedName())
+				.seedLink(seedLink)
+				.fileLinks(fileLinks)
+				.titles(titles)
+				.thumbnailImage(thumbnailImage)
+				.categoryNames(categoryNames)
+				.tagNames(tagNames)
+				.dDay(seed.getDDay())
+				.seedDetail(seed.getSeedDetail())
+				.build();
 	}
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {

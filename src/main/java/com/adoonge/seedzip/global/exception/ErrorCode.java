@@ -86,6 +86,10 @@ public enum ErrorCode {
     CONTENT_NOT_PUBLISHED(HttpStatus.FORBIDDEN, "이 콘텐츠는 아직 게시되지 않았습니다."),
     CONTENT_ARCHIVED(HttpStatus.GONE, "이 콘텐츠는 보관 처리되었습니다."),
 
+    // seed
+    SEED_NOT_FOUND(HttpStatus.NOT_FOUND, "씨드를 찾을 수 없습니다."),
+
+
     // tag
     TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "태그를 찾을 수 없습니다."),
     EMPTY_TAG(HttpStatus.OK, "태그가 존재하지 않습니다."),
