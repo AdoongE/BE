@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -184,22 +185,25 @@ public class SeedService {
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
 
 		String seedLink = null;
-		List<String> fileLinks = new ArrayList<>();
+		List<String> fileLinks = null;
 		Long thumbnailImage = -1L;
-		List<String> titles = new ArrayList<>();
+		List<String> titles = null;
 
 		//링크와 파일들 링크 얻고, 썸네일 처리
         if (seed.getSeedType().equals(SeedType.LINK)) {
             seedLink = files.get(0).getLink();
         } else {
-			int idx = 0;
+			fileLinks = new ArrayList<>();
+			titles = new ArrayList<>();
+			AtomicInteger idx = new AtomicInteger(0);
+
 			for(File file : files){
 				fileLinks.add(file.getLink());
 				titles.add(file.getFileName());
 				if(Boolean.TRUE.equals(file.getIsThumbnail())) {
-					thumbnailImage = (long) idx;
+					thumbnailImage = (long) idx.get();
 				}
-				idx++;
+				idx.getAndIncrement();
 			}
         }
 
