@@ -45,13 +45,13 @@ public class File extends BaseEntity {
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Seed seed;
 
-	@Builder(builderMethodName = "linkBuilder")
+	@Builder(builderMethodName = "linkBuilder", builderClassName = "LinkBuilder")
 	public File(String link, Seed seed){
 		this.link = link;
 		this.seed = seed;
 	}
 
-	@Builder(builderMethodName = "fileBuilder")
+	@Builder(builderMethodName = "fileBuilder", builderClassName = "FileBuilder")
 	public File(String link, String fileName, Boolean isThumbnail, Seed seed) {
 		this.link = link;
 		this.fileName = fileName;

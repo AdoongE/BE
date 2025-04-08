@@ -55,11 +55,10 @@ public class FileService {
 
 					fileRepository.save(
 						File.fileBuilder()
-							.link(fileLink)
 							.fileName(file.getOriginalFilename())
 							.isThumbnail(index.get() == thumbnailIndex)
-							.seed(seed)
-							.build()
+							.link(fileLink)
+							.seed(seed).build()
 					);
 
 					index.getAndIncrement();
