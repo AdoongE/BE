@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.seed.controller;
 
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import java.util.List;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
@@ -59,7 +60,7 @@ public class SeedController {
         return new ApiResponse<>(getAllSeeds);
     }
 
-    @GetMapping("/{categoryId}")
+    @GetMapping("/category/{categoryId}")
     @Operation(summary = "카테고리 내 씨드 모아보기 API", description = "카테고리에 해당하는 콘텐츠를 조회하는 API입니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
@@ -82,13 +83,29 @@ public class SeedController {
         return new ApiResponse<>(getAllSeeds);
     }
 
+    @GetMapping("/{seedId}")
+    @Operation(summary = "씨드 상세 보기 API", description = "씨드 내용을 조회하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.SeedDetail> getSeedDetail(@PathVariable("seedId") Long seedId,
+                                                                          @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+
+        return new ApiResponse<>(seedService.getSeedDetail(seedId, member));
+    }
+
     @PostMapping
     @Operation(summary = "씨드 업로드 API", description = "씨드를 업로드하는 API입니다. 타입, 카테고리, 태그 2개 이상 필수입니다. "
         + "\n업로드 후, 업로드된 씨드의 ID를 반환합니다.")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
+                            schema = @Schema(implementation = SeedResponse.SeedDetail.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<SeedResponse.SeedInfoSimple> uploadSeed(
