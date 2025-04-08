@@ -45,9 +45,18 @@ public class File extends BaseEntity {
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Seed seed;
 
-	@Builder
+	@Builder(builderMethodName = "linkBuilder")
 	public File(String link, Seed seed){
 		this.link = link;
 		this.seed = seed;
 	}
+
+	@Builder(builderMethodName = "fileBuilder")
+	public File(String link, String fileName, Boolean isThumbnail, Seed seed) {
+		this.link = link;
+		this.fileName = fileName;
+		this.isThumbnail = isThumbnail;
+		this.seed = seed;
+	}
+
 }
