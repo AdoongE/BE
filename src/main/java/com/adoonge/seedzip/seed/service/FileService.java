@@ -10,7 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.global.service.S3Service;
-import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.domain.File;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;

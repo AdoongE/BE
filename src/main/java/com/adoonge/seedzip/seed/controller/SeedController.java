@@ -17,6 +17,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -99,7 +101,7 @@ public class SeedController {
         return new ApiResponse<>(seedInfoApiResponse);
     }
 
-    @PostMapping("/upload/{seedId}")
+    @PostMapping(value = "/upload/{seedId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "씨드 업로드 후 파일 업로드 API", description = "씨드를 생성 후 파일을 db 및 aws에 저장하는 API입니다.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
