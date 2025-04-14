@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SeedRepositoryCustom {
     Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, SeedFilteringRequest request);
+    Page<Seed> findCategorySeedsByFiltering(Member member, Pageable pageable, SeedType seedType,Long categoryId ,SeedFilteringRequest request);
 }

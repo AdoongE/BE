@@ -167,4 +167,30 @@ public class SeedController {
         return new ApiResponse<>(filteredSeeds);
     }
 
+    @PostMapping("/filtering/{categoryId}")
+    @Operation(summary = "카테고리 내 필터링 및 검색 API", description = "카테고리 내 씨드를 필터링 및 검색하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = SeedResponse.GetFilteredSeeds.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.GetFilteredSeeds> getFilteredCategorySeeds(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "latest") String sortBy, // latest or name
+            @RequestParam(defaultValue = "false") boolean isAsc,
+            @RequestParam(required = false) String seedType,
+            @PathVariable Long categoryId,
+            @RequestBody SeedFilteringRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+
+        GetFilteredSeeds filteredSeeds = seedService.getFilteredCategorySeeds(member, page, size, sortBy, isAsc, seedType,
+                categoryId,request);
+
+        return new ApiResponse<>(filteredSeeds);
+    }
+
 }

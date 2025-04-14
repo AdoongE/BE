@@ -267,7 +267,46 @@ public class SeedService {
 				.seedInfoList(seedInfoList)
 				.pageInfo(pageInfo)
 				.build();
+	}
 
+	@Transactional(readOnly = true)
+	public SeedResponse.GetFilteredSeeds getFilteredCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
+														  String seedType, Long categoryId, SeedFilteringRequest request) {
+		Sort.Direction direction = getSortDirection(isAsc);
+		String sortField = getSortField(sortBy);
+		SeedType parsedSeedType = parseSeedType(seedType);
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+		//페이징으로 얻어온 Seed 리스트
+		Page<Seed> seedList;
+		if (seedType != null) {
+			seedList = seedRepositoryCustom.findCategorySeedsByFiltering(member, pageable, parsedSeedType, categoryId, request);
+		} else {
+			seedList = seedRepositoryCustom.findCategorySeedsByFiltering(member, pageable, null, categoryId, request);
+		}
+
+		if (seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
+		}
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent());
+
+		//페이징 정보 추가
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+				.page(seedList.getNumber())
+				.size(seedList.getSize())
+				.totalPages(seedList.getTotalPages())
+				.totalElements(seedList.getTotalElements())
+				.isLast(seedList.isLast())
+				.build();
+
+		return SeedResponse.GetFilteredSeeds.builder()
+				.nickname(member.getNickname())
+				.seedInfoList(seedInfoList)
+				.pageInfo(pageInfo)
+				.build();
 	}
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {

@@ -4,13 +4,13 @@ import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.domain.QSeed;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
+import com.adoonge.seedzip.seed.domain.mapping.QCategorySeed;
 import com.adoonge.seedzip.seed.domain.mapping.QSeedTag;
 import com.adoonge.seedzip.seed.dto.reqeust.SeedFilteringRequest;
 import com.adoonge.seedzip.tag.domain.QTag;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +30,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     QSeed seed = QSeed.seed;
     QSeedTag seedTag = QSeedTag.seedTag;
     QTag tag = QTag.tag;
+    QCategorySeed categorySeed = QCategorySeed.categorySeed;
 
     @Override
     public Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, SeedFilteringRequest request) {
@@ -59,12 +60,57 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
+    @Override
+    public Page<Seed> findCategorySeedsByFiltering(Member member, Pageable pageable, SeedType seedType, Long categoryId,
+                                                   SeedFilteringRequest request) {
+        List<String> tagNames = request.tags();
+        String keyword = request.keyword();
+
+        BooleanExpression condition = seed.member.eq(member);
+
+        condition = safeAnd(condition, filteringByCategory(categoryId));
+        condition = safeAnd(condition, filteringByTagNames(tagNames));
+        condition = safeAnd(condition, filteringByKeyword(keyword));
+        condition = safeAnd(condition, filteringBySeedType(seedType));
+
+        List<Seed> content = queryFactory
+                .selectFrom(seed)
+                .where(condition)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .orderBy(getOrderSpecifiers(pageable.getSort()))
+                .fetch();
+
+        Long total = queryFactory
+                .select(seed.count())
+                .from(seed)
+                .where(condition)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    //Category 필터 조건
+    private BooleanExpression filteringByCategory(Long categoryId) {
+        if(categoryId == null) {
+            return null;
+        }
+        // Category에 해당하는 Seed ID 조회
+        List<Long> seedIds = queryFactory
+                .select(categorySeed.seed.id)
+                .from(categorySeed)
+                .where(categorySeed.category.categoryId.eq(categoryId))
+                .fetch();
+
+        return seed.id.in(seedIds);
+    }
+
     //Tag 필터 조건
     private BooleanExpression filteringByTagNames(List<String> tagNames) {
         if(tagNames == null || tagNames.isEmpty()) {
             return null;
         }
-        // STEP 1: 태그 조건을 만족하는 Seed ID 조회
+        // 태그 조건을 만족하는 Seed ID 조회
         List<Long> seedIds = queryFactory
                 .select(seedTag.seed.id)
                 .from(seedTag)
