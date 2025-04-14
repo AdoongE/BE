@@ -10,11 +10,13 @@ import com.adoonge.seedzip.seed.domain.SeedType;
 import com.adoonge.seedzip.seed.domain.mapping.CategorySeed;
 import com.adoonge.seedzip.seed.domain.mapping.SeedTag;
 import com.adoonge.seedzip.seed.dto.SeedDTO;
+import com.adoonge.seedzip.seed.dto.reqeust.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.reqeust.SeedRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
 import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.FileRepository;
 import com.adoonge.seedzip.seed.repository.SeedRepository;
+import com.adoonge.seedzip.seed.repository.SeedRepositoryCustom;
 import com.adoonge.seedzip.seed.repository.SeedTagRepository;
 import com.adoonge.seedzip.tag.domain.Tag;
 import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
@@ -27,7 +29,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -58,6 +59,7 @@ public class SeedService {
 	private final TagRepository tagRepository;
 	private final UsedDefaultTagRepository usedDefaultTagRepository;
 	private final CategoryRepository categoryRepository;
+	private final SeedRepositoryCustom seedRepositoryCustom;
 
 	private static final Set<String> DEFAULT_TAG_NAMES = Arrays.stream(DefaultTagType.values())
 		.map(DefaultTagType::getDisplayName)
@@ -227,6 +229,47 @@ public class SeedService {
 				.build();
 	}
 
+	@Transactional(readOnly = true)
+	public SeedResponse.GetFilteredSeeds getFilteredSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
+														  String seedType, SeedFilteringRequest request) {
+		Sort.Direction direction = getSortDirection(isAsc);
+		String sortField = getSortField(sortBy);
+		SeedType parsedSeedType = parseSeedType(seedType);
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+		//페이징으로 얻어온 Seed 리스트
+		Page<Seed> seedList;
+		if (seedType != null) {
+			seedList = seedRepositoryCustom.findSeedsByFiltering(member, pageable, parsedSeedType, request);
+		} else {
+			seedList = seedRepositoryCustom.findSeedsByFiltering(member, pageable, null, request);
+		}
+
+		if (seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
+		}
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent());
+
+		//페이징 정보 추가
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+				.page(seedList.getNumber())
+				.size(seedList.getSize())
+				.totalPages(seedList.getTotalPages())
+				.totalElements(seedList.getTotalElements())
+				.isLast(seedList.isLast())
+				.build();
+
+		return SeedResponse.GetFilteredSeeds.builder()
+				.nickname(member.getNickname())
+				.seedInfoList(seedInfoList)
+				.pageInfo(pageInfo)
+				.build();
+
+	}
+
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
 			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
@@ -351,6 +394,68 @@ public class SeedService {
 			})
 			.collect(Collectors.toList());
 	}
+
+	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환
+	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedList(List<Seed> seedList) {
+		return seedList.stream()
+				.map(seed -> {
+					String thumbnailUrl = null;
+					//링크의 경우 thumbnail 없으니까, 해당 링크를 thumbnailUrl로 처리
+					if (seed.getSeedType().equals(SeedType.LINK)) {
+						Optional<File> thumbnailFile = fileRepository.findBySeed(seed);
+						if (thumbnailFile.isPresent()) {
+							thumbnailUrl = thumbnailFile.get().getLink();
+						}
+					}
+					// 이미지, PDF의 경우 isThumbnail이 true인 파일만 가져와서 s3 링크 추출
+					else {
+						Optional<File> thumbnailFile = fileRepository.findThumbnailBySeed(seed);
+						if (thumbnailFile.isPresent()) {
+							thumbnailUrl = thumbnailFile.get().getLink();
+						}
+					}
+
+					//seedId에 해당하는 카테고리 리스트 조회
+					List<Long> categoryIds = categorySeedRepository.findCategoryIdsBySeed(seed);
+					List<String> categoryNames = categorySeedRepository.findCategoryNamesBySeed(seed);
+
+					//seedId에 해당하는 태그 리스트 조회
+					List<Long> tagIds = seedTagRepository.findTagIdsBySeed(seed);
+					List<String> tagNames = seedTagRepository.findTagNamesBySeed(seed);
+
+					// D-day 계산
+					int dDayValue = 1;
+					if (seed.getDDay() != null) {
+						LocalDate today = LocalDate.now();
+						long daysBetween = ChronoUnit.DAYS.between(today, seed.getDDay());
+
+						if (daysBetween > 0) {
+							dDayValue = -(int)daysBetween;
+						} else if (daysBetween == 0) {
+							dDayValue = 0;
+						}
+					}
+
+					// SeedResponse 객체에 필요한 정보 담기
+					return new SeedResponse.SeedInfoWithSeedDetail(
+							seed.getId(),
+							seed.getSeedName(),
+							categoryIds,
+							categoryNames,
+							seed.getSeedType(),
+							thumbnailUrl,
+							seed.getUpdatedAt(),
+							tagIds,
+							tagNames,
+							dDayValue,
+							seed.getSeedDetail()
+					);
+
+				})
+				.collect(Collectors.toList());
+	}
+
+
 
 	// 정렬 방향을 결정하는 메소드
 	private Sort.Direction getSortDirection(boolean isAsc) {

@@ -1,6 +1,8 @@
 package com.adoonge.seedzip.seed.controller;
 
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
+import com.adoonge.seedzip.seed.dto.reqeust.SeedFilteringRequest;
+import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetFilteredSeeds;
 import java.util.List;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
@@ -137,6 +139,32 @@ public class SeedController {
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
+    /**
+     * 필터링 및 검색
+     */
+    @PostMapping("/filtering")
+    @Operation(summary = "전체 씨드 필터링 및 검색 API", description = "전체 씨드를 필터링 및 검색하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = SeedResponse.GetFilteredSeeds.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.GetFilteredSeeds> getAllSeeds(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "latest") String sortBy, // latest or name
+            @RequestParam(defaultValue = "false") boolean isAsc,
+            @RequestParam(required = false) String seedType,
+            @RequestBody SeedFilteringRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
+        Member member = customUserDetails.getMember();
+
+        GetFilteredSeeds filteredSeeds = seedService.getFilteredSeeds(member, page, size, sortBy, isAsc, seedType,
+                request);
+
+        return new ApiResponse<>(filteredSeeds);
+    }
 
 }
