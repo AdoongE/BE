@@ -1,7 +1,6 @@
 package com.adoonge.seedzip.seed.controller;
 
-import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
-import com.adoonge.seedzip.seed.dto.reqeust.SeedFilteringRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetFilteredSeeds;
 import java.util.List;
 
@@ -9,7 +8,7 @@ import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.member.domain.Member;
-import com.adoonge.seedzip.seed.dto.reqeust.SeedRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
 import com.adoonge.seedzip.seed.service.SeedService;
 import io.swagger.v3.oas.annotations.Operation;

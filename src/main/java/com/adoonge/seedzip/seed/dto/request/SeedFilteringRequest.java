@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.seed.dto.reqeust;
+package com.adoonge.seedzip.seed.dto.request;
 
 import java.util.List;
 

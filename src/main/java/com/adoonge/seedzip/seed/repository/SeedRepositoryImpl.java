@@ -6,7 +6,7 @@ import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
 import com.adoonge.seedzip.seed.domain.mapping.QCategorySeed;
 import com.adoonge.seedzip.seed.domain.mapping.QSeedTag;
-import com.adoonge.seedzip.seed.dto.reqeust.SeedFilteringRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.tag.domain.QTag;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
