@@ -33,4 +33,14 @@ public class SeedResponse {
             List<String> tagNames,
             LocalDate dDay,
             String seedDetail){}
+
+    @Builder
+    public record SeedInfoWithSeedDetail(
+            Long seedId, String seedName, List<Long> categoryId, List<String> categoryName,
+            SeedType seedType, String thumbnailImage, LocalDateTime updatedDt,
+            List<Long> tagId, List<String> tagName, int dDay, String seedDetail
+    ){}
+
+    @Builder
+    public record GetFilteredSeeds(String nickname, List<SeedInfoWithSeedDetail> seedInfoList, PageInfo pageInfo){}
 }
