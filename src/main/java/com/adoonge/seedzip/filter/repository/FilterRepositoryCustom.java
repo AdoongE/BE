@@ -7,18 +7,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 
 @Repository
-@RequiredArgsConstructor
-public class FilterRepositoryCustom {
-	private final JPAQueryFactory queryFactory;
-
-	public Long findNextNumber(){
-		QFilter filter = QFilter.filter;
-
-		Long maxNumber = queryFactory.select(filter.filterNum.max())
-				.from(filter)
-				.fetchOne();
-
-		// 필터가 없으면 1부터 시작
-		return maxNumber != null ? maxNumber + 1 : 1;
-	}
+public interface FilterRepositoryCustom {
+	Long findNextNumber();
 }
