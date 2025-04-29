@@ -1,6 +1,10 @@
 package com.adoonge.seedzip.seed.service;
 
 import com.adoonge.seedzip.category.repository.CategoryRepository;
+import com.adoonge.seedzip.content.domain.Contents;
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
+import com.adoonge.seedzip.filter.domain.Filter;
+import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -60,6 +64,7 @@ public class SeedService {
 	private final UsedDefaultTagRepository usedDefaultTagRepository;
 	private final CategoryRepository categoryRepository;
 	private final SeedRepositoryCustom seedRepositoryCustom;
+	private final FilterRepository filterRepository;
 
 	private static final Set<String> DEFAULT_TAG_NAMES = Arrays.stream(DefaultTagType.values())
 		.map(DefaultTagType::getDisplayName)
@@ -521,5 +526,40 @@ public class SeedService {
 			}
 		}
 		return null;  // seedType이 null 또는 빈 문자열일 경우 null 반환
+	}
+
+	public SeedResponse.GetAllSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
+
+		Filter filter = filterRepository.findById(filterId)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		if (!filter.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
+		}
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> seedList = seedRepositoryCustom.findSeedsByCustomFilter(pageable, filter.getStartDate(), filter.getEndDate(),
+		filter.getStorageFormats(), filter.getFromDDay(), filter.getToDDay(), filter.getFilterId(), member.getId());
+
+		if (seedList.isEmpty())
+			return null;
+
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
+
+		//페이징 정보 추가
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+			.page(seedList.getNumber())
+			.size(seedList.getSize())
+			.totalPages(seedList.getTotalPages())
+			.totalElements(seedList.getTotalElements())
+			.isLast(seedList.isLast())
+			.build();
+
+		return SeedResponse.GetAllSeeds.builder()
+			.nickname(member.getNickname())
+			.seedInfoList(seedInfoList)
+			.pageInfo(pageInfo)
+			.build();
 	}
 }

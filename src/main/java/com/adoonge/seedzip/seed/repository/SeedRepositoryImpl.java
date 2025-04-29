@@ -1,5 +1,10 @@
 package com.adoonge.seedzip.seed.repository;
 
+import com.adoonge.seedzip.content.domain.Contents;
+import com.adoonge.seedzip.content.domain.ContentsDataType;
+import com.adoonge.seedzip.content.domain.QContents;
+import com.adoonge.seedzip.content.domain.mapping.QContentTag;
+import com.adoonge.seedzip.filter.domain.QFilterTag;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.domain.QSeed;
 import com.adoonge.seedzip.seed.domain.Seed;
@@ -11,7 +16,12 @@ import com.adoonge.seedzip.tag.domain.QTag;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +41,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     QSeedTag seedTag = QSeedTag.seedTag;
     QTag tag = QTag.tag;
     QCategorySeed categorySeed = QCategorySeed.categorySeed;
+    QFilterTag filterTag = QFilterTag.filterTag;
 
     @Override
     public Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, SeedFilteringRequest request) {
@@ -90,6 +101,32 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
+    @Override
+    public Page<Seed> findSeedsByCustomFilter(Pageable pageable, LocalDate startDate, LocalDate endDate,
+        List<String> seedType, Long dDayStart, Long dDayEnd, Long filterId, Long memberID) {
+
+        BooleanExpression condition = seed.member.id.eq(memberID);
+        condition = safeAnd(condition, filterByDate(startDate, endDate));
+        condition = safeAnd(condition, filterByDDay(dDayStart, dDayEnd));
+        condition = safeAnd(condition, filterByStorageFormat(seedType));
+        condition = safeAnd(condition, filterByTags(filterId));
+
+        List<Seed> seeds = queryFactory
+            .selectFrom(seed)
+            .where(condition)
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        Long total = queryFactory
+            .select(seed.count())
+            .from(seed)
+            .where(condition)
+            .fetchOne();
+
+        return new PageImpl<>(seeds, pageable, total != null ? total : 0);
+    }
+
     //Category 필터 조건
     private BooleanExpression filteringByCategory(Long categoryId) {
         if(categoryId == null) {
@@ -131,6 +168,86 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     //Keyword 필터 조건
     private BooleanExpression filteringByKeyword(String keyword) {
         return keyword != null && !keyword.isEmpty() ? seed.seedName.containsIgnoreCase(keyword).or(seed.seedDetail.containsIgnoreCase(keyword)) : null;
+    }
+
+    // 날짜 필터 조건
+    private BooleanExpression filterByDate(LocalDate startDate, LocalDate endDate) {
+        DateTimePath<LocalDateTime> createdAt = seed.createdAt;
+
+        if (startDate != null && endDate != null) {
+            if(startDate.equals(endDate)) {
+                return createdAt.between(startDate.atStartOfDay(), startDate.atStartOfDay().plusDays(1));
+            }
+            return createdAt.between(startDate.atStartOfDay(), endDate.atStartOfDay());
+        } else if (startDate != null) {
+            return createdAt.goe(startDate.atStartOfDay());
+        } else if (endDate != null) {
+            return createdAt.loe(endDate.atStartOfDay());
+        }
+        return null; // 조건이 없으면 null 반환
+    }
+
+    // 저장 형식 필터 조건
+    private BooleanExpression filterByStorageFormat(List<String> seedType) {
+
+        if (seedType != null ) {
+            BooleanExpression expression = null;
+
+            for (SeedType storageFormat : SeedType.values()) {
+                BooleanExpression condition = seed.seedType.eq(storageFormat);
+                expression = (expression == null) ? condition : expression.or(condition);
+            }
+
+            return expression;
+        }
+        return null; // 필터 조건이 없으면 null 반환
+    }
+
+    // D-Day 필터 조건
+    private BooleanExpression filterByDDay(Long fromDDay, Long toDDay) {
+
+        if (fromDDay != null && toDDay != null) {
+            if(fromDDay.equals(toDDay)) {	// D-Day가 같은 경우
+                return seed.dDay.eq(LocalDate.now().plusDays(fromDDay));
+            }
+            return seed.dDay.between(LocalDate.now().plusDays(fromDDay), LocalDate.now().plusDays(toDDay));
+        } else if (fromDDay != null) {
+            return seed.dDay.goe(LocalDate.now().plusDays(fromDDay));	// D-Day 시작 범위
+        } else if (toDDay != null) {
+            return seed.dDay.loe(LocalDate.now().plusDays(toDDay));	// D-Day 끝 범위
+        }
+        return null;
+    }
+
+    // 태그 필터 조건
+    private BooleanExpression filterByTags(Long filterId) {
+
+        if (filterId != null) {
+            // 필터에 해당하는 태그 ID 조회
+            List<Long> tagIds = queryFactory.select(filterTag.tag.id)
+                .from(filterTag)
+                .where(filterTag.filter.filterId.eq(filterId))
+                .fetch();
+
+            // 필터에 태그가 없으면 null 반환
+            if(tagIds.isEmpty()) {
+                return null;
+            }
+
+            // 콘텐츠에 필터 태그가 모두 포함되어야 함
+            return seed.id.in(
+                queryFactory
+                    .select(seedTag.seed.id)
+                    .from(seedTag)
+                    .where(seedTag.tag.id.in(tagIds))
+                    .groupBy(seedTag.seed.id)
+                    .having(
+                        Expressions.asNumber(seedTag.tag.id.countDistinct()) // 콘텐츠에 있는 태그의 개수
+                            .eq((long) tagIds.size()) // 필터 태그 개수만큼 태그가 있어야 함
+                    )
+            );
+        } else
+            return null;
     }
 
     // 정렬 조건 변환
