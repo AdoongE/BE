@@ -51,12 +51,19 @@ public class FilterController {
 
 	@GetMapping("/{filterId}")
 	@Operation(summary = "필터를 통한 컨텐츠 조회 API", description = "필터를 통해 컨텐츠를 조회하는 API입니다.")
-	public ApiResponse<ContentsAllResponse.contentsInfo> getContentsByFilter(
+	public ApiResponse<ContentsAllResponse.getAllContents> getContentsByFilter(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails,
 		@PathVariable Long filterId)
 	{
-		return new ApiResponse<>(contentsService.getCustomFilterContents(
-			customUserDetails.getMember(), filterId));
+		List<ContentsAllResponse.contentsInfo> customFilterContents = contentsService.getCustomFilterContents(
+			customUserDetails.getMember(), filterId);
+
+		ContentsAllResponse.getAllContents contents = ContentsAllResponse.getAllContents
+			.builder()
+			.contentsInfoList(customFilterContents)
+			.nickname(customUserDetails.getUsername())
+			.build();
+		return new ApiResponse<>(contents);
 	}
 
 	@GetMapping
