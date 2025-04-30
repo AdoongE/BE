@@ -15,4 +15,6 @@ public interface SeedTagRepository extends JpaRepository<SeedTag, Long> {
     // 자동으로 Inner 조인 사용 , n+1 문제 발생 X
     @Query("SELECT st.tag.tagName FROM SeedTag st WHERE st.seed = :seed")
     List<String> findTagNamesBySeed(@Param("seed") Seed seed);
+
+    List<SeedTag> findAllBySeedIdIn(List<Long> seedIds);
 }

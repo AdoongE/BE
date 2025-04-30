@@ -18,4 +18,6 @@ public interface CategorySeedRepository extends JpaRepository<CategorySeed, Long
 
     @Query("SELECT cs.seed.id FROM CategorySeed cs WHERE cs.category.categoryId = :categoryId")
     List<Long> findSeedIdsByCategoryId(@Param("categoryId") Long categoryId);
+
+    List<CategorySeed> findAllBySeedIdIn(List<Long> seedIds);
 }

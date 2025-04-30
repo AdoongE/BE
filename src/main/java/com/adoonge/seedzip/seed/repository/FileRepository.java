@@ -16,4 +16,6 @@ public interface FileRepository extends JpaRepository<File, Long> {
     Optional<File> findBySeed(Seed seed);
 
     Optional<List<File>> findAllBySeed(Seed seed);
+
+    List<File> findAllBySeedIdIn(List<Long> seedIds);
 }

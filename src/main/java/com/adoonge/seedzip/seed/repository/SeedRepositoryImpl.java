@@ -118,24 +118,32 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
         condition = safeAnd(condition, filterByTags(filterId));
 
         // 1. 페이징 대상 Seed ID 조회
-        List<Long> seedIds = queryFactory
-            .select(seed.id)
-            .from(seed)
+        // List<Long> seedIds = queryFactory
+        //     .select(seed.id)
+        //     .from(seed)
+        //     .where(condition)
+        //     .offset(pageable.getOffset())
+        //     .limit(pageable.getPageSize())
+        //     .fetch();
+        //
+        // // 2. 실제 Seed + 연관 데이터 조회 fetch join
+        // List<Seed> seeds = queryFactory
+        //     .selectDistinct(seed)
+        //     .from(seed)
+        //     .leftJoin(seed.files, file).fetchJoin()
+        //     .leftJoin(seed.seedTags, seedTag).fetchJoin()
+        //     .leftJoin(seedTag.tag, tag).fetchJoin()
+        //     .leftJoin(seed.categorySeeds, categorySeed).fetchJoin()
+        //     .leftJoin(categorySeed.category, category).fetchJoin()
+        //     .where(seed.id.in(seedIds))
+        //     .fetch();
+
+        // 기존: fetch join으로 모든 걸 한 번에 가져옴 → 제거
+        List<Seed> seeds = queryFactory
+            .selectFrom(seed)
             .where(condition)
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())
-            .fetch();
-
-        // 2. 실제 Seed + 연관 데이터 조회 fetch join
-        List<Seed> seeds = queryFactory
-            .selectDistinct(seed)
-            .from(seed)
-            .leftJoin(seed.files, file).fetchJoin()
-            .leftJoin(seed.seedTags, seedTag).fetchJoin()
-            .leftJoin(seedTag.tag, tag).fetchJoin()
-            .leftJoin(seed.categorySeeds, categorySeed).fetchJoin()
-            .leftJoin(categorySeed.category, category).fetchJoin()
-            .where(seed.id.in(seedIds))
             .fetch();
 
         Long total = queryFactory
