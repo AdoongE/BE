@@ -189,18 +189,23 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 
     // 저장 형식 필터 조건
     private BooleanExpression filterByStorageFormat(List<String> seedType) {
-
-        if (seedType != null ) {
-            BooleanExpression expression = null;
-
-            for (SeedType storageFormat : SeedType.values()) {
-                BooleanExpression condition = seed.seedType.eq(storageFormat);
-                expression = (expression == null) ? condition : expression.or(condition);
-            }
-
-            return expression;
+        if (seedType == null || seedType.isEmpty()) {
+            return null;
         }
-        return null; // 필터 조건이 없으면 null 반환
+
+        BooleanExpression expression = null;
+
+        for (String typeStr : seedType) {
+            try {
+                SeedType type = SeedType.valueOf(typeStr);
+                BooleanExpression condition = seed.seedType.eq(type);
+                expression = (expression == null) ? condition : expression.or(condition);
+            } catch (IllegalArgumentException e) {
+                System.out.println("Invalid seedType: " + typeStr);
+            }
+        }
+
+        return expression;
     }
 
     // D-Day 필터 조건
