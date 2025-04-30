@@ -224,35 +224,27 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
         return null;
     }
 
-    // 태그 필터 조건
     private BooleanExpression filterByTags(Long filterId) {
+        if (filterId == null) return null;
 
-        if (filterId != null) {
-            // 필터에 해당하는 태그 ID 조회
-            List<Long> tagIds = queryFactory.select(filterTag.tag.id)
-                .from(filterTag)
-                .where(filterTag.filter.filterId.eq(filterId))
-                .fetch();
+        // 1. 필터에 포함된 태그 ID 리스트 조회
+        List<Long> tagIds = queryFactory
+            .select(filterTag.tag.id)
+            .from(filterTag)
+            .where(filterTag.filter.filterId.eq(filterId))
+            .fetch();
 
-            // 필터에 태그가 없으면 null 반환
-            if(tagIds.isEmpty()) {
-                return null;
-            }
+        if (tagIds.isEmpty()) return null;
 
-            // 콘텐츠에 필터 태그가 모두 포함되어야 함
-            return seed.id.in(
-                queryFactory
-                    .select(seedTag.seed.id)
-                    .from(seedTag)
-                    .where(seedTag.tag.id.in(tagIds))
-                    .groupBy(seedTag.seed.id)
-                    .having(
-                        Expressions.asNumber(seedTag.tag.id.countDistinct()) // 콘텐츠에 있는 태그의 개수
-                            .eq((long) tagIds.size()) // 필터 태그 개수만큼 태그가 있어야 함
-                    )
-            );
-        } else
-            return null;
+        // 2. seedTag를 inner join하여 해당 태그들을 모두 포함하는 Seed만 조회
+        return seed.id.in(
+            queryFactory
+                .selectDistinct(seedTag.seed.id)
+                .from(seedTag)
+                .where(seedTag.tag.id.in(tagIds))
+                .groupBy(seedTag.seed.id)
+                .having(seedTag.tag.id.countDistinct().goe((long) tagIds.size()))
+        );
     }
 
     // 정렬 조건 변환
