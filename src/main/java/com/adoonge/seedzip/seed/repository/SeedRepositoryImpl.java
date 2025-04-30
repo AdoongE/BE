@@ -6,6 +6,8 @@ import com.adoonge.seedzip.content.domain.ContentsDataType;
 import com.adoonge.seedzip.content.domain.QContents;
 import com.adoonge.seedzip.content.domain.mapping.QContentTag;
 import com.adoonge.seedzip.filter.domain.QFilterTag;
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.domain.QFile;
 import com.adoonge.seedzip.seed.domain.QSeed;
@@ -219,7 +221,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
                 BooleanExpression condition = seed.seedType.eq(type);
                 expression = (expression == null) ? condition : expression.or(condition);
             } catch (IllegalArgumentException e) {
-                System.out.println("Invalid seedType: " + typeStr);
+                throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
             }
         }
 

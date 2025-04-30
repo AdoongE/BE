@@ -88,6 +88,7 @@ public enum ErrorCode {
 
     // seed
     SEED_NOT_FOUND(HttpStatus.NOT_FOUND, "씨드를 찾을 수 없습니다."),
+    SEED_TYPE_NOT_SUPPORTED(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 씨드 형식입니다."),
 
 
     // tag
