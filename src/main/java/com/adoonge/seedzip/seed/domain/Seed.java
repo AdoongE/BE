@@ -2,6 +2,9 @@ package com.adoonge.seedzip.seed.domain;
 
 import com.adoonge.seedzip.global.entity.BaseEntity;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.seed.domain.mapping.CategorySeed;
+import com.adoonge.seedzip.seed.domain.mapping.SeedTag;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,8 +15,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,4 +60,14 @@ public class Seed extends BaseEntity {
     @JoinColumn(name = "member_id")
     @OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Content도 삭제
     private Member member;
+
+    @OneToMany(mappedBy = "seed", fetch = FetchType.LAZY)
+    private Set<File> files = new HashSet<>();
+
+    @OneToMany(mappedBy = "seed", fetch = FetchType.LAZY)
+    private Set<SeedTag> seedTags = new HashSet<>();
+
+    @OneToMany(mappedBy = "seed", fetch = FetchType.LAZY)
+    private Set<CategorySeed> categorySeeds = new HashSet<>();
+
 }

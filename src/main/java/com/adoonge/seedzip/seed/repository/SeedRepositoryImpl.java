@@ -1,11 +1,13 @@
 package com.adoonge.seedzip.seed.repository;
 
+import com.adoonge.seedzip.category.domain.QCategory;
 import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.content.domain.ContentsDataType;
 import com.adoonge.seedzip.content.domain.QContents;
 import com.adoonge.seedzip.content.domain.mapping.QContentTag;
 import com.adoonge.seedzip.filter.domain.QFilterTag;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.seed.domain.QFile;
 import com.adoonge.seedzip.seed.domain.QSeed;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
@@ -42,6 +44,8 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     QTag tag = QTag.tag;
     QCategorySeed categorySeed = QCategorySeed.categorySeed;
     QFilterTag filterTag = QFilterTag.filterTag;
+    QFile file = QFile.file;
+    QCategory category = QCategory.category;
 
     @Override
     public Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, SeedFilteringRequest request) {
@@ -112,7 +116,13 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
         condition = safeAnd(condition, filterByTags(filterId));
 
         List<Seed> seeds = queryFactory
-            .selectFrom(seed)
+            .selectDistinct(seed)
+            .from(seed)
+            .leftJoin(seed.files, file).fetchJoin()
+            .leftJoin(seed.seedTags, seedTag).fetchJoin()
+            .leftJoin(seedTag.tag, tag).fetchJoin()
+            .leftJoin(seed.categorySeeds, categorySeed).fetchJoin()
+            .leftJoin(categorySeed.category, category).fetchJoin()
             .where(condition)
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())

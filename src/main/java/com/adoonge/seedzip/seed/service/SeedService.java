@@ -499,6 +499,68 @@ public class SeedService {
 				.collect(Collectors.toList());
 	}
 
+	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환 Refact
+	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedListRefact(List<Seed> seedList) {
+		return seedList.stream()
+			.map(seed -> {
+				String thumbnailUrl = null;
+				//링크의 경우 thumbnail 없으니까, 해당 링크를 thumbnailUrl로 처리
+				if (seed.getSeedType().equals(SeedType.LINK)) {
+					thumbnailUrl = seed.getFiles().stream()
+						.map(File::getLink)
+						.findFirst()
+						.orElse(null);
+				} else {
+					// 썸네일로 지정된 파일만 필터
+					thumbnailUrl = seed.getFiles().stream()
+						.filter(f -> Boolean.TRUE.equals(f.getIsThumbnail()))
+						.map(File::getLink)
+						.findFirst()
+						.orElse(null);
+				}
+
+				//seedId에 해당하는 카테고리 리스트 조회
+				List<Long> categoryIds = seed.getCategorySeeds().stream()
+					.map(cs -> cs.getCategory().getCategoryId())
+					.toList();
+				List<String> categoryNames = seed.getCategorySeeds().stream()
+					.map(cs -> cs.getCategory().getName())
+					.toList();
+
+				//seedId에 해당하는 태그 리스트 조회
+				List<Long> tagIds = seed.getSeedTags().stream()
+					.map(st -> st.getTag().getId())
+					.toList();
+				List<String> tagNames = seed.getSeedTags().stream()
+					.map(st -> st.getTag().getTagName())
+					.toList();
+
+				// D-day 계산
+				int dDayValue = 1;
+				if (seed.getDDay() != null) {
+					long daysBetween = ChronoUnit.DAYS.between(LocalDate.now(), seed.getDDay());
+					dDayValue = (int) -daysBetween;
+				}
+
+				// SeedResponse 객체에 필요한 정보 담기
+				return new SeedResponse.SeedInfoWithSeedDetail(
+					seed.getId(),
+					seed.getSeedName(),
+					categoryIds,
+					categoryNames,
+					seed.getSeedType(),
+					thumbnailUrl,
+					seed.getUpdatedAt(),
+					tagIds,
+					tagNames,
+					dDayValue,
+					seed.getSeedDetail()
+				);
+
+			})
+			.collect(Collectors.toList());
+	}
+
 
 
 	// 정렬 방향을 결정하는 메소드
@@ -528,7 +590,7 @@ public class SeedService {
 		return null;  // seedType이 null 또는 빈 문자열일 경우 null 반환
 	}
 
-	public SeedResponse.GetAllSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
+	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
 
 		Filter filter = filterRepository.findById(filterId)
 			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
@@ -545,7 +607,8 @@ public class SeedService {
 		if (seedList.isEmpty())
 			return null;
 
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent());
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedListRefact(
+			seedList.getContent());
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -556,9 +619,9 @@ public class SeedService {
 			.isLast(seedList.isLast())
 			.build();
 
-		return SeedResponse.GetAllSeeds.builder()
+		return SeedResponse.GetFilteredSeeds.builder()
 			.nickname(member.getNickname())
-			.seedInfoList(seedInfoList)
+			.seedInfoList(seedInfoWithSeedDetails)
 			.pageInfo(pageInfo)
 			.build();
 	}

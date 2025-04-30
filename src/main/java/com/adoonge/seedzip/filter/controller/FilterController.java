@@ -55,15 +55,15 @@ public class FilterController {
 
 	@GetMapping("/{filterId}")
 	@Operation(summary = "필터를 통한 컨텐츠 조회 API", description = "필터를 통해 컨텐츠를 조회하는 API입니다.")
-	public ApiResponse<SeedResponse.GetAllSeeds> getContentsByFilter(
+	public ApiResponse<SeedResponse.GetFilteredSeeds> getContentsByFilter(
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "9") int size,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails,
 		@PathVariable Long filterId)
 	{
 
-		SeedResponse.GetAllSeeds customFilterSeeds = seedService.getCustomFilterSeeds(customUserDetails.getMember(),
-			page, size, filterId);
+		SeedResponse.GetFilteredSeeds customFilterSeeds = seedService.getCustomFilterSeeds(
+			customUserDetails.getMember(), page, size, filterId);
 
 		return new ApiResponse<>(customFilterSeeds);
 	}
