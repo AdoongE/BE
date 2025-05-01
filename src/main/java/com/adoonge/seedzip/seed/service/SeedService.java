@@ -1,8 +1,6 @@
 package com.adoonge.seedzip.seed.service;
 
 import com.adoonge.seedzip.category.repository.CategoryRepository;
-import com.adoonge.seedzip.content.domain.Contents;
-import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.filter.domain.Filter;
 import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
@@ -318,6 +316,62 @@ public class SeedService {
 				.build();
 	}
 
+	@Transactional(readOnly = true)
+	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
+		Filter filter = filterRepository.findById(filterId)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		if (!filter.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
+		}
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> seedPage = seedRepositoryCustom.findSeedsByCustomFilter(pageable, filter.getStartDate(), filter.getEndDate(),
+				filter.getStorageFormats(), filter.getFromDDay(), filter.getToDDay(), filter.getFilterId(), member.getId());
+		List<Seed> seedList = seedPage.getContent();
+
+		if (seedList.isEmpty())
+			return null;
+
+		// seedId 리스트 추출
+		List<Long> seedIds = seedList.stream()
+				.map(Seed::getId)
+				.toList();
+
+		// 파일 프로젝션으로 썸네일 처리
+		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
+		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+
+		// 카테고리 projection
+		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
+		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
+
+		// 태그 projection
+		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
+		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(
+				seedList, thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+
+
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+				.page(seedPage.getNumber())
+				.size(seedPage.getSize())
+				.totalPages(seedPage.getTotalPages())
+				.totalElements(seedPage.getTotalElements())
+				.isLast(seedPage.isLast())
+				.build();
+
+		return SeedResponse.GetFilteredSeeds.builder()
+				.nickname(member.getNickname())
+				.seedInfoList(seedInfoWithSeedDetails)
+				.pageInfo(pageInfo)
+				.build();
+	}
+
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
 			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
@@ -540,8 +594,6 @@ public class SeedService {
 			.collect(Collectors.toList());
 	}
 
-
-
 	// 정렬 방향을 결정하는 메소드
 	private Sort.Direction getSortDirection(boolean isAsc) {
 		return isAsc ? Sort.Direction.ASC : Sort.Direction.DESC;
@@ -569,71 +621,38 @@ public class SeedService {
 		return null;  // seedType이 null 또는 빈 문자열일 경우 null 반환
 	}
 
-	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
-		Filter filter = filterRepository.findById(filterId)
-			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
 
-		if (!filter.getMember().getId().equals(member.getId())) {
-			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
-		}
-
-		//페이징을 위한 Pageable 객체
-		Pageable pageable = PageRequest.of(page, size);
-		Page<Seed> seedPage = seedRepositoryCustom.findSeedsByCustomFilter(pageable, filter.getStartDate(), filter.getEndDate(),
-		filter.getStorageFormats(), filter.getFromDDay(), filter.getToDDay(), filter.getFilterId(), member.getId());
-		List<Seed> seedList = seedPage.getContent();
-
-		if (seedList.isEmpty())
-			return null;
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-			.map(Seed::getId)
-			.toList();
-
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = fileProjections.stream()
-			.filter(p -> {
-				if (p.getSeedType() == SeedType.LINK) return true;
-				return Boolean.TRUE.equals(p.getIsThumbnail());
-			})
-			.collect(Collectors.toMap(FileSeedProjection::getSeedId, FileSeedProjection::getLink, (f1, f2) -> f1));
-
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = categoryProjections.stream()
-			.collect(Collectors.groupingBy(CategorySeedProjection::getSeedId,
-				Collectors.mapping(CategorySeedProjection::getCategoryId, Collectors.toList())));
-		Map<Long, List<String>> categoryNameMap = categoryProjections.stream()
-			.collect(Collectors.groupingBy(CategorySeedProjection::getSeedId,
-				Collectors.mapping(CategorySeedProjection::getCategoryName, Collectors.toList())));
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = tagProjections.stream()
-			.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
-				Collectors.mapping(SeedTagProjection::getTagId, Collectors.toList())));
-		Map<Long, List<String>> tagNameMap = tagProjections.stream()
-			.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
-				Collectors.mapping(SeedTagProjection::getTagName, Collectors.toList())));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(
-			seedList, thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
-
-
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-			.page(seedPage.getNumber())
-			.size(seedPage.getSize())
-			.totalPages(seedPage.getTotalPages())
-			.totalElements(seedPage.getTotalElements())
-			.isLast(seedPage.isLast())
-			.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-			.nickname(member.getNickname())
-			.seedInfoList(seedInfoWithSeedDetails)
-			.pageInfo(pageInfo)
-			.build();
+	private Map<Long, String> getThumbnailMap(List<FileSeedProjection> fileProjections) {
+		return fileProjections.stream()
+				.filter(p -> {
+					if (p.getSeedType() == SeedType.LINK) return true;
+					return Boolean.TRUE.equals(p.getIsThumbnail());
+				})
+				.collect(Collectors.toMap(FileSeedProjection::getSeedId, FileSeedProjection::getLink, (f1, f2) -> f1));
 	}
+
+	private Map<Long, List<Long>> getCategoryIdMap(List<CategorySeedProjection> categoryProjections) {
+		return categoryProjections.stream()
+				.collect(Collectors.groupingBy(CategorySeedProjection::getSeedId,
+						Collectors.mapping(CategorySeedProjection::getCategoryId, Collectors.toList())));
+	}
+
+	private Map<Long, List<String>> getCategoryNameMap(List<CategorySeedProjection> categoryProjections) {
+		return categoryProjections.stream()
+				.collect(Collectors.groupingBy(CategorySeedProjection::getSeedId,
+						Collectors.mapping(CategorySeedProjection::getCategoryName, Collectors.toList())));
+	}
+
+	private Map<Long, List<Long>> getTagIdMap (List<SeedTagProjection> tagProjections) {
+		return tagProjections.stream()
+				.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
+						Collectors.mapping(SeedTagProjection::getTagId, Collectors.toList())));
+	}
+
+	private Map<Long, List<String>> getTagNameMap (List<SeedTagProjection> tagProjections) {
+		return tagProjections.stream()
+				.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
+						Collectors.mapping(SeedTagProjection::getTagName, Collectors.toList())));
+	}
+
 }
