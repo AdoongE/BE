@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
@@ -23,6 +24,9 @@ import com.adoonge.seedzip.filter.dto.request.UpdateFilterNameRequest;
 import com.adoonge.seedzip.filter.service.FilterService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.seed.dto.response.SeedResponse;
+import com.adoonge.seedzip.seed.service.SeedService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 public class FilterController {
 
 	private final FilterService filterService;
-	private final ContentsService contentsService;
+	private final SeedService seedService;
 
 	@PostMapping
 	@Operation(summary = "필터 생성 API", description = "필터 생성 API입니다.")
@@ -51,12 +55,17 @@ public class FilterController {
 
 	@GetMapping("/{filterId}")
 	@Operation(summary = "필터를 통한 컨텐츠 조회 API", description = "필터를 통해 컨텐츠를 조회하는 API입니다.")
-	public ApiResponse<ContentsAllResponse.contentsInfo> getContentsByFilter(
+	public ApiResponse<SeedResponse.GetFilteredSeeds> getContentsByFilter(
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "9") int size,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails,
 		@PathVariable Long filterId)
 	{
-		return new ApiResponse<>(contentsService.getCustomFilterContents(
-			customUserDetails.getMember(), filterId));
+
+		SeedResponse.GetFilteredSeeds customFilterSeeds = seedService.getCustomFilterSeeds(
+			customUserDetails.getMember(), page, size, filterId);
+
+		return new ApiResponse<>(customFilterSeeds);
 	}
 
 	@GetMapping

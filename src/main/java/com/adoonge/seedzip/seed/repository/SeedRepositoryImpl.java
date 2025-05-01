@@ -1,6 +1,15 @@
 package com.adoonge.seedzip.seed.repository;
 
+import com.adoonge.seedzip.category.domain.QCategory;
+import com.adoonge.seedzip.content.domain.Contents;
+import com.adoonge.seedzip.content.domain.ContentsDataType;
+import com.adoonge.seedzip.content.domain.QContents;
+import com.adoonge.seedzip.content.domain.mapping.QContentTag;
+import com.adoonge.seedzip.filter.domain.QFilterTag;
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.seed.domain.QFile;
 import com.adoonge.seedzip.seed.domain.QSeed;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
@@ -11,7 +20,12 @@ import com.adoonge.seedzip.tag.domain.QTag;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.DateTimePath;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +45,9 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     QSeedTag seedTag = QSeedTag.seedTag;
     QTag tag = QTag.tag;
     QCategorySeed categorySeed = QCategorySeed.categorySeed;
+    QFilterTag filterTag = QFilterTag.filterTag;
+    QFile file = QFile.file;
+    QCategory category = QCategory.category;
 
     @Override
     public Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, SeedFilteringRequest request) {
@@ -90,6 +107,54 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
+    @Override
+    public Page<Seed> findSeedsByCustomFilter(Pageable pageable, LocalDate startDate, LocalDate endDate,
+        List<String> seedType, Long dDayStart, Long dDayEnd, Long filterId, Long memberID) {
+
+        BooleanExpression condition = seed.member.id.eq(memberID);
+        condition = safeAnd(condition, filterByDate(startDate, endDate));
+        condition = safeAnd(condition, filterByDDay(dDayStart, dDayEnd));
+        condition = safeAnd(condition, filterByStorageFormat(seedType));
+        condition = safeAnd(condition, filterByTags(filterId));
+
+        // 1. 페이징 대상 Seed ID 조회
+        // List<Long> seedIds = queryFactory
+        //     .select(seed.id)
+        //     .from(seed)
+        //     .where(condition)
+        //     .offset(pageable.getOffset())
+        //     .limit(pageable.getPageSize())
+        //     .fetch();
+        //
+        // // 2. 실제 Seed + 연관 데이터 조회 fetch join
+        // List<Seed> seeds = queryFactory
+        //     .selectDistinct(seed)
+        //     .from(seed)
+        //     .leftJoin(seed.files, file).fetchJoin()
+        //     .leftJoin(seed.seedTags, seedTag).fetchJoin()
+        //     .leftJoin(seedTag.tag, tag).fetchJoin()
+        //     .leftJoin(seed.categorySeeds, categorySeed).fetchJoin()
+        //     .leftJoin(categorySeed.category, category).fetchJoin()
+        //     .where(seed.id.in(seedIds))
+        //     .fetch();
+
+        // 기존: fetch join으로 모든 걸 한 번에 가져옴 → 제거
+        List<Seed> seeds = queryFactory
+            .selectFrom(seed)
+            .where(condition)
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        Long total = queryFactory
+            .select(seed.count())
+            .from(seed)
+            .where(condition)
+            .fetchOne();
+
+        return new PageImpl<>(seeds, pageable, total != null ? total : 0);
+    }
+
     //Category 필터 조건
     private BooleanExpression filteringByCategory(Long categoryId) {
         if(categoryId == null) {
@@ -131,6 +196,83 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     //Keyword 필터 조건
     private BooleanExpression filteringByKeyword(String keyword) {
         return keyword != null && !keyword.isEmpty() ? seed.seedName.containsIgnoreCase(keyword).or(seed.seedDetail.containsIgnoreCase(keyword)) : null;
+    }
+
+    // 날짜 필터 조건
+    private BooleanExpression filterByDate(LocalDate startDate, LocalDate endDate) {
+        DateTimePath<LocalDateTime> createdAt = seed.createdAt;
+
+        if (startDate != null && endDate != null) {
+            if(startDate.equals(endDate)) {
+                return createdAt.between(startDate.atStartOfDay(), startDate.atStartOfDay().plusDays(1));
+            }
+            return createdAt.between(startDate.atStartOfDay(), endDate.atStartOfDay());
+        } else if (startDate != null) {
+            return createdAt.goe(startDate.atStartOfDay());
+        } else if (endDate != null) {
+            return createdAt.loe(endDate.atStartOfDay());
+        }
+        return null; // 조건이 없으면 null 반환
+    }
+
+    // 저장 형식 필터 조건
+    private BooleanExpression filterByStorageFormat(List<String> seedType) {
+        if (seedType == null || seedType.isEmpty()) {
+            return null;
+        }
+
+        BooleanExpression expression = null;
+
+        for (String typeStr : seedType) {
+            try {
+                SeedType type = SeedType.valueOf(typeStr);
+                BooleanExpression condition = seed.seedType.eq(type);
+                expression = (expression == null) ? condition : expression.or(condition);
+            } catch (IllegalArgumentException e) {
+                throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
+            }
+        }
+
+        return expression;
+    }
+
+    // D-Day 필터 조건
+    private BooleanExpression filterByDDay(Long fromDDay, Long toDDay) {
+
+        if (fromDDay != null && toDDay != null) {
+            if(fromDDay.equals(toDDay)) {	// D-Day가 같은 경우
+                return seed.dDay.eq(LocalDate.now().plusDays(fromDDay));
+            }
+            return seed.dDay.between(LocalDate.now().plusDays(fromDDay), LocalDate.now().plusDays(toDDay));
+        } else if (fromDDay != null) {
+            return seed.dDay.goe(LocalDate.now().plusDays(fromDDay));	// D-Day 시작 범위
+        } else if (toDDay != null) {
+            return seed.dDay.loe(LocalDate.now().plusDays(toDDay));	// D-Day 끝 범위
+        }
+        return null;
+    }
+
+    private BooleanExpression filterByTags(Long filterId) {
+        if (filterId == null) return null;
+
+        // 1. 필터에 포함된 태그 ID 리스트 조회
+        List<Long> tagIds = queryFactory
+            .select(filterTag.tag.id)
+            .from(filterTag)
+            .where(filterTag.filter.filterId.eq(filterId))
+            .fetch();
+
+        if (tagIds.isEmpty()) return null;
+
+        // 2. seedTag를 inner join하여 해당 태그들을 모두 포함하는 Seed만 조회
+        return seed.id.in(
+            queryFactory
+                .selectDistinct(seedTag.seed.id)
+                .from(seedTag)
+                .where(seedTag.tag.id.in(tagIds))
+                .groupBy(seedTag.seed.id)
+                .having(seedTag.tag.id.countDistinct().goe((long) tagIds.size()))
+        );
     }
 
     // 정렬 조건 변환

@@ -1,6 +1,10 @@
 package com.adoonge.seedzip.seed.service;
 
 import com.adoonge.seedzip.category.repository.CategoryRepository;
+import com.adoonge.seedzip.content.domain.Contents;
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
+import com.adoonge.seedzip.filter.domain.Filter;
+import com.adoonge.seedzip.filter.repository.FilterRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
@@ -10,6 +14,9 @@ import com.adoonge.seedzip.seed.domain.SeedType;
 import com.adoonge.seedzip.seed.domain.mapping.CategorySeed;
 import com.adoonge.seedzip.seed.domain.mapping.SeedTag;
 import com.adoonge.seedzip.seed.dto.SeedDTO;
+import com.adoonge.seedzip.seed.dto.projection.CategorySeedProjection;
+import com.adoonge.seedzip.seed.dto.projection.FileSeedProjection;
+import com.adoonge.seedzip.seed.dto.projection.SeedTagProjection;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
@@ -29,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -60,6 +68,7 @@ public class SeedService {
 	private final UsedDefaultTagRepository usedDefaultTagRepository;
 	private final CategoryRepository categoryRepository;
 	private final SeedRepositoryCustom seedRepositoryCustom;
+	private final FilterRepository filterRepository;
 
 	private static final Set<String> DEFAULT_TAG_NAMES = Arrays.stream(DefaultTagType.values())
 		.map(DefaultTagType::getDisplayName)
@@ -437,61 +446,98 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환
 	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedList(List<Seed> seedList) {
 		return seedList.stream()
-				.map(seed -> {
-					String thumbnailUrl = null;
-					//링크의 경우 thumbnail 없으니까, 해당 링크를 thumbnailUrl로 처리
-					if (seed.getSeedType().equals(SeedType.LINK)) {
-						Optional<File> thumbnailFile = fileRepository.findBySeed(seed);
-						if (thumbnailFile.isPresent()) {
-							thumbnailUrl = thumbnailFile.get().getLink();
-						}
+			.map(seed -> {
+				String thumbnailUrl = null;
+				//링크의 경우 thumbnail 없으니까, 해당 링크를 thumbnailUrl로 처리
+				if (seed.getSeedType().equals(SeedType.LINK)) {
+					Optional<File> thumbnailFile = fileRepository.findBySeed(seed);
+					if (thumbnailFile.isPresent()) {
+						thumbnailUrl = thumbnailFile.get().getLink();
 					}
-					// 이미지, PDF의 경우 isThumbnail이 true인 파일만 가져와서 s3 링크 추출
-					else {
-						Optional<File> thumbnailFile = fileRepository.findThumbnailBySeed(seed);
-						if (thumbnailFile.isPresent()) {
-							thumbnailUrl = thumbnailFile.get().getLink();
-						}
+				}
+				// 이미지, PDF의 경우 isThumbnail이 true인 파일만 가져와서 s3 링크 추출
+				else {
+					Optional<File> thumbnailFile = fileRepository.findThumbnailBySeed(seed);
+					if (thumbnailFile.isPresent()) {
+						thumbnailUrl = thumbnailFile.get().getLink();
 					}
+				}
 
-					//seedId에 해당하는 카테고리 리스트 조회
-					List<Long> categoryIds = categorySeedRepository.findCategoryIdsBySeed(seed);
-					List<String> categoryNames = categorySeedRepository.findCategoryNamesBySeed(seed);
+				//seedId에 해당하는 카테고리 리스트 조회
+				List<Long> categoryIds = categorySeedRepository.findCategoryIdsBySeed(seed);
+				List<String> categoryNames = categorySeedRepository.findCategoryNamesBySeed(seed);
 
-					//seedId에 해당하는 태그 리스트 조회
-					List<Long> tagIds = seedTagRepository.findTagIdsBySeed(seed);
-					List<String> tagNames = seedTagRepository.findTagNamesBySeed(seed);
+				//seedId에 해당하는 태그 리스트 조회
+				List<Long> tagIds = seedTagRepository.findTagIdsBySeed(seed);
+				List<String> tagNames = seedTagRepository.findTagNamesBySeed(seed);
 
-					// D-day 계산
-					int dDayValue = 1;
-					if (seed.getDDay() != null) {
-						LocalDate today = LocalDate.now();
-						long daysBetween = ChronoUnit.DAYS.between(today, seed.getDDay());
+				// D-day 계산
+				int dDayValue = 1;
+				if (seed.getDDay() != null) {
+					LocalDate today = LocalDate.now();
+					long daysBetween = ChronoUnit.DAYS.between(today, seed.getDDay());
 
-						if (daysBetween > 0) {
-							dDayValue = -(int)daysBetween;
-						} else if (daysBetween == 0) {
-							dDayValue = 0;
-						}
+					if (daysBetween > 0) {
+						dDayValue = -(int)daysBetween;
+					} else if (daysBetween == 0) {
+						dDayValue = 0;
 					}
+				}
 
-					// SeedResponse 객체에 필요한 정보 담기
-					return new SeedResponse.SeedInfoWithSeedDetail(
-							seed.getId(),
-							seed.getSeedName(),
-							categoryIds,
-							categoryNames,
-							seed.getSeedType(),
-							thumbnailUrl,
-							seed.getUpdatedAt(),
-							tagIds,
-							tagNames,
-							dDayValue,
-							seed.getSeedDetail()
-					);
+				// SeedResponse 객체에 필요한 정보 담기
+				return new SeedResponse.SeedInfoWithSeedDetail(
+					seed.getId(),
+					seed.getSeedName(),
+					categoryIds,
+					categoryNames,
+					seed.getSeedType(),
+					thumbnailUrl,
+					seed.getUpdatedAt(),
+					tagIds,
+					tagNames,
+					dDayValue,
+					seed.getSeedDetail()
+				);
 
-				})
-				.collect(Collectors.toList());
+			})
+			.collect(Collectors.toList());
+	}
+
+	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환 Refact
+	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedList(
+		List<Seed> seedList,
+		Map<Long, String> thumbnailMap,
+		Map<Long, List<Long>> categoryIdMap,
+		Map<Long, List<String>> categoryNameMap,
+		Map<Long, List<Long>> tagIdMap,
+		Map<Long, List<String>> tagNameMap
+	) {
+		return seedList.stream()
+			.map(seed -> {
+				Long seedId = seed.getId();
+
+				// D-day 계산
+				int dDayValue = 1;
+				if (seed.getDDay() != null) {
+					long days = ChronoUnit.DAYS.between(LocalDate.now(), seed.getDDay());
+					dDayValue = days > 0 ? -(int) days : (days == 0 ? 0 : 1);
+				}
+
+				return new SeedResponse.SeedInfoWithSeedDetail(
+					seedId,
+					seed.getSeedName(),
+					categoryIdMap.getOrDefault(seedId, List.of()),
+					categoryNameMap.getOrDefault(seedId, List.of()),
+					seed.getSeedType(),
+					thumbnailMap.getOrDefault(seedId, null),
+					seed.getUpdatedAt(),
+					tagIdMap.getOrDefault(seedId, List.of()),
+					tagNameMap.getOrDefault(seedId, List.of()),
+					dDayValue,
+					seed.getSeedDetail()
+				);
+			})
+			.collect(Collectors.toList());
 	}
 
 
@@ -521,5 +567,73 @@ public class SeedService {
 			}
 		}
 		return null;  // seedType이 null 또는 빈 문자열일 경우 null 반환
+	}
+
+	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
+		Filter filter = filterRepository.findById(filterId)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
+
+		if (!filter.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.FILTER_ACCESS_DENIED);
+		}
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> seedPage = seedRepositoryCustom.findSeedsByCustomFilter(pageable, filter.getStartDate(), filter.getEndDate(),
+		filter.getStorageFormats(), filter.getFromDDay(), filter.getToDDay(), filter.getFilterId(), member.getId());
+		List<Seed> seedList = seedPage.getContent();
+
+		if (seedList.isEmpty())
+			return null;
+
+		// seedId 리스트 추출
+		List<Long> seedIds = seedList.stream()
+			.map(Seed::getId)
+			.toList();
+
+		// 파일 프로젝션으로 썸네일 처리
+		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
+		Map<Long, String> thumbnailMap = fileProjections.stream()
+			.filter(p -> {
+				if (p.getSeedType() == SeedType.LINK) return true;
+				return Boolean.TRUE.equals(p.getIsThumbnail());
+			})
+			.collect(Collectors.toMap(FileSeedProjection::getSeedId, FileSeedProjection::getLink, (f1, f2) -> f1));
+
+		// 카테고리 projection
+		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> categoryIdMap = categoryProjections.stream()
+			.collect(Collectors.groupingBy(CategorySeedProjection::getSeedId,
+				Collectors.mapping(CategorySeedProjection::getCategoryId, Collectors.toList())));
+		Map<Long, List<String>> categoryNameMap = categoryProjections.stream()
+			.collect(Collectors.groupingBy(CategorySeedProjection::getSeedId,
+				Collectors.mapping(CategorySeedProjection::getCategoryName, Collectors.toList())));
+
+		// 태그 projection
+		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> tagIdMap = tagProjections.stream()
+			.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
+				Collectors.mapping(SeedTagProjection::getTagId, Collectors.toList())));
+		Map<Long, List<String>> tagNameMap = tagProjections.stream()
+			.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
+				Collectors.mapping(SeedTagProjection::getTagName, Collectors.toList())));
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(
+			seedList, thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+
+
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+			.page(seedPage.getNumber())
+			.size(seedPage.getSize())
+			.totalPages(seedPage.getTotalPages())
+			.totalElements(seedPage.getTotalElements())
+			.isLast(seedPage.isLast())
+			.build();
+
+		return SeedResponse.GetFilteredSeeds.builder()
+			.nickname(member.getNickname())
+			.seedInfoList(seedInfoWithSeedDetails)
+			.pageInfo(pageInfo)
+			.build();
 	}
 }
