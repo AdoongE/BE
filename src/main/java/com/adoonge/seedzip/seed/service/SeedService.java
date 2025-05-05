@@ -387,7 +387,9 @@ public class SeedService {
 				.build();
 	}
 
-	public SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
+
+
+	private SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
 		// 파일 프로젝션
 		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
 		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
