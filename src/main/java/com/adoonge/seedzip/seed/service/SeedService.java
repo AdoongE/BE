@@ -14,6 +14,7 @@ import com.adoonge.seedzip.seed.domain.mapping.SeedTag;
 import com.adoonge.seedzip.seed.dto.SeedDTO;
 import com.adoonge.seedzip.seed.dto.projection.CategorySeedProjection;
 import com.adoonge.seedzip.seed.dto.projection.FileSeedProjection;
+import com.adoonge.seedzip.seed.dto.projection.SeedProjectionResult;
 import com.adoonge.seedzip.seed.dto.projection.SeedTagProjection;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedRequest;
@@ -35,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -99,21 +99,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -160,21 +148,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -301,22 +277,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(
-				seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(),seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -361,22 +324,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(
-				seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -417,22 +367,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(
-				seedList, thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(seedList, seedProjectionResult);
 
 
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -448,6 +385,30 @@ public class SeedService {
 				.seedInfoList(seedInfoWithSeedDetails)
 				.pageInfo(pageInfo)
 				.build();
+	}
+
+	public SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
+		// 파일 프로젝션
+		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
+		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+
+		// 카테고리 프로젝션
+		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
+		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
+
+		// 태그 프로젝션
+		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
+		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
+
+		return new SeedProjectionResult(
+			thumbnailMap,
+			categoryIdMap,
+			categoryNameMap,
+			tagIdMap,
+			tagNameMap
+		);
 	}
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
@@ -519,11 +480,13 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfo>로 변환
 	private List<SeedResponse.SeedInfo> generateResponseFromSeedList(
 			List<Seed> seedList,
-			Map<Long, String> thumbnailMap,
-			Map<Long, List<Long>> categoryIdMap,
-			Map<Long, List<String>> categoryNameMap,
-			Map<Long, List<Long>> tagIdMap,
-			Map<Long, List<String>> tagNameMap) {
+			SeedProjectionResult seedProjectionResult) {
+		Map<Long, String> thumbnailMap = seedProjectionResult.thumbnailMap();
+		Map<Long, List<Long>> categoryIdMap = seedProjectionResult.categoryIdMap();
+		Map<Long, List<String>> categoryNameMap = seedProjectionResult.categoryNameMap();
+		Map<Long, List<Long>> tagIdMap = seedProjectionResult.tagIdMap();
+		Map<Long, List<String>> tagNameMap = seedProjectionResult.tagNameMap();
+
 		return seedList.stream()
 				.map(seed -> {
 					Long seedId = seed.getId();
@@ -554,12 +517,14 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환 Refact
 	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedList(
 		List<Seed> seedList,
-		Map<Long, String> thumbnailMap,
-		Map<Long, List<Long>> categoryIdMap,
-		Map<Long, List<String>> categoryNameMap,
-		Map<Long, List<Long>> tagIdMap,
-		Map<Long, List<String>> tagNameMap
+		SeedProjectionResult seedProjectionResult
 	) {
+		Map<Long, String> thumbnailMap = seedProjectionResult.thumbnailMap();
+		Map<Long, List<Long>> categoryIdMap = seedProjectionResult.categoryIdMap();
+		Map<Long, List<String>> categoryNameMap = seedProjectionResult.categoryNameMap();
+		Map<Long, List<Long>> tagIdMap = seedProjectionResult.tagIdMap();
+		Map<Long, List<String>> tagNameMap = seedProjectionResult.tagNameMap();
+
 		return seedList.stream()
 			.map(seed -> {
 				Long seedId = seed.getId();
