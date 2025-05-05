@@ -21,4 +21,8 @@ public interface SeedTagRepository extends JpaRepository<SeedTag, Long> {
     @Query("SELECT st.seed.id as seedId, st.tag.id as tagId, st.tag.tagName as tagName " +
         "FROM SeedTag st WHERE st.seed.id IN :seedIds")
     List<SeedTagProjection> findTagInfoBySeedIds(@Param("seedIds") List<Long> seedIds);
+
+    void deleteSeedTagsBySeedId(Long seedId);
+
+    List<SeedTag> findSeedTagsBySeedId(Long seedId);
 }

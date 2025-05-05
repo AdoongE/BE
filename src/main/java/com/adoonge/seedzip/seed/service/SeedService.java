@@ -387,7 +387,31 @@ public class SeedService {
 				.build();
 	}
 
+	@Transactional
+	public void deleteSeed(Long id, Member member) {
+		Seed seed = seedRepository.findById(id)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.CONTENT_ACCESS_DENIED));
 
+		//콘텐츠 소유자 검증
+		if (!seed.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
+		}
+
+		//카테고리 매핑 삭제
+		categorySeedRepository.deleteCategorySeedsBySeedId(id);
+
+		//파일 삭제
+		fileRepository.deleteFilesBySeedId(id);
+
+		//S3에서 파일 삭제
+		List<File> existingFiles = fileRepository.findFilesBySeedId(id);
+		fileService.deleteFiles(seed.getSeedType(), existingFiles);
+
+		//태그 매핑 삭제
+		seedTagRepository.deleteSeedTagsBySeedId(id);
+
+		seedRepository.delete(seed);
+	}
 
 	private SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
 		// 파일 프로젝션

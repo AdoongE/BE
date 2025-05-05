@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -190,6 +191,23 @@ public class SeedController {
                 categoryId,request);
 
         return new ApiResponse<>(filteredSeeds);
+    }
+
+    @DeleteMapping("/{seedId}")
+    @Operation(summary = "씨드 삭제 API", description = "씨드 삭제 API입니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = SeedResponse.GetFilteredSeeds.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<Void> deleteSeed(@PathVariable("seedId") Long seedId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+        seedService.deleteSeed(seedId, member);
+
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
 }
