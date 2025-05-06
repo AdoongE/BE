@@ -1,6 +1,5 @@
 package com.adoonge.seedzip.auth.controller;
 
-import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
 import com.adoonge.seedzip.auth.dto.response.LoginResponse;
 import com.adoonge.seedzip.auth.service.AuthService;

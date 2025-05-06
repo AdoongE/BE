@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.oauth.service;
+package com.adoonge.seedzip.auth.service.oauth;
 
 import com.adoonge.seedzip.auth.domain.SocialType;
 import java.util.List;

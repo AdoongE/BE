@@ -49,6 +49,7 @@ dependencies {
 
 	//WebClient
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'io.netty:netty-resolver-dns-native-macos:4.1.86.Final:osx-aarch_64' // 맥북 (M1/M2)에서 DNS Resolver 사용하기 위해
 
 	//JsonParser
 	implementation 'com.google.code.gson:gson:2.10.1'
