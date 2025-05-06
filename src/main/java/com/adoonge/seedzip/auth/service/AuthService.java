@@ -3,18 +3,15 @@ package com.adoonge.seedzip.auth.service;
 import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
 import com.adoonge.seedzip.auth.dto.response.LoginResponse;
-import com.adoonge.seedzip.category.domain.Category;
-import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.member.repository.MemberRepository;
-import com.adoonge.seedzip.oauth.service.OAuthService;
-import com.adoonge.seedzip.oauth.service.OAuthServiceFactory;
+import com.adoonge.seedzip.auth.service.oauth.OAuthService;
+import com.adoonge.seedzip.auth.service.oauth.OAuthServiceFactory;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -46,7 +43,7 @@ public class AuthService {
 
         OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
-        String accessToken = oauthService.getSocialAccessToken(code);
+        String accessToken = oauthService.getAccessToken(code);
 
         String loginId = oauthService.getLoginId(accessToken);
 
@@ -84,13 +81,18 @@ public class AuthService {
     @Transactional
     public void signUp(SignUpRequest request, HttpServletResponse response) {
 
-        OAuthService oauthService = oauthServiceFactory.getOAuthService(request.getSocialType());
+        SocialType socialType;
+        try{
+            socialType = SocialType.valueOf(request.getSocialType().toUpperCase());
+        } catch (IllegalStateException e) {
+            throw SeedzipException.from(ErrorCode.INVALID_SOCIAL_CODE);
+        }
+
+        OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
         String accessToken = request.getAccessToken();
 
         String loginId = oauthService.getLoginId(accessToken);
-
-        String profileImageUrl = oauthService.getProfileImageUrl(accessToken);
 
         if (isMemberRegistered(loginId)) {
             throw SeedzipException.from(ErrorCode.ACCOUNT_USERNAME_EXIST);
@@ -98,7 +100,7 @@ public class AuthService {
 
         String encodedPassword = passwordEncoder.encode("default");
 
-        Member member = request.toEntity(loginId ,encodedPassword, profileImageUrl);
+        Member member = request.toEntity(loginId ,encodedPassword, null); // 기본 프로필 이미지 추가해야함
 
         memberRepository.save(member);
         memberRepository.flush();

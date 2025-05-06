@@ -33,6 +33,12 @@ public enum ErrorCode {
     OPEN_ID_PROVIDER_NOT_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "OpenID 제공자 서버에 문제가 발생했습니다."),
     OAUTH2_INVALID_CODE(HttpStatus.BAD_REQUEST, "올바르지 않은 인가 코드입니다."),
     INVALID_SOCIAL_CODE(HttpStatus.BAD_REQUEST, "잘못된 소셜코드입니다."),
+    GET_KAKAO_ACCESS_TOKEN_FAILED(HttpStatus.BAD_GATEWAY, "카카오 엑세스 토큰 발급에 실패했습니다."),
+    GET_KAKAO_UNIQUE_ID_FAILED(HttpStatus.BAD_GATEWAY, "카카오 유저 정보 흭득에 실패했습니다."),
+    GET_NAVER_ACCESS_TOKEN_FAILED(HttpStatus.BAD_GATEWAY, "네이버 엑세스 토큰 발급에 실패했습니다."),
+    GET_NAVER_UNIQUE_ID_FAILED(HttpStatus.BAD_GATEWAY, "네이버 유저 정보 흭득에 실패했습니다."),
+    GET_GOOGLE_ACCESS_TOKEN_FAILED(HttpStatus.BAD_GATEWAY, "구글 엑세스 토큰 발급에 실패했습니다."),
+    GET_GOOGLE_UNIQUE_ID_FAILED(HttpStatus.BAD_GATEWAY, "구글 유저 정보 흭득에 실패했습니다."),
 
     // file
     EMPTY_LINK(HttpStatus.BAD_REQUEST, "링크가 비어있습니다."),
