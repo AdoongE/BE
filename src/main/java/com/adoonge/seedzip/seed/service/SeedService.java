@@ -400,12 +400,14 @@ public class SeedService {
 		//카테고리 매핑 삭제
 		categorySeedRepository.deleteCategorySeedsBySeedId(id);
 
+		//S3에서 파일 삭제
+		List<String> fileLinks = fileRepository.findFilesBySeedId(id).stream()
+			.map(File::getLink)
+			.toList();
+		fileService.deleteFiles(seed.getSeedType(), fileLinks);
+
 		//파일 삭제
 		fileRepository.deleteFilesBySeedId(id);
-
-		//S3에서 파일 삭제
-		List<File> existingFiles = fileRepository.findFilesBySeedId(id);
-		fileService.deleteFiles(seed.getSeedType(), existingFiles);
 
 		//태그 매핑 삭제
 		seedTagRepository.deleteSeedTagsBySeedId(id);

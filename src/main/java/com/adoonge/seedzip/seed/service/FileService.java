@@ -69,15 +69,11 @@ public class FileService {
 		);
 	}
 
-	public void deleteFiles(SeedType seedType, List<File> files){
+	public void deleteFiles(SeedType seedType, List<String> files){
 		if(seedType == SeedType.IMAGE){
-			files.forEach(image -> {
-				s3Service.deleteImgFile(image.getLink());
-			});
+			files.forEach(s3Service::deleteImgFile);
 		} else if (seedType == SeedType.PDF) {
-			files.forEach(doc -> {
-				s3Service.deleteDocFile(doc.getLink());
-			});
+			files.forEach(s3Service::deleteDocFile);
 		}
 	}
 }
