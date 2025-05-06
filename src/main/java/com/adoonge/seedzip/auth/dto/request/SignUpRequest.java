@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SignUpRequest {
-    private SocialType socialType;
+    private String socialType;
     private String accessToken;
 
     @NotNull(message = "닉네임은 필수입니다.")

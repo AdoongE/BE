@@ -84,7 +84,14 @@ public class AuthService {
     @Transactional
     public void signUp(SignUpRequest request, HttpServletResponse response) {
 
-        OAuthService oauthService = oauthServiceFactory.getOAuthService(request.getSocialType());
+        SocialType socialType;
+        try{
+            socialType = SocialType.valueOf(request.getSocialType().toUpperCase());
+        } catch (IllegalStateException e) {
+            throw SeedzipException.from(ErrorCode.INVALID_SOCIAL_CODE);
+        }
+
+        OAuthService oauthService = oauthServiceFactory.getOAuthService(socialType);
 
         String accessToken = request.getAccessToken();
 

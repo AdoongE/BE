@@ -48,7 +48,7 @@ public class AuthController {
     @PostMapping("/login/{socialType}/app")
     @Operation(summary = "앱용 소셜 로그인 API", description = "소셜 로그인 서버에 접근할 수 있는 accessToken을 받고 JWT 토큰을 리턴합니다. socialType -> {KAKAO, NAVER, GOOGLE}")
     ApiResponse<LoginResponse> loginKakaoForApp(@RequestParam String accessToken, @PathVariable String socialType, HttpServletResponse response) {
-        return authService.loginForApp(accessToken, socialType, response);
+        return authService.loginForApp(accessToken, socialType.toUpperCase(), response);
     }
 
     @GetMapping("/test")
