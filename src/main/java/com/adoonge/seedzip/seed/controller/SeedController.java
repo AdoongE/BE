@@ -1,5 +1,7 @@
 package com.adoonge.seedzip.seed.controller;
 
+import com.adoonge.seedzip.content.dto.request.ContentsRequest;
+import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetFilteredSeeds;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -206,6 +209,25 @@ public class SeedController {
 
         Member member = customUserDetails.getMember();
         seedService.deleteSeed(seedId, member);
+
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @PatchMapping(value = "/{seedId}")
+    @Operation(summary = "씨드 수정 API", description = "씨드 내용을 수정하는 API입니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<ContentsAllResponse.contentResponse> modifySeed(
+        @PathVariable("seedId") Long seedId,
+        @Parameter(description = "JSON 요청 데이터", content = @Content(mediaType = "application/json"))
+        @RequestBody ContentsRequest.allContentsRequest request,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
 
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
