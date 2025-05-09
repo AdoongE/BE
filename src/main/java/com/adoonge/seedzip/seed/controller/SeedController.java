@@ -1,8 +1,8 @@
 package com.adoonge.seedzip.seed.controller;
 
-import com.adoonge.seedzip.content.dto.request.ContentsRequest;
 import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetFilteredSeeds;
 import java.util.List;
 
@@ -124,7 +124,7 @@ public class SeedController {
     }
 
     @PostMapping(value = "/upload/{seedId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "씨드 업로드 후 파일 업로드 API", description = "씨드를 생성 후 파일을 db 및 aws에 저장하는 API입니다.")
+    @Operation(summary = "씨드 업로드 및 수정 후 파일 업로드 API", description = "씨드를 생성 후 파일을 db 및 aws에 저장하는 API입니다.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
             content = @Content(mediaType = "application/json",
@@ -221,15 +221,15 @@ public class SeedController {
                 schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<ContentsAllResponse.contentResponse> modifySeed(
+    public ApiResponse<SeedResponse.SeedInfoSimple> modifySeed(
         @PathVariable("seedId") Long seedId,
         @Parameter(description = "JSON 요청 데이터", content = @Content(mediaType = "application/json"))
-        @RequestBody ContentsRequest.allContentsRequest request,
+        @RequestBody @Valid SeedUpdateRequest request,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-
         Member member = customUserDetails.getMember();
+        SeedResponse.SeedInfoSimple seedInfoSimple = seedService.updateSeed(request, seedId, member);
 
-        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+        return new ApiResponse<>(seedInfoSimple);
     }
 
 }

@@ -25,5 +25,5 @@ public interface CategorySeedRepository extends JpaRepository<CategorySeed, Long
         "FROM CategorySeed cs WHERE cs.seed.id IN :seedIds")
     List<CategorySeedProjection> findCategoryInfoBySeedIds(@Param("seedIds") List<Long> seedIds);
 
-    void deleteCategorySeedsBySeedId(Long seedId);
+    void deleteAllBySeedId(Long seedId);
 }

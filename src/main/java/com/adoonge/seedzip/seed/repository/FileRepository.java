@@ -23,7 +23,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
         "FROM File f WHERE f.seed.id IN :seedIds")
     List<FileSeedProjection> findFileInfoBySeedIds(@Param("seedIds") List<Long> seedIds);
 
-    void deleteFilesBySeedId(Long seedId);
+    void deleteAllBySeedId(Long seedId);
 
     List<File> findFilesBySeedId(Long seedId);
 }

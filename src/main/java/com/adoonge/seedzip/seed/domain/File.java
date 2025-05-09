@@ -59,4 +59,8 @@ public class File extends BaseEntity {
 		this.seed = seed;
 	}
 
+	public void updateLink(String link) {
+		this.link = link;
+	}
+
 }

@@ -15,6 +15,7 @@ public enum ErrorCode {
     DUPLICATE_MEMBER_PHONE_NUMBER(HttpStatus.CONFLICT, "중복된 전화번호입니다"),
     PROFILE_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "프로필 이미지를 찾을 수 없습니다"),
     MEMBER_NOT_ADMIN(HttpStatus.FORBIDDEN, "관리자가 아닙니다"),
+    MEMBER_NOT_OWNER(HttpStatus.FORBIDDEN, "소유자가 아닙니다"),
 
     // auth
     MEMBER_JOIN_REQUIRED(HttpStatus.MULTIPLE_CHOICES, "회원가입이 필요합니다."),
@@ -44,6 +45,7 @@ public enum ErrorCode {
     S3_DOWNLOAD_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S3 버킷에서 파일을 다운로드하는 중 에러가 발생했습니다."),
     S3_DELETE_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "S3 버킷에서 파일을 삭제하는 중 에러가 발생했습니다."),
     MALFORMED_URL_EXCEPTION(HttpStatus.BAD_REQUEST, "잘못된 URL 형식입니다."),
+    FILE_NOT_FOUND(HttpStatus.NOT_FOUND, "파일을 찾을 수 없습니다."),
 
 
     // others
@@ -93,6 +95,7 @@ public enum ErrorCode {
     // seed
     SEED_NOT_FOUND(HttpStatus.NOT_FOUND, "씨드를 찾을 수 없습니다."),
     SEED_TYPE_NOT_SUPPORTED(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 씨드 형식입니다."),
+    LINK_IS_NECESSARY(HttpStatus.BAD_REQUEST, "링크는 필수입니다."),
 
 
     // tag

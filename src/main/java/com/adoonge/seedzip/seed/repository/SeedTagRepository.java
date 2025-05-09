@@ -22,7 +22,7 @@ public interface SeedTagRepository extends JpaRepository<SeedTag, Long> {
         "FROM SeedTag st WHERE st.seed.id IN :seedIds")
     List<SeedTagProjection> findTagInfoBySeedIds(@Param("seedIds") List<Long> seedIds);
 
-    void deleteSeedTagsBySeedId(Long seedId);
+    void deleteAllBySeedId(Long seedId);
 
     List<SeedTag> findSeedTagsBySeedId(Long seedId);
 }
