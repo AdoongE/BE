@@ -72,7 +72,7 @@ public class S3Service {
     public void deleteImgFile(String fileUrl) {
         try {
             s3Client.deleteObject(imgBucketName, extractKeyFromUrl(fileUrl));
-        } catch (Exception e) {
+        } catch (AmazonServiceException e) {
             throw SeedzipException.from(ErrorCode.S3_DELETE_FAILURE);
         }
     }
