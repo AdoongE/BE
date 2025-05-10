@@ -29,7 +29,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Table(name = "members")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class Member extends BaseEntity implements UserDetails {
+public class Member extends BaseEntity{
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -39,9 +39,8 @@ public class Member extends BaseEntity implements UserDetails {
 
     private String password;
 
-    @Default
     @Enumerated(EnumType.STRING)
-    private Role role = Role.USER; //단일 역할만 가능
+    private Role role;
 
     @Column(nullable = false)
     private String nickname;
@@ -62,44 +61,6 @@ public class Member extends BaseEntity implements UserDetails {
     private Boolean consentToPersonalInformation; // 개인정보 수집 및 이용 동의
 
     private Boolean consentToMarketingAndAds; // 마케팅 활용 및 광고성 정보 수신 동의 여부
-
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(role.name()));
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
-    public String getUsername() {
-        return this.loginId;
-    }
-
-    public String getPassword() {
-        return this.password;
-    }
-
-    public String getRole() {
-        return this.role.toString();
-    }
 
     public void update(UpdateMemberRequest request) {
         this.nickname = request.nickname();

@@ -20,7 +20,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority(member.getRole())); // 역할 권한 설정
+        return Collections.singleton(new SimpleGrantedAuthority("ROLE_"+ member.getRole().toString())); // 추후에 수정
     }
 
     @Override
@@ -30,7 +30,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return member.getUsername();
+        return member.getLoginId();
     }
 
     @Override
