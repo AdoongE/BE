@@ -56,32 +56,32 @@ public class NoticeController {
         return new ApiResponse<>(noticeService.getNotices(page, size));
     }
 
-    @GetMapping("/{noticeId}")
+    @GetMapping("{id}")
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회됨",
                     content = @Content(mediaType = "application/json",
                             schema = @Schema(implementation = NoticeDetailResponse.class)))
     })
     @Operation(summary = "공지사항 상세 조회 API", description = "공지사항 상세 조회 API입니다.")
-    public ApiResponse<NoticeDetailResponse> getNoticeDetail(@PathVariable Long noticeId) {
-        return new ApiResponse<>(noticeService.getNoticeDetail(noticeId));
+    public ApiResponse<NoticeDetailResponse> getNoticeDetail(@PathVariable Long id) {
+        return new ApiResponse<>(noticeService.getNoticeDetail(id));
     }
 
-    @PatchMapping("/{noticeId}")
+    @PatchMapping("/{id}")
     @Operation(summary = "공지사항 수정 API", description = "공지사항 수정 API입니다.")
-    public ApiResponse<Void> updateNotice(@PathVariable Long noticeId,
+    public ApiResponse<Void> updateNotice(@PathVariable Long id,
                                           @RequestBody NoticeUpdateRequest request,
                                           @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
-        noticeService.updateNotice(noticeId, request, customUserDetails.getMember());
+        noticeService.updateNotice(id, request, customUserDetails.getMember());
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
-    @DeleteMapping("/{noticeId}")
+    @DeleteMapping("/{id}")
     @Operation(summary = "공지사항 삭제 API", description = "공지사항 삭제 API입니다.")
-    public ApiResponse<Void> deleteNotice(@PathVariable Long noticeId,
+    public ApiResponse<Void> deleteNotice(@PathVariable Long id,
                                           @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        noticeService.deleteNotice(noticeId, customUserDetails.getMember());
+        noticeService.deleteNotice(id, customUserDetails.getMember());
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
