@@ -29,7 +29,7 @@ public class Faq {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private FaqType category;
+    private FaqType type;
 
     @Column(nullable = false)
     private String question;
