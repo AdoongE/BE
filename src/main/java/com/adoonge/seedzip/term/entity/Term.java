@@ -30,7 +30,7 @@ public class Term extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, unique = true)
-    private TermsType type;
+    private TermType type;
 
     @Column(nullable = false)
     private String title;
