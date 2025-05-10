@@ -218,7 +218,7 @@ public class SeedController {
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
             content = @Content(mediaType = "application/json",
-                schema = @Schema(implementation = ContentsAllResponse.getContents.class))),
+                schema = @Schema(implementation = SeedResponse.SeedInfoSimple.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<SeedResponse.SeedInfoSimple> modifySeed(
