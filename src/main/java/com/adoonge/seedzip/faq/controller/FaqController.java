@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -52,15 +53,23 @@ public class FaqController {
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
-    @PatchMapping("/{faqId}")
+    @PatchMapping("/{id}")
     @Operation(summary = "FAQ 수정 API", description = "FAQ 수정 API입니다.")
     public ApiResponse<Void> updateFaq(
-            @PathVariable Long faqId,
+            @PathVariable Long id,
             @RequestBody FaqUpdateRequest request,
             @AuthenticationPrincipal CustomUserDetails customUserDetails
-
     ) {
-        faqService.updateFaq(faqId, request, customUserDetails.getMember());
+        faqService.updateFaq(id, request, customUserDetails.getMember());
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "FAQ 삭제 API", description = "FAQ 삭제 API입니다.")
+    public ApiResponse<Void> deleteFaq(@PathVariable Long id,
+                                       @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        faqService.deleteFaq(id, customUserDetails.getMember());
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 

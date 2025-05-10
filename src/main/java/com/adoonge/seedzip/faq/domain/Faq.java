@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.faq.domain;
 
+import com.adoonge.seedzip.faq.dto.request.FaqUpdateRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,10 +42,11 @@ public class Faq {
     @Column(nullable = false)
     private Integer orderIndex;  // 정렬 순서 (Q1, Q2 등)
 
-    public void update(String question, String answer, FaqType type, Integer orderIndex) {
-        if (question != null) this.question = question;
-        if (answer != null) this.answer = answer;
-        if (type != null) this.type = type;
-        if (orderIndex != null) this.orderIndex = orderIndex;
+    public void update(FaqUpdateRequest request) {
+        if (request.question() != null) this.question = request.question();
+        if (request.answer() != null) this.answer = request.answer();
+        if (request.type() != null) this.type = request.type();
+        if (request.orderIndex() != null) this.orderIndex = request.orderIndex();
     }
+
 }

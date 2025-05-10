@@ -47,7 +47,7 @@ public class FaqService {
     }
 
     @Transactional
-    public void updateFaq(Long faqId, FaqUpdateRequest request, Member member) {
+    public void updateFaq(Long id, FaqUpdateRequest request, Member member) {
 
         if(!checkAdmin(member)){
             throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
@@ -57,15 +57,22 @@ public class FaqService {
             throw SeedzipException.from(ErrorCode.FAQ_INDEX_DUPLICATED);
         }
 
-        Faq faq = faqRepository.findById(faqId)
-                .orElseThrow(() -> SeedzipException.from(ErrorCode.MEMBER_NOT_FOUND));
+        Faq faq = faqRepository.findById(id)
+                .orElseThrow(() -> SeedzipException.from(ErrorCode.FAQ_NOT_FOUND));
 
-        faq.update(
-                request.question(),
-                request.answer(),
-                request.type(),
-                request.orderIndex()
-        );
+        faq.update(request);
+    }
+
+    @Transactional
+    public void deleteFaq(Long id, Member member) {
+        if(!checkAdmin(member)){
+            throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
+        }
+
+        Faq faq = faqRepository.findById(id)
+                .orElseThrow(() -> SeedzipException.from(ErrorCode.FAQ_NOT_FOUND));
+
+        faqRepository.delete(faq);
     }
 
     private boolean isOrderIndexDuplicate(Integer orderIndex) {
