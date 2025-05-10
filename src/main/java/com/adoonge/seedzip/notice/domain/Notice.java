@@ -30,4 +30,6 @@ public class Notice extends BaseEntity {
     private String content;
 
     private Boolean isImportant;
+
+    private Boolean isVisible;
 }
