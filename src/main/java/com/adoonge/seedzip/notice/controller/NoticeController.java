@@ -4,6 +4,7 @@ import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.notice.dto.request.NoticeCreateRequest;
+import com.adoonge.seedzip.notice.dto.request.NoticeUpdateRequest;
 import com.adoonge.seedzip.notice.dto.response.NoticeDetailResponse;
 import com.adoonge.seedzip.notice.dto.response.NoticeResponse;
 import com.adoonge.seedzip.notice.service.NoticeService;
@@ -14,7 +15,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,7 +35,7 @@ public class NoticeController {
 
     @PostMapping
     @Operation(summary = "공지사항 등록 API", description = "공지사항 등록 API입니다. 관리자만 가능합니다.")
-    public ApiResponse<Void> login(@RequestBody NoticeCreateRequest request,
+    public ApiResponse<Void> createNotice(@RequestBody NoticeCreateRequest request,
                                    @AuthenticationPrincipal CustomUserDetails customUserDetails
     ) {
         noticeService.createNotice(request, customUserDetails.getMember());
@@ -63,5 +66,17 @@ public class NoticeController {
     public ApiResponse<NoticeDetailResponse> getNoticeDetail(@PathVariable Long noticeId) {
         return new ApiResponse<>(noticeService.getNoticeDetail(noticeId));
     }
+
+    @PatchMapping("/{noticeId}")
+    @Operation(summary = "공지사항 수정 API", description = "공지사항 수정 API입니다.")
+    public ApiResponse<Void> updateNotice(@PathVariable Long noticeId,
+                                          @RequestBody NoticeUpdateRequest request,
+                                          @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
+        noticeService.updateNotice(noticeId, request, customUserDetails.getMember());
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+
 
 }

@@ -5,6 +5,7 @@ import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.notice.domain.Notice;
 import com.adoonge.seedzip.notice.dto.request.NoticeCreateRequest;
+import com.adoonge.seedzip.notice.dto.request.NoticeUpdateRequest;
 import com.adoonge.seedzip.notice.dto.response.NoticeDetailResponse;
 import com.adoonge.seedzip.notice.dto.response.NoticeResponse;
 import com.adoonge.seedzip.notice.repository.NoticeRepository;
@@ -55,6 +56,19 @@ public class NoticeService {
                 () -> SeedzipException.from(ErrorCode.NOTICE_NOT_FOUND));
 
         return NoticeDetailResponse.from(findNotice);
+    }
+
+    @Transactional
+    public void updateNotice(Long noticeId ,NoticeUpdateRequest request, Member member) {
+
+        if(checkAdmin(member)) {
+            throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
+        }
+
+        Notice findNotice = noticeRepository.findById(noticeId).orElseThrow(
+                () -> SeedzipException.from(ErrorCode.NOTICE_NOT_FOUND));
+
+        findNotice.update(request);
     }
 }
 
