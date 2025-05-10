@@ -130,7 +130,11 @@ public enum ErrorCode {
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다."),
 
     // AI
-    DAILY_AI_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 분석 요청 횟수를 초과했습니다.");
+    DAILY_AI_LIMIT_EXCEEDED(HttpStatus.TOO_MANY_REQUESTS, "AI 분석 요청 횟수를 초과했습니다."),
+
+    // notice
+    NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다.");
+
 
     private final HttpStatus status;
     private final String message;

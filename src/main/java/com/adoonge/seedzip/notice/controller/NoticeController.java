@@ -1,18 +1,25 @@
 package com.adoonge.seedzip.notice.controller;
 
-import com.adoonge.seedzip.auth.dto.response.LoginResponse;
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.notice.dto.request.NoticeCreateRequest;
+import com.adoonge.seedzip.notice.dto.response.NoticeDetailResponse;
+import com.adoonge.seedzip.notice.dto.response.NoticeResponse;
 import com.adoonge.seedzip.notice.service.NoticeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,4 +38,30 @@ public class NoticeController {
         noticeService.createNotice(request, customUserDetails.getMember());
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
+
+    @GetMapping
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = NoticeResponse.class)))
+    })
+    @Operation(summary = "공지사항 목록 조회 API", description = "공지사항 목록 조회 API입니다.")
+    public ApiResponse<NoticeResponse> getNotices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return new ApiResponse<>(noticeService.getNotices(page, size));
+    }
+
+    @GetMapping("/{noticeId}")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 조회됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = NoticeDetailResponse.class)))
+    })
+    @Operation(summary = "공지사항 상세 조회 API", description = "공지사항 상세 조회 API입니다.")
+    public ApiResponse<NoticeDetailResponse> getNoticeDetail(@PathVariable Long noticeId) {
+        return new ApiResponse<>(noticeService.getNoticeDetail(noticeId));
+    }
+
 }
