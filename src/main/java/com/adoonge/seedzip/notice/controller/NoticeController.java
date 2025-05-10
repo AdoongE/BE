@@ -77,6 +77,12 @@ public class NoticeController {
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
-
+    @DeleteMapping("/{noticeId}")
+    @Operation(summary = "공지사항 삭제 API", description = "공지사항 삭제 API입니다.")
+    public ApiResponse<Void> deleteNotice(@PathVariable Long noticeId,
+                                          @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        noticeService.deleteNotice(noticeId, customUserDetails.getMember());
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
 
 }

@@ -70,5 +70,18 @@ public class NoticeService {
 
         findNotice.update(request);
     }
+
+    @Transactional
+    public void deleteNotice(Long noticeId, Member member) {
+
+        if(checkAdmin(member)) {
+            throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
+        }
+
+        Notice findNotice = noticeRepository.findById(noticeId).orElseThrow(
+                () -> SeedzipException.from(ErrorCode.NOTICE_NOT_FOUND));
+
+        findNotice.updateIsVisible(false); //soft delete로 구현
+    }
 }
 

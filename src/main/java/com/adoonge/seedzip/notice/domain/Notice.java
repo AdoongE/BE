@@ -40,4 +40,8 @@ public class Notice extends BaseEntity {
         if (request.type() != null) this.type = request.type();
         if (request.isImportant() != null) this.isImportant = request.isImportant();
     }
+
+    public void updateIsVisible(Boolean isVisible) {
+        this.isVisible = isVisible;
+    }
 }
