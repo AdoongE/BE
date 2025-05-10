@@ -2,6 +2,7 @@ package com.adoonge.seedzip.faq.controller;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.faq.dto.request.FaqCreateRequest;
+import com.adoonge.seedzip.faq.dto.request.FaqUpdateRequest;
 import com.adoonge.seedzip.faq.dto.response.FaqResponse;
 import com.adoonge.seedzip.faq.service.FaqService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,8 +46,21 @@ public class FaqController {
     @PostMapping
     @Operation(summary = "FAQ 등록 API", description = "FAQ 등록 API입니다.")
     public ApiResponse<Void> createFaq(@RequestBody FaqCreateRequest request,
-                                       @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+                                       @AuthenticationPrincipal CustomUserDetails customUserDetails
+    ) {
         faqService.createFaq(request, customUserDetails.getMember());
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @PatchMapping("/{faqId}")
+    @Operation(summary = "FAQ 수정 API", description = "FAQ 수정 API입니다.")
+    public ApiResponse<Void> updateFaq(
+            @PathVariable Long faqId,
+            @RequestBody FaqUpdateRequest request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails
+
+    ) {
+        faqService.updateFaq(faqId, request, customUserDetails.getMember());
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 

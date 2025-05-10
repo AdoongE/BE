@@ -40,4 +40,11 @@ public class Faq {
 
     @Column(nullable = false)
     private Integer orderIndex;  // 정렬 순서 (Q1, Q2 등)
+
+    public void update(String question, String answer, FaqType type, Integer orderIndex) {
+        if (question != null) this.question = question;
+        if (answer != null) this.answer = answer;
+        if (type != null) this.type = type;
+        if (orderIndex != null) this.orderIndex = orderIndex;
+    }
 }
