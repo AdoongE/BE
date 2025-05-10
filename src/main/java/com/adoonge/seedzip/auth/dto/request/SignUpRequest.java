@@ -3,6 +3,7 @@ package com.adoonge.seedzip.auth.dto.request;
 import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.member.domain.Gender;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.member.domain.Role;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -53,6 +54,7 @@ public class SignUpRequest {
                 .gender(gender)
                 .occupation(occupation)
                 .field(field)
+                .role(Role.USER)
                 .profileImageUrl(profileImageUrl)
                 .consentToTermsOfService(consentToTermsOfService)
                 .consentToPersonalInformation(consentToPersonalInformation)

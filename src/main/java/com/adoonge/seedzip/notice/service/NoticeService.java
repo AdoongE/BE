@@ -3,6 +3,7 @@ package com.adoonge.seedzip.notice.service;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.member.domain.Role;
 import com.adoonge.seedzip.notice.domain.Notice;
 import com.adoonge.seedzip.notice.dto.request.NoticeCreateRequest;
 import com.adoonge.seedzip.notice.dto.request.NoticeUpdateRequest;
@@ -27,7 +28,7 @@ public class NoticeService {
     @Transactional
     public void createNotice(NoticeCreateRequest request, Member member) {
 
-        if(checkAdmin(member)) {
+        if(!checkAdmin(member)) {
             throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
         }
 
@@ -37,7 +38,7 @@ public class NoticeService {
     }
 
     private boolean checkAdmin(Member member) {
-        return member.getRole().equals("ADMIN");
+        return member.getRole().equals(Role.ADMIN);
     }
 
     @Transactional(readOnly = true)
@@ -61,7 +62,7 @@ public class NoticeService {
     @Transactional
     public void updateNotice(Long noticeId ,NoticeUpdateRequest request, Member member) {
 
-        if(checkAdmin(member)) {
+        if(!checkAdmin(member)) {
             throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
         }
 
@@ -74,7 +75,7 @@ public class NoticeService {
     @Transactional
     public void deleteNotice(Long noticeId, Member member) {
 
-        if(checkAdmin(member)) {
+        if(!checkAdmin(member)) {
             throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
         }
 
