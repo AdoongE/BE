@@ -36,7 +36,7 @@ public class Term extends BaseEntity {
     private String title;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
     public void update(String title, String content) {
