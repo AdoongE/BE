@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface FaqRepository extends JpaRepository<Faq, Long> {
     Page<Faq> findAllByOrderByOrderIndexAsc(Pageable pageable);
+    boolean existsByOrderIndex(Integer orderIndex);
 }

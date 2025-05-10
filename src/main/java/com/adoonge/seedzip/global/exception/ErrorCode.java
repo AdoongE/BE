@@ -136,7 +136,11 @@ public enum ErrorCode {
     NOTICE_NOT_FOUND(HttpStatus.NOT_FOUND, "공지사항을 찾을 수 없습니다."),
 
     // term
-    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 약관을 찾을 수 없습니다.");
+    TERM_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 약관을 찾을 수 없습니다."),
+
+    // FAQ
+    FAQ_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 FAQ을 찾을 수 없습니다."),
+    FAQ_INDEX_DUPLICATED(HttpStatus.CONFLICT, "중복된 정렬 순서 입니다.");
 
 
     private final HttpStatus status;

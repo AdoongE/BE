@@ -1,15 +1,21 @@
 package com.adoonge.seedzip.faq.controller;
 
+import com.adoonge.seedzip.auth.util.CustomUserDetails;
+import com.adoonge.seedzip.faq.dto.request.FaqCreateRequest;
 import com.adoonge.seedzip.faq.dto.response.FaqResponse;
 import com.adoonge.seedzip.faq.service.FaqService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
+import com.adoonge.seedzip.global.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,4 +39,13 @@ public class FaqController {
                                             @RequestParam(defaultValue = "10") int size) {
         return new ApiResponse<>(faqService.getFaqs(page, size));
     }
+
+    @PostMapping
+    @Operation(summary = "FAQ 등록 API", description = "FAQ 등록 API입니다.")
+    public ApiResponse<Void> createFaq(@RequestBody FaqCreateRequest request,
+                                       @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        faqService.createFaq(request, customUserDetails.getMember());
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
 }
