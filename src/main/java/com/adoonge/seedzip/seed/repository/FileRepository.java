@@ -22,4 +22,8 @@ public interface FileRepository extends JpaRepository<File, Long> {
     @Query("SELECT f.seed.id AS seedId, f.seed.seedType AS seedType, f.link AS link, f.isThumbnail AS isThumbnail " +
         "FROM File f WHERE f.seed.id IN :seedIds")
     List<FileSeedProjection> findFileInfoBySeedIds(@Param("seedIds") List<Long> seedIds);
+
+    void deleteAllBySeedId(Long seedId);
+
+    List<File> findFilesBySeedId(Long seedId);
 }

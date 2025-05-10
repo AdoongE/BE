@@ -1,5 +1,8 @@
 package com.adoonge.seedzip.global.service;
 
+import com.adoonge.seedzip.global.exception.ErrorCode;
+import com.adoonge.seedzip.global.exception.SeedzipException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
@@ -10,9 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.net.MalformedURLException;
+import java.net.URL;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class S3Service {
     private final AmazonS3 s3Client;
@@ -56,34 +62,29 @@ public class S3Service {
     }
 
     public void deleteDocFile(String fileUrl) {
-        // S3 버킷에서 파일 삭제 로직
-        s3Client.deleteObject("content-doc", extractKeyFromUrl(fileUrl));
+        try{
+            s3Client.deleteObject(docBucketName, extractKeyFromUrl(fileUrl));
+        }catch (AmazonServiceException e){
+            throw SeedzipException.from(ErrorCode.S3_DELETE_FAILURE);
+        }
     }
 
     public void deleteImgFile(String fileUrl) {
-        // S3 버킷에서 파일 삭제 로직
-        s3Client.deleteObject("content-img", extractKeyFromUrl(fileUrl));
+        try {
+            s3Client.deleteObject(imgBucketName, extractKeyFromUrl(fileUrl));
+        } catch (Exception e) {
+            throw SeedzipException.from(ErrorCode.S3_DELETE_FAILURE);
+        }
     }
 
     public static String extractKeyFromUrl(String url) {
-
-        String docBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/";
-        String imgBaseUrl = "https://content-img.s3.ap-northeast-2.amazonaws.com/";
-//        String imgBaseUrl = "https://content-doc.s3.ap-northeast-2.amazonaws.com/image/";
-
-        // URL이 docBaseUrl로 시작하는지 확인
-        if (url.startsWith(docBaseUrl)) {
-            String decodedString = URLDecoder.decode(url, StandardCharsets.UTF_8);
-            return decodedString.substring(docBaseUrl.length()); // docBaseUrl 뒤의 경로 추출
-        }
-        // URL이 imgBaseUrl로 시작하는지 확인
-        else if (url.startsWith(imgBaseUrl)) {
-            String decodedString = URLDecoder.decode(url, StandardCharsets.UTF_8);
-            return decodedString.substring(imgBaseUrl.length()); // imgBaseUrl 뒤의 경로 추출
-        }
-        // 어떤 기준에도 맞지 않으면 예외 처리
-        else {
-            throw new IllegalArgumentException("Invalid S3 URL: " + url);
+        try {
+            URL s3Url = new URL(url);
+            log.info(s3Url.getPath().substring(1));
+            return s3Url.getPath().substring(1);
+        } catch (MalformedURLException e){
+            throw SeedzipException.from(ErrorCode.MALFORMED_URL_EXCEPTION);
         }
     }
+
 }

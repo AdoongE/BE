@@ -14,9 +14,11 @@ import com.adoonge.seedzip.seed.domain.mapping.SeedTag;
 import com.adoonge.seedzip.seed.dto.SeedDTO;
 import com.adoonge.seedzip.seed.dto.projection.CategorySeedProjection;
 import com.adoonge.seedzip.seed.dto.projection.FileSeedProjection;
+import com.adoonge.seedzip.seed.dto.projection.SeedProjectionResult;
 import com.adoonge.seedzip.seed.dto.projection.SeedTagProjection;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
 import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.FileRepository;
@@ -35,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -99,21 +102,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -160,21 +151,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -194,7 +173,7 @@ public class SeedService {
 
 	@Transactional
 	public SeedResponse.SeedInfoSimple uploadSeed(SeedRequest seedRequest, Member member) {
-		if(seedRequest.seedType() == SeedType.LINK && seedRequest.contentLink() == null) {
+		if(seedRequest.seedType() == SeedType.LINK && seedRequest.seedLink() == null) {
 			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
 		}
 
@@ -205,7 +184,7 @@ public class SeedService {
 		saveSeedCategories(seedRequest.boardCategories(), member, seed);
 
 		if (seedRequest.seedType() == SeedType.LINK) {
-			fileService.saveLink(seedRequest.contentLink(), seed);
+			fileService.saveLink(seedRequest.seedLink(), seed);
 		}
 
 		return SeedResponse.SeedInfoSimple
@@ -226,8 +205,7 @@ public class SeedService {
 
 	@Transactional(readOnly = true)
 	public SeedResponse.SeedDetail getSeedDetail(Long seedId, Member member) {
-		Seed seed = seedRepository.findById(seedId)
-				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+		Seed seed = getSeedOrThrow(seedId);
 		List<File> files = fileRepository.findAllBySeed(seed)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
 
@@ -301,22 +279,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(
-				seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(),seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -361,22 +326,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(
-				seedList.getContent(), thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -417,22 +369,9 @@ public class SeedService {
 				.map(Seed::getId)
 				.toList();
 
-		// 파일 프로젝션으로 썸네일 처리
-		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
-		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		// 카테고리 projection
-		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
-		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
-
-		// 태그 projection
-		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
-		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
-		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(
-				seedList, thumbnailMap, categoryIdMap, categoryNameMap, tagIdMap, tagNameMap);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(seedList, seedProjectionResult);
 
 
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -448,6 +387,121 @@ public class SeedService {
 				.seedInfoList(seedInfoWithSeedDetails)
 				.pageInfo(pageInfo)
 				.build();
+	}
+
+	@Transactional
+	public void deleteSeed(Long id, Member member) {
+		Seed seed = seedRepository.findById(id)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.CONTENT_ACCESS_DENIED));
+
+		//콘텐츠 소유자 검증
+		if (!seed.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.MEMBER_NOT_OWNER);
+		}
+
+		//카테고리 매핑 삭제
+		categorySeedRepository.deleteAllBySeedId(id);
+
+		//S3에서 파일 삭제
+		List<String> fileLinks = fileRepository.findFilesBySeedId(id).stream()
+			.map(File::getLink)
+			.toList();
+		fileService.deleteFiles(seed.getSeedType(), fileLinks);
+
+		//파일 삭제
+		fileRepository.deleteAllBySeedId(id);
+
+		//태그 매핑 삭제
+		seedTagRepository.deleteAllBySeedId(id);
+
+		seedRepository.delete(seed);
+	}
+
+	// 콘텐츠 수정
+	@Transactional
+	public SeedResponse.SeedInfoSimple updateSeed(SeedUpdateRequest request,
+		Long seedId, Member member) {
+		if(request.seedType() == SeedType.LINK && request.seedLink() == null) {
+			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
+		}
+
+		Seed seed = getSeedOrThrow(seedId);
+		if(!request.seedType().equals(seed.getSeedType())) {
+			throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
+		}
+
+		//콘텐츠 소유자 검증
+		if (!seed.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.MEMBER_NOT_OWNER);
+		}
+
+		// 기본 필드 수정
+		if (!Objects.equals(seed.getSeedName(), request.seedName())) {
+			seed.updateSeedName(request.seedName());
+		}
+		if (!Objects.equals(seed.getDDay(), request.dDay())) {
+			seed.updateDDay(request.dDay());
+		}
+		if (!Objects.equals(seed.getSeedDetail(), request.seedDetail())) {
+			seed.updateSeedDetail(request.seedDetail());
+		}
+		if (!Objects.equals(seed.getThumbnailIdx(), request.thumbnailImage())) {
+			seed.updateThumbnailIdx(request.thumbnailImage());
+		}
+
+		// 태그
+		seedTagRepository.deleteAllBySeedId(seedId);
+		saveSeedTags(request.tags(), member, seed);
+
+		// 카테고리
+		categorySeedRepository.deleteAllBySeedId(seedId);
+		saveSeedCategories(request.boardCategories(), member, seed);
+
+		if (seed.getSeedType().equals(SeedType.LINK)) {
+			File file = fileRepository.findBySeed(seed).orElseThrow(
+				() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND)
+			);
+			if (!Objects.equals(file.getLink(), request.seedLink())) {
+				file.updateLink(request.seedLink());
+			}
+		} else {    // 이미지, PDF
+			List<String> fileLinks = fileRepository.findFilesBySeedId(seedId).stream()
+				.map(File::getLink)
+				.toList();
+			fileService.deleteFiles(seed.getSeedType(), fileLinks);
+
+			fileRepository.deleteAllBySeedId(seedId);
+		}
+
+		Seed updatedSeed = seedRepository.save(seed);
+		return SeedResponse.SeedInfoSimple.builder()
+			.seedId(updatedSeed.getId())
+			.seedName(updatedSeed.getSeedName())
+			.build();
+	}
+
+	private SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
+		// 파일 프로젝션
+		List<FileSeedProjection> fileProjections = fileRepository.findFileInfoBySeedIds(seedIds);
+		Map<Long, String> thumbnailMap = getThumbnailMap(fileProjections);
+
+		// 카테고리 프로젝션
+		List<CategorySeedProjection> categoryProjections = categorySeedRepository.findCategoryInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> categoryIdMap = getCategoryIdMap(categoryProjections);
+		Map<Long, List<String>> categoryNameMap = getCategoryNameMap(categoryProjections);
+
+		// 태그 프로젝션
+		List<SeedTagProjection> tagProjections = seedTagRepository.findTagInfoBySeedIds(seedIds);
+		Map<Long, List<Long>> tagIdMap = getTagIdMap(tagProjections);
+		Map<Long, List<String>> tagNameMap = getTagNameMap(tagProjections);
+
+		return new SeedProjectionResult(
+			thumbnailMap,
+			categoryIdMap,
+			categoryNameMap,
+			tagIdMap,
+			tagNameMap
+		);
 	}
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
@@ -519,11 +573,13 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfo>로 변환
 	private List<SeedResponse.SeedInfo> generateResponseFromSeedList(
 			List<Seed> seedList,
-			Map<Long, String> thumbnailMap,
-			Map<Long, List<Long>> categoryIdMap,
-			Map<Long, List<String>> categoryNameMap,
-			Map<Long, List<Long>> tagIdMap,
-			Map<Long, List<String>> tagNameMap) {
+			SeedProjectionResult seedProjectionResult) {
+		Map<Long, String> thumbnailMap = seedProjectionResult.thumbnailMap();
+		Map<Long, List<Long>> categoryIdMap = seedProjectionResult.categoryIdMap();
+		Map<Long, List<String>> categoryNameMap = seedProjectionResult.categoryNameMap();
+		Map<Long, List<Long>> tagIdMap = seedProjectionResult.tagIdMap();
+		Map<Long, List<String>> tagNameMap = seedProjectionResult.tagNameMap();
+
 		return seedList.stream()
 				.map(seed -> {
 					Long seedId = seed.getId();
@@ -554,12 +610,14 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환 Refact
 	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedList(
 		List<Seed> seedList,
-		Map<Long, String> thumbnailMap,
-		Map<Long, List<Long>> categoryIdMap,
-		Map<Long, List<String>> categoryNameMap,
-		Map<Long, List<Long>> tagIdMap,
-		Map<Long, List<String>> tagNameMap
+		SeedProjectionResult seedProjectionResult
 	) {
+		Map<Long, String> thumbnailMap = seedProjectionResult.thumbnailMap();
+		Map<Long, List<Long>> categoryIdMap = seedProjectionResult.categoryIdMap();
+		Map<Long, List<String>> categoryNameMap = seedProjectionResult.categoryNameMap();
+		Map<Long, List<Long>> tagIdMap = seedProjectionResult.tagIdMap();
+		Map<Long, List<String>> tagNameMap = seedProjectionResult.tagNameMap();
+
 		return seedList.stream()
 			.map(seed -> {
 				Long seedId = seed.getId();
@@ -647,6 +705,11 @@ public class SeedService {
 		return tagProjections.stream()
 				.collect(Collectors.groupingBy(SeedTagProjection::getSeedId,
 						Collectors.mapping(SeedTagProjection::getTagName, Collectors.toList())));
+	}
+
+	private Seed getSeedOrThrow(Long seedId) {
+		return seedRepository.findById(seedId)
+			.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
 	}
 
 }

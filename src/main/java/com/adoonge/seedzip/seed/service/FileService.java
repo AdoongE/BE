@@ -68,4 +68,12 @@ public class FileService {
 			}
 		);
 	}
+
+	public void deleteFiles(SeedType seedType, List<String> files){
+		if(seedType == SeedType.IMAGE){
+			files.forEach(s3Service::deleteImgFile);
+		} else if (seedType == SeedType.PDF) {
+			files.forEach(s3Service::deleteDocFile);
+		}
+	}
 }
