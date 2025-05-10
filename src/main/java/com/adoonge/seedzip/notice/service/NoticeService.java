@@ -32,7 +32,7 @@ public class NoticeService {
             throw SeedzipException.from(ErrorCode.MEMBER_NOT_ADMIN);
         }
 
-        Notice notice = NoticeCreateRequest.toEntity(request);
+        Notice notice = request.toEntity();
 
         noticeRepository.save(notice);
     }

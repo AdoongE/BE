@@ -3,12 +3,12 @@ package com.adoonge.seedzip.notice.dto.request;
 import com.adoonge.seedzip.notice.domain.Notice;
 
 public record NoticeCreateRequest(String type, String title, String content, Boolean isImportant) {
-    public static Notice toEntity(NoticeCreateRequest request) {
+    public Notice toEntity() {
         return Notice.builder()
-                .type(request.type())
-                .title(request.title())
-                .content(request.content())
-                .isImportant(request.isImportant())
+                .type(this.type)
+                .title(this.title)
+                .content(this.content)
+                .isImportant(this.isImportant)
                 .isVisible(true)
                 .build();
     }
