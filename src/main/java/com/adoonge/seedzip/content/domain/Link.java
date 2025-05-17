@@ -9,8 +9,8 @@ import lombok.*;
 
 @Getter
 @Builder
-@Entity
-@Table(name = "link")
+// @Entity
+// @Table(name = "link")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Link extends BaseEntity {

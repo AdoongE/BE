@@ -12,8 +12,8 @@ import org.hibernate.annotations.OnDeleteAction;
 @Getter
 @Setter
 @Builder
-@Entity
-@Table(name = "content")
+// @Entity
+// @Table(name = "content")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Contents extends BaseEntity {

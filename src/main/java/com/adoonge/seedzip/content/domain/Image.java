@@ -10,8 +10,8 @@ import lombok.*;
 @Getter
 @Builder
 @Setter
-@Entity
-@Table(name = "image")
+// @Entity
+// @Table(name = "image")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Image extends BaseEntity {
