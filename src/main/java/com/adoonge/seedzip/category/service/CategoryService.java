@@ -10,10 +10,10 @@ import com.adoonge.seedzip.category.dto.request.AddCategoryRequest;
 import com.adoonge.seedzip.category.dto.request.UpdateCategoryRequest;
 import com.adoonge.seedzip.category.dto.response.CategoryResponse;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
-import com.adoonge.seedzip.content.repository.ContentsRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.seed.repository.SeedRepository;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
-	private final ContentsRepository contentsRepository;
+	private final SeedRepository seedRepository;
 
 	@Transactional
 	public CategoryResponse createCategory(AddCategoryRequest request, Member member) {
@@ -82,7 +82,7 @@ public class CategoryService {
 		categoryRepository.flush();	// 실행 순서 보장
 
 		// 콘텐츠에서 참조되지 않는 항목을 삭제 (배치 처리)
-		contentsRepository.deleteUnreferencedContents();
+		seedRepository.deleteUnreferencedContents();
 
 	}
 }
