@@ -10,8 +10,8 @@ import lombok.*;
 @Getter
 @Builder
 @Setter
-@Entity
-@Table(name = "document")
+// @Entity
+// @Table(name = "document")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Document extends BaseEntity {

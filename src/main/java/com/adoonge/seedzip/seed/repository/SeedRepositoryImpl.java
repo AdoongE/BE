@@ -1,15 +1,9 @@
 package com.adoonge.seedzip.seed.repository;
 
-import com.adoonge.seedzip.category.domain.QCategory;
-import com.adoonge.seedzip.content.domain.Contents;
-import com.adoonge.seedzip.content.domain.ContentsDataType;
-import com.adoonge.seedzip.content.domain.QContents;
-import com.adoonge.seedzip.content.domain.mapping.QContentTag;
 import com.adoonge.seedzip.filter.domain.QFilterTag;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
-import com.adoonge.seedzip.seed.domain.QFile;
 import com.adoonge.seedzip.seed.domain.QSeed;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
@@ -21,7 +15,6 @@ import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.DateTimePath;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import java.time.LocalDate;
@@ -46,8 +39,6 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
     QTag tag = QTag.tag;
     QCategorySeed categorySeed = QCategorySeed.categorySeed;
     QFilterTag filterTag = QFilterTag.filterTag;
-    QFile file = QFile.file;
-    QCategory category = QCategory.category;
 
     @Override
     public Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, SeedFilteringRequest request) {

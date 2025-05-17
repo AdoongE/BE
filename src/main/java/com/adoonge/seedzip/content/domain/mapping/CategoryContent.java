@@ -9,7 +9,7 @@ import com.adoonge.seedzip.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
+// @Entity
 @Getter
 @Setter
 @Builder

@@ -14,8 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
-import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
-import com.adoonge.seedzip.content.service.ContentsService;
+
 import com.adoonge.seedzip.filter.dto.request.AddFilterRequest;
 import com.adoonge.seedzip.filter.dto.request.UpdateFilterRequest;
 import com.adoonge.seedzip.filter.dto.response.FilterInfoResponse;
@@ -24,7 +23,6 @@ import com.adoonge.seedzip.filter.dto.request.UpdateFilterNameRequest;
 import com.adoonge.seedzip.filter.service.FilterService;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
-import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
 import com.adoonge.seedzip.seed.service.SeedService;
 
