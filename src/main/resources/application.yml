@@ -101,3 +101,8 @@ server:
   tomcat:
     max-swallow-size: 50MB
   url: ${SERVER_URL}
+
+data:
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
