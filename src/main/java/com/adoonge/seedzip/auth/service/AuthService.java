@@ -108,7 +108,7 @@ public class AuthService {
         memberRepository.save(member);
         memberRepository.flush();
 
-        Category category = Category.builder().name("미분류").member(member).isPublic(true).build();
+        Category category = Category.builder().name("미분류").member(member).isPublic(true).isDefault(true).build();
         categoryRepository.save(category);
 
        generateToken(loginId, response);

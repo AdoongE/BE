@@ -7,11 +7,12 @@ public record AddCategoryRequest(
 	String name,
 	Boolean isPublic
 ) {
-	public Category toEntity(Member member) {
+	public Category toEntity(Member member, Boolean isDefault) {
 		return Category.builder()
 			.name(name == null ? "새 카테고리" : name)
 			.isPublic(isPublic)
 			.member(member)
+				.isDefault(isDefault)
 			.build();
 	}
 }
