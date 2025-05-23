@@ -72,8 +72,8 @@ public class CategoryService {
 			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
 		}
 
-		// 디폴트 카테고리 삭제 불가
-		if (id == 1L) {
+		// 미분류 카테고리 삭제 불가
+		if (category.getName().equals("미분류")) {
 			throw SeedzipException.from(ErrorCode.CATEGORY_CANNOT_BE_DELETED);
 		}
 
