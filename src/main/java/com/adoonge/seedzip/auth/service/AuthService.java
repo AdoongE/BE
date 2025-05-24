@@ -3,6 +3,8 @@ package com.adoonge.seedzip.auth.service;
 import com.adoonge.seedzip.auth.domain.SocialType;
 import com.adoonge.seedzip.auth.dto.request.SignUpRequest;
 import com.adoonge.seedzip.auth.dto.response.LoginResponse;
+import com.adoonge.seedzip.category.domain.Category;
+import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
@@ -27,6 +29,7 @@ public class AuthService {
     private final JwtTokenService jwtTokenService;
     private final OAuthServiceFactory oauthServiceFactory;
     private final PasswordEncoder passwordEncoder;
+    private final CategoryRepository categoryRepository;
 
     private Boolean isMemberRegistered(String loginId) {
         return memberRepository.existsByLoginId(loginId);
@@ -104,6 +107,9 @@ public class AuthService {
 
         memberRepository.save(member);
         memberRepository.flush();
+
+        Category category = Category.builder().name("미분류").member(member).isPublic(true).isDefault(true).build();
+        categoryRepository.save(category);
 
        generateToken(loginId, response);
     }

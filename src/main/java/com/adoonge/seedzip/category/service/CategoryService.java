@@ -28,14 +28,23 @@ public class CategoryService {
 	private final CategoryRepository categoryRepository;
 	private final SeedRepository seedRepository;
 
+	private static final String DEFAULT_CATEGORY_NAME = "미분류";
+
+
 	@Transactional
 	public CategoryResponse createCategory(AddCategoryRequest request, Member member) {
+
+		// "미분류" 이름 사용 방지
+		if (DEFAULT_CATEGORY_NAME.equals(request.name())) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_NAME_RESERVED);
+		}
+
 		categoryRepository.findByMemberIdAndName(member.getId(), request.name()).
 			ifPresent( category -> {
 				throw SeedzipException.from(ErrorCode.CATEGORY_ALREADY_EXISTS);
 			});
 
-		Category category = categoryRepository.save(request.toEntity(member));
+		Category category = categoryRepository.save(request.toEntity(member, false));
 		return CategoryResponse.fromEntity(category);
 	}
 
@@ -47,6 +56,11 @@ public class CategoryService {
 		// 카테고리 소유자 검증
 		if (!category.getMember().getId().equals(member.getId())) {
 			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
+		}
+
+		// 미분류 카테고리 수정 불가
+		if (Boolean.TRUE.equals(category.getIsDefault())) {
+			throw SeedzipException.from(ErrorCode.CATEGORY_CANNOT_BE_UPDATED);
 		}
 
 		category.updateCategoryName(request.name());
@@ -72,8 +86,8 @@ public class CategoryService {
 			throw SeedzipException.from(ErrorCode.CATEGORY_ACCESS_DENIED);
 		}
 
-		// 디폴트 카테고리 삭제 불가
-		if (id == 1L) {
+		// 미분류 카테고리 삭제 불가
+		if (Boolean.TRUE.equals(category.getIsDefault())) {
 			throw SeedzipException.from(ErrorCode.CATEGORY_CANNOT_BE_DELETED);
 		}
 

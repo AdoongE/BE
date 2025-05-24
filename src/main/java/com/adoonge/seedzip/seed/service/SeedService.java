@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.seed.service;
 
+import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.filter.domain.Filter;
 import com.adoonge.seedzip.filter.repository.FilterRepository;
@@ -181,7 +182,11 @@ public class SeedService {
 
 		// 태그 및 카테고리 저장
 		saveSeedTags(seedRequest.tags(), member, seed);
-		saveSeedCategories(seedRequest.boardCategories(), member, seed);
+		if(seedRequest.boardCategories() == null) {
+			saveSeedDefaultCategory(member, seed);
+		} else {
+			saveSeedCategories(seedRequest.boardCategories(), member, seed);
+		}
 
 		if (seedRequest.seedType() == SeedType.LINK) {
 			fileService.saveLink(seedRequest.seedLink(), seed);
@@ -515,6 +520,15 @@ public class SeedService {
 			.build();
 
 		return seedRepository.save(seedDTO.toEntity());
+	}
+
+	private void saveSeedDefaultCategory(Member member, Seed seed) {
+		Category category = categoryRepository.findByMemberIdAndName(member.getId(), "미분류")
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.CATEGORY_NOT_FOUND));
+		categorySeedRepository.save(CategorySeed.builder()
+				.category(category)
+				.seed(seed)
+				.build());
 	}
 
 	private void saveSeedCategories(String[] boardCategories, Member member, Seed seed) {

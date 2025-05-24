@@ -44,11 +44,16 @@ public class Category extends BaseEntity {
 	@OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Category도 삭제
 	private Member member;
 
+	@Column(nullable = false)
+	@ColumnDefault("false")
+	private Boolean isDefault;
+
 	@Builder
-	public Category(String name, Boolean isPublic, Member member) {
+	public Category(String name, Boolean isPublic, Member member, Boolean isDefault) {
 		this.name = name;
 		this.isPublic = isPublic;
 		this.member = member;
+		this.isDefault = isDefault;
 	}
 
 	public void updateCategoryName(String name) {
