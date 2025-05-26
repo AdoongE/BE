@@ -101,7 +101,7 @@ public class SeedController {
 
         Member member = customUserDetails.getMember();
 
-        return new ApiResponse<>(seedService.getSeedDetail(seedId, member));
+        return new ApiResponse<>(seedService.getSeedDetail(seedId));
     }
 
     @PostMapping

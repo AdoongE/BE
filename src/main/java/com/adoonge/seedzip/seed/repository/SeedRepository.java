@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import io.lettuce.core.dynamic.annotation.Param;
 import jakarta.transaction.Transactional;
 
 public interface SeedRepository extends JpaRepository<Seed, Long> {
@@ -30,4 +31,7 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 	@Query("DELETE FROM Seed s WHERE NOT EXISTS (SELECT 1 FROM CategorySeed cs WHERE cs.seed.id = s.id)")
 	default void deleteUnreferencedContents() {}
 
+	@Modifying
+	@Query("UPDATE Seed s SET s.viewCount = s.viewCount + :count WHERE s.id = :seedId")
+	void incrementViews(@Param("seedId") Long seedId, @Param("count") Long count);
 }

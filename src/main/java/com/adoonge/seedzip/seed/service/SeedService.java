@@ -60,6 +60,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class SeedService {
 
 	private final FileService fileService;
+	private final SeedCacheService seedCacheService;
 
 	private final SeedRepository seedRepository;
 	private final FileRepository fileRepository;
@@ -204,8 +205,9 @@ public class SeedService {
 	}
 
 	@Transactional(readOnly = true)
-	public SeedResponse.SeedDetail getSeedDetail(Long seedId, Member member) {
+	public SeedResponse.SeedDetail getSeedDetail(Long seedId) {
 		Seed seed = getSeedOrThrow(seedId);
+		seedCacheService.increaseViewCounts(seedId);
 		List<File> files = fileRepository.findAllBySeed(seed)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
 
