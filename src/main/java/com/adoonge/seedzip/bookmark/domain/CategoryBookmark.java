@@ -16,20 +16,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "bookmark")
+@Table(name = "category_bookmarks")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Bookmark extends BaseEntity {
+public class CategoryBookmark extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long bookmarkId;
+	private Long id;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id")
@@ -42,13 +41,13 @@ public class Bookmark extends BaseEntity {
 	private Member member;
 
 	@Builder
-	public Bookmark(Category category, Member member) {
+	public CategoryBookmark(Category category, Member member) {
 		this.category = category;
 		this.member = member;
 	}
 
-	public static Bookmark of(Category category, Member member) {
-		return Bookmark.builder()
+	public static CategoryBookmark of(Category category, Member member) {
+		return CategoryBookmark.builder()
 			.category(category)
 			.member(member)
 			.build();
