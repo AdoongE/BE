@@ -37,7 +37,6 @@ public class AppController {
 	public ApiResponse<AppMainResponse> getAllSeeds(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails) {
 		Member member = customUserDetails.getMember();
-		appService.getAppMain(member);
 		return new ApiResponse<>(appService.getAppMain(member));
 	}
 }

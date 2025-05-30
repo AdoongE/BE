@@ -17,7 +17,7 @@ public class SeedScheduledService {
 	private final SeedCacheService seedCacheService;
 	private final SeedRepository seedRepository;
 
-	@Scheduled(cron = "0 */30 * * * *") // 매 30분마다 실행
+	@Scheduled(cron = "*/30 * * * * *") // 30초마다 실행
 	@Transactional
 	public void syncSeedViewCount() {
 		// 캐시에서 시드 조회수 가져오기
