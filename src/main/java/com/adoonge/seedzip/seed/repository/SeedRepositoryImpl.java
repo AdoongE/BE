@@ -63,10 +63,14 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 		if(result == null) {
 			return new SeedStatisticsDTO(0L, 0L, 0L);
 		}
+		Number total = result.get(0, Number.class);
+		Number mostRead = result.get(1, Number.class);
+		Number neverRead = result.get(2, Number.class);
+
 		return new SeedStatisticsDTO(
-			result.get(0, Long.class) != null ? result.get(0, Long.class) : 0L,
-			result.get(1, Long.class) != null ? result.get(1, Long.class) : 0L,
-			result.get(2, Long.class) != null ? result.get(2, Long.class) : 0L
+			total != null ? total.longValue() : 0L,
+			mostRead != null ? mostRead.longValue() : 0L,
+			neverRead != null ? neverRead.longValue() : 0L
 		);
 	}
 
