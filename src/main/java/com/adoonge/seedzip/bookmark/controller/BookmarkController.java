@@ -31,7 +31,7 @@ public class BookmarkController {
 
 	@PostMapping("/category/{categoryId}")
 	@Operation(summary = "카테고리 북마크 추가 API", description = "카테고리 북마크 추가 API입니다.")
-	public ApiResponse<CategoryBookmarkResponse> addBookmark(
+	public ApiResponse<CategoryBookmarkResponse> addCategoryBookmark(
 		@PathVariable Long categoryId,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails
 	) {
@@ -44,7 +44,7 @@ public class BookmarkController {
 
 	@DeleteMapping("/category/{bookmarkId}")
 	@Operation(summary = "카테고리 북마크 삭제 API", description = "카테고리 북마크 삭제 API입니다.")
-	public ApiResponse<Void> deleteBookmark(
+	public ApiResponse<Void> deleteCategoryBookmark(
 		@PathVariable Long bookmarkId,
 		@AuthenticationPrincipal CustomUserDetails customUserDetails
 	) {
@@ -57,7 +57,7 @@ public class BookmarkController {
 
 	@GetMapping("/category/bookmark")
 	@Operation(summary = "카테고리 북마크 조회 API", description = "카테고리 북마크 조회 API입니다.")
-	public ApiResponse<CategoryBookmarkResponse> getBookmarks(
+	public ApiResponse<CategoryBookmarkResponse> getCategoryBookmarks(
 		@AuthenticationPrincipal CustomUserDetails customUserDetails
 	) {
 
@@ -77,6 +77,19 @@ public class BookmarkController {
 		Member member = customUserDetails.getMember();
 
 		bookmarkService.addSeedBookmark(seedId, member);
+
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
+	@DeleteMapping("/seed/{seedId}")
+	@Operation(summary = "씨드 북마크 삭제 API", description = "씨드 북마크 삭제 API입니다.")
+	public ApiResponse<Void> deleteSeedBookmark(
+			@PathVariable Long seedId,
+			@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
+
+		Member member = customUserDetails.getMember();
+		bookmarkService.deleteSeedBookmark(seedId, member);
 
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}

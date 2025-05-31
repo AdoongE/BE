@@ -106,6 +106,9 @@ public enum ErrorCode {
     SEED_TYPE_NOT_SUPPORTED(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "지원하지 않는 씨드 형식입니다."),
     LINK_IS_NECESSARY(HttpStatus.BAD_REQUEST, "링크는 필수입니다."),
     SEED_ALREADY_BOOKMARKED(HttpStatus.CONFLICT, "이미 북마크된 씨드입니다."),
+    SEED_BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "북마크된 씨드를 찾을 수 없습니다."),
+    SEED_BOOKMARK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "북마크된 씨드에 대한 접근 권한이 없습니다."),
+
 
 
 

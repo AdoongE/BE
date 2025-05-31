@@ -85,4 +85,15 @@ public class BookmarkService {
 
 		seedBookmarkRepository.save(seedBookmark);
 	}
+
+	@Transactional
+	public void deleteSeedBookmark(Long seedId, Member member) {
+		Seed seed = seedRepository.findById(seedId)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+
+		SeedBookmark seedBookmark = seedBookmarkRepository.findBySeedAndMember(seed, member)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_BOOKMARK_NOT_FOUND));
+
+		seedBookmarkRepository.delete(seedBookmark);
+	}
 }
