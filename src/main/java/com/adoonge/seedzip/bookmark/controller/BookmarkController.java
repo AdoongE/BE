@@ -29,7 +29,7 @@ public class BookmarkController {
 
 	private final BookmarkService bookmarkService;
 
-	@PostMapping("category/{categoryId}")
+	@PostMapping("/category/{categoryId}")
 	@Operation(summary = "카테고리 북마크 추가 API", description = "카테고리 북마크 추가 API입니다.")
 	public ApiResponse<CategoryBookmarkResponse> addBookmark(
 		@PathVariable Long categoryId,
@@ -65,5 +65,19 @@ public class BookmarkController {
 		List<CategoryBookmarkResponse> bookmarks = bookmarkService.getCategoryBookmarks(member);
 
 		return new ApiResponse<>(bookmarks);
+	}
+
+	@PostMapping("/seed/{seedId}")
+	@Operation(summary = "씨드 북마크 추가 API", description = "씨드 북마크 추가 API입니다.")
+	public ApiResponse<Void> addSeedBookmark(
+			@PathVariable Long seedId,
+			@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
+
+		Member member = customUserDetails.getMember();
+
+		bookmarkService.addSeedBookmark(seedId, member);
+
+		return new ApiResponse<>(ErrorCode.REQUEST_OK);
 	}
 }

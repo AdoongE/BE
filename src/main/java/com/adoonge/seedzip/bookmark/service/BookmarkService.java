@@ -1,5 +1,9 @@
 package com.adoonge.seedzip.bookmark.service;
 
+import com.adoonge.seedzip.bookmark.domain.SeedBookmark;
+import com.adoonge.seedzip.bookmark.repository.SeedBookmarkRepository;
+import com.adoonge.seedzip.seed.domain.Seed;
+import com.adoonge.seedzip.seed.repository.SeedRepository;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -24,6 +28,8 @@ public class BookmarkService {
 
 	private final CategoryBookmarkRepository categoryBookmarkRepository;
 	private final CategoryRepository categoryRepository;
+	private final SeedBookmarkRepository seedBookmarkRepository;
+	private final SeedRepository seedRepository;
 
 	@Transactional
 	public CategoryBookmarkResponse addCategoryBookmark(Long categoryId, Member member) {
@@ -61,5 +67,22 @@ public class BookmarkService {
 		return categoryBookmarks.stream()
 			.map(CategoryBookmarkResponse::fromEntity)
 			.toList();
+	}
+
+	@Transactional
+	public void addSeedBookmark(Long seedId, Member member) {
+		Seed seed = seedRepository.findById(seedId)
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+
+		if(seedBookmarkRepository.existsBySeedAndMember(seed, member)) {
+			throw SeedzipException.from(ErrorCode.SEED_ALREADY_BOOKMARKED);
+		}
+
+		SeedBookmark seedBookmark = SeedBookmark.builder()
+				.seed(seed)
+				.member(member)
+				.build();
+
+		seedBookmarkRepository.save(seedBookmark);
 	}
 }
