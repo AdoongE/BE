@@ -8,7 +8,7 @@ import com.adoonge.seedzip.seed.dto.SeedStatisticsDTO;
 import lombok.Builder;
 
 @Builder
-public record AppMainResponse(
+public record AppUserStatisticsResponse(
 	LocalDate localDate,
 	String userName,
 	Long todaySeedCount,
@@ -16,12 +16,12 @@ public record AppMainResponse(
 	Long mostReadSeedCount,
 	Long neverReadSeedCount
 ) {
-	public static AppMainResponse from(
+	public static AppUserStatisticsResponse from(
 		Member member,
 		Long todaySeedCount,
 		SeedStatisticsDTO seedStatisticsDTO
 	){
-		return AppMainResponse.builder()
+		return AppUserStatisticsResponse.builder()
 			.localDate(LocalDate.now())
 			.userName(member.getNickname())
 			.todaySeedCount(todaySeedCount)
