@@ -83,6 +83,12 @@ dependencies {
 
 	//Jsoup
 	implementation 'org.jsoup:jsoup:1.15.4'
+
+	// Redis
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// Spring Boot Cache
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
 }
 
 bootJar {

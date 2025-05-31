@@ -56,6 +56,9 @@ public class Seed extends BaseEntity {
 
     private Long thumbnailIdx;  // seedType = LINK, PDF인 경우 null
 
+    @Column(name = "view_count", nullable = false)
+    private long viewCount = 0L; // 조회수
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     @OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Content도 삭제

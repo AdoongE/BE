@@ -7,6 +7,7 @@ import com.adoonge.seedzip.content.domain.Contents;
 import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.seed.domain.Seed;
 import com.adoonge.seedzip.seed.domain.SeedType;
+import com.adoonge.seedzip.seed.dto.SeedStatisticsDTO;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,4 +21,5 @@ public interface SeedRepositoryCustom {
         List<String> seedType, Long dDayStart, Long dDayEnd, Long filterId, Long memberId
     );
 
+    SeedStatisticsDTO getSeedStatistics(Member member);
 }
