@@ -1,5 +1,8 @@
 package com.adoonge.seedzip.bookmark.controller;
 
+import com.adoonge.seedzip.seed.dto.response.SeedResponse;
+import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetAllSeeds;
+import com.adoonge.seedzip.seed.service.SeedService;
 import java.util.List;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -8,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
@@ -28,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class BookmarkController {
 
 	private final BookmarkService bookmarkService;
+	private final SeedService seedService;
 
 	@PostMapping("/category/{categoryId}")
 	@Operation(summary = "카테고리 북마크 추가 API", description = "카테고리 북마크 추가 API입니다.")
@@ -92,5 +97,20 @@ public class BookmarkController {
 		bookmarkService.deleteSeedBookmark(seedId, member);
 
 		return new ApiResponse<>(ErrorCode.REQUEST_OK);
+	}
+
+	@GetMapping("/seed")
+	@Operation(summary = "북마크한 씨드 조회 API", description = "북마크한 씨드 조회 API입니다.")
+	public ApiResponse<SeedResponse.GetAllSeeds> getBookmarkedSeeds(
+			@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "9") int size,
+			@RequestParam(defaultValue = "latest") String sortBy, // latest or name
+			@RequestParam(defaultValue = "false") boolean isAsc,
+			@RequestParam(required = false) String seedType,
+			@AuthenticationPrincipal CustomUserDetails customUserDetails
+	) {
+		GetAllSeeds bookmarkedSeeds = seedService.getBookmarkedSeeds(customUserDetails.getMember(), page, size, sortBy,
+				isAsc, seedType);
+		return new ApiResponse<>(bookmarkedSeeds);
 	}
 }

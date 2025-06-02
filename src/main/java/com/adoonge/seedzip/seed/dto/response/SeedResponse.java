@@ -13,7 +13,7 @@ public class SeedResponse {
     @Builder
     public record SeedInfo(Long seedId, String seedName, List<Long> categoryId, List<String> categoryName,
                            SeedType seedType, String thumbnailImage, LocalDateTime updatedDt,
-                           List<Long> tagId, List<String> tagName, int dDay) {}
+                           List<Long> tagId, List<String> tagName, int dDay, Boolean isSaved) {}
 
     @Builder
     public record GetAllSeeds(String nickname, List<SeedInfo> seedInfoList, PageInfo pageInfo) {}
@@ -38,7 +38,7 @@ public class SeedResponse {
     public record SeedInfoWithSeedDetail(
             Long seedId, String seedName, List<Long> categoryId, List<String> categoryName,
             SeedType seedType, String thumbnailImage, LocalDateTime updatedDt,
-            List<Long> tagId, List<String> tagName, int dDay, String seedDetail
+            List<Long> tagId, List<String> tagName, int dDay, String seedDetail, Boolean isSaved
     ){}
 
     @Builder
