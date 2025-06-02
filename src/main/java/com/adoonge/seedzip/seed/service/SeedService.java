@@ -38,6 +38,8 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -109,7 +111,9 @@ public class SeedService {
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -158,7 +162,9 @@ public class SeedService {
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -291,7 +297,9 @@ public class SeedService {
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(),seedProjectionResult);
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -338,7 +346,9 @@ public class SeedService {
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult);
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -381,7 +391,9 @@ public class SeedService {
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(seedList, seedProjectionResult);
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(seedList, seedProjectionResult, bookmarkedSeedSet);
 
 
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -521,7 +533,9 @@ public class SeedService {
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
 		//페이징 정보 추가
 		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
@@ -641,7 +655,8 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfo>로 변환
 	private List<SeedResponse.SeedInfo> generateResponseFromSeedList(
 			List<Seed> seedList,
-			SeedProjectionResult seedProjectionResult) {
+			SeedProjectionResult seedProjectionResult,
+			Set<Long> bookmarkedSeedSet) {
 		Map<Long, String> thumbnailMap = seedProjectionResult.thumbnailMap();
 		Map<Long, List<Long>> categoryIdMap = seedProjectionResult.categoryIdMap();
 		Map<Long, List<String>> categoryNameMap = seedProjectionResult.categoryNameMap();
@@ -659,6 +674,8 @@ public class SeedService {
 						dDayValue = days > 0 ? -(int) days : (days == 0 ? 0 : 1);
 					}
 
+					boolean isSaved = bookmarkedSeedSet.contains(seedId);
+
 					return new SeedResponse.SeedInfo(
 							seedId,
 							seed.getSeedName(),
@@ -669,7 +686,8 @@ public class SeedService {
 							seed.getUpdatedAt(),
 							tagIdMap.getOrDefault(seedId, List.of()),
 							tagNameMap.getOrDefault(seedId, List.of()),
-							dDayValue
+							dDayValue,
+							isSaved
 					);
 				})
 				.collect(Collectors.toList());
@@ -678,7 +696,8 @@ public class SeedService {
 	//List<Seed> -> List<SeedResponse.SeedInfoWithSeedDetail>로 변환 Refact
 	private List<SeedResponse.SeedInfoWithSeedDetail> generateResponseWithDetailFromSeedList(
 		List<Seed> seedList,
-		SeedProjectionResult seedProjectionResult
+		SeedProjectionResult seedProjectionResult,
+		Set<Long> bookmarkedSeedSet
 	) {
 		Map<Long, String> thumbnailMap = seedProjectionResult.thumbnailMap();
 		Map<Long, List<Long>> categoryIdMap = seedProjectionResult.categoryIdMap();
@@ -697,6 +716,8 @@ public class SeedService {
 					dDayValue = days > 0 ? -(int) days : (days == 0 ? 0 : 1);
 				}
 
+				boolean isSaved = bookmarkedSeedSet.contains(seedId);
+
 				return new SeedResponse.SeedInfoWithSeedDetail(
 					seedId,
 					seed.getSeedName(),
@@ -708,7 +729,8 @@ public class SeedService {
 					tagIdMap.getOrDefault(seedId, List.of()),
 					tagNameMap.getOrDefault(seedId, List.of()),
 					dDayValue,
-					seed.getSeedDetail()
+					seed.getSeedDetail(),
+						isSaved
 				);
 			})
 			.collect(Collectors.toList());
