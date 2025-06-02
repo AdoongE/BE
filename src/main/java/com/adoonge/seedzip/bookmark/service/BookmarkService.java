@@ -96,4 +96,5 @@ public class BookmarkService {
 
 		seedBookmarkRepository.delete(seedBookmark);
 	}
+
 }

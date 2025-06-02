@@ -1,5 +1,7 @@
 package com.adoonge.seedzip.seed.service;
 
+import com.adoonge.seedzip.bookmark.repository.SeedBookmarkRepository;
+import com.adoonge.seedzip.bookmark.service.BookmarkService;
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.filter.domain.Filter;
@@ -72,6 +74,7 @@ public class SeedService {
 	private final CategoryRepository categoryRepository;
 	private final SeedRepositoryCustom seedRepositoryCustom;
 	private final FilterRepository filterRepository;
+	private final SeedBookmarkRepository seedBookmarkRepository;
 
 	private static final Set<String> DEFAULT_TAG_NAMES = Arrays.stream(DefaultTagType.values())
 		.map(DefaultTagType::getDisplayName)
@@ -485,6 +488,55 @@ public class SeedService {
 			.seedId(updatedSeed.getId())
 			.seedName(updatedSeed.getSeedName())
 			.build();
+	}
+
+	//북마크된 씨드 조회
+	@Transactional
+	public SeedResponse.GetAllSeeds getBookmarkedSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
+								   String seedType) {
+		Sort.Direction direction = getSortDirection(isAsc);
+		String sortField = getSortField(sortBy);
+		SeedType parsedSeedType = parseSeedType(seedType);
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+		List<Long> seedIds = seedBookmarkRepository.findSeedIdsByMember(member);
+
+		//페이징으로 얻어온 Seed 리스트
+		Page<Seed> seedList;
+		if (seedType != null) {
+			seedList = seedRepository.findBySeedIdInAndSeedType(seedIds, parsedSeedType, pageable);
+		} else {
+			seedList = seedRepository.findBySeedIdIn(seedIds, pageable);
+		}
+
+		if (seedList.isEmpty())
+			return null;
+
+		// seedId 리스트 추출
+		seedIds = seedList.stream()
+				.map(Seed::getId)
+				.toList();
+
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
+
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(),seedProjectionResult);
+
+		//페이징 정보 추가
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+				.page(seedList.getNumber())
+				.size(seedList.getSize())
+				.totalPages(seedList.getTotalPages())
+				.totalElements(seedList.getTotalElements())
+				.isLast(seedList.isLast())
+				.build();
+
+		return SeedResponse.GetAllSeeds.builder()
+				.nickname(member.getNickname())
+				.seedInfoList(seedInfoList)
+				.pageInfo(pageInfo)
+				.build();
 	}
 
 	private SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
