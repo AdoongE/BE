@@ -1,4 +1,4 @@
-package com.adoonge.seedzip.app.dto.response;
+package com.adoonge.seedzip.member.dto.response;
 
 import java.time.LocalDate;
 
@@ -8,7 +8,7 @@ import com.adoonge.seedzip.seed.dto.SeedStatisticsDTO;
 import lombok.Builder;
 
 @Builder
-public record AppUserStatisticsResponse(
+public record MemberStatisticsResponse(
 	LocalDate localDate,
 	String userName,
 	Long todaySeedCount,
@@ -16,12 +16,12 @@ public record AppUserStatisticsResponse(
 	Long mostReadSeedCount,
 	Long neverReadSeedCount
 ) {
-	public static AppUserStatisticsResponse from(
+	public static MemberStatisticsResponse from(
 		Member member,
 		Long todaySeedCount,
 		SeedStatisticsDTO seedStatisticsDTO
 	){
-		return AppUserStatisticsResponse.builder()
+		return MemberStatisticsResponse.builder()
 			.localDate(LocalDate.now())
 			.userName(member.getNickname())
 			.todaySeedCount(todaySeedCount)

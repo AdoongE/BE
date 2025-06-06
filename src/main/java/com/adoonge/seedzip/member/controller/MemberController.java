@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.member.controller;
 
+import com.adoonge.seedzip.member.dto.response.MemberStatisticsResponse;
 import com.adoonge.seedzip.auth.util.CustomUserDetails;
 import com.adoonge.seedzip.global.dto.response.ApiResponse;
 import com.adoonge.seedzip.global.exception.ErrorCode;
@@ -8,6 +9,9 @@ import com.adoonge.seedzip.member.dto.request.UpdateMemberRequest;
 import com.adoonge.seedzip.member.dto.response.MemberInformationResponse;
 import com.adoonge.seedzip.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +61,20 @@ public class MemberController {
         memberService.delete(member);
 
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @GetMapping("/statistics")
+    @Operation(summary = "사용자 씨드 정보 API", description = "사용자의 씨드 정보를 가져오는 API입니다. 앱 메인페이지 및 카테고리 탭에서 사용됩니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = MemberStatisticsResponse.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<MemberStatisticsResponse> getMemberStatistics(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Member member = customUserDetails.getMember();
+        return new ApiResponse<>(memberService.getMemberStatistics(member));
     }
 
 }
