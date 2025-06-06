@@ -1,6 +1,6 @@
 package com.adoonge.seedzip.seed.controller;
 
-import com.adoonge.seedzip.content.dto.response.ContentsAllResponse;
+import com.adoonge.seedzip.seed.dto.request.SeedDeleteListRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetFilteredSeeds;
@@ -230,6 +230,52 @@ public class SeedController {
         SeedResponse.SeedInfoSimple seedInfoSimple = seedService.updateSeed(request, seedId, member);
 
         return new ApiResponse<>(seedInfoSimple);
+    }
+
+    @GetMapping(value = "/popular")
+    @Operation(summary = "많이 찾는 씨드 조회", description = "많이 찾는 씨드 목록을 조회하는 API입니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.GetAllSeeds> getPopularSeeds(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Member member = customUserDetails.getMember();
+        // 인기 씨드 조회
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @GetMapping(value = "/unread")
+    @Operation(summary = "읽지 않은 씨드 조회", description = "한번도 읽지 않은 씨드 목록을 조회하는 API입니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.GetAllSeeds> getUnreadSeeds(
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Member member = customUserDetails.getMember();
+        // 읽지 않은 씨드 조회
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+    }
+
+    @DeleteMapping(value = "/unread")
+    @Operation(summary = "읽지 않은 씨드 선택 삭제", description = "한번도 읽지 않은 씨드 목록을 선택적으로 삭제하는 API입니다.")
+    @ApiResponses(value = {
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+            content = @Content(mediaType = "application/json",
+                schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
+        @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<Void> deleteUnreadSeeds(
+        @RequestBody @Valid SeedDeleteListRequest request,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Member member = customUserDetails.getMember();
+        // 읽지 않은 씨드 선택 삭제
+        return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 
 }
