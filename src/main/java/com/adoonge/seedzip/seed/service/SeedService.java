@@ -83,6 +83,8 @@ public class SeedService {
 		.map(DefaultTagType::getDisplayName)
 		.collect(Collectors.toSet());
 
+	private static final Long DEFAULT_VIEW_COUNT = 3L;
+
 	public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 		String seedType) {
 
@@ -546,6 +548,38 @@ public class SeedService {
 				.seedInfoList(seedInfoList)
 				.pageInfo(pageInfo)
 				.build();
+	}
+
+	public SeedResponse.GetAllSeeds getPopularSeeds(int page, int size, Member member){
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> popularSeeds = seedRepository.findTop30ByMemberAndViewCountGreaterThanOrderByViewCountDesc(
+			member, DEFAULT_VIEW_COUNT,
+			pageable);
+
+		if (popularSeeds.isEmpty())
+			return null;
+
+		List<Long> seedIds = popularSeeds.stream().map(Seed::getId).toList();
+
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
+
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(popularSeeds.getContent(), seedProjectionResult, bookmarkedSeedSet);
+
+		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
+			.page(popularSeeds.getNumber())
+			.size(popularSeeds.getSize())
+			.totalPages(popularSeeds.getTotalPages())
+			.totalElements(popularSeeds.getTotalElements())
+			.isLast(popularSeeds.isLast())
+			.build();
+
+		return SeedResponse.GetAllSeeds.builder()
+			.nickname(member.getNickname())
+			.seedInfoList(seedInfoList)
+			.pageInfo(pageInfo)
+			.build();
 	}
 
 	private SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {

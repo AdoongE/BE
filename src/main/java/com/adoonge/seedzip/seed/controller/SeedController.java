@@ -233,7 +233,8 @@ public class SeedController {
     }
 
     @GetMapping(value = "/popular")
-    @Operation(summary = "많이 찾는 씨드 조회", description = "많이 찾는 씨드 목록을 조회하는 API입니다.")
+    @Operation(summary = "많이 찾는 씨드 조회", description = "많이 찾는 씨드 목록을 조회하는 API입니다."
+        + "조회수가 3회 이상인 씨드 중 조회수가 높은순으로 30개를 반환합니다.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
             content = @Content(mediaType = "application/json",
@@ -241,10 +242,12 @@ public class SeedController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<SeedResponse.GetAllSeeds> getPopularSeeds(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "9") int size,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Member member = customUserDetails.getMember();
-        // 인기 씨드 조회
-        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+        SeedResponse.GetAllSeeds popularSeeds = seedService.getPopularSeeds(page, size, member);
+        return new ApiResponse<>(popularSeeds);
     }
 
     @GetMapping(value = "/unread")
