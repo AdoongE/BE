@@ -59,6 +59,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -82,7 +83,6 @@ public class SeedService {
 		.map(DefaultTagType::getDisplayName)
 		.collect(Collectors.toSet());
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 		String seedType) {
 
@@ -131,7 +131,6 @@ public class SeedService {
 			.build();
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 		String seedType, long categoryId) {
 
@@ -218,7 +217,6 @@ public class SeedService {
 		fileService.saveFiles(files, seed);
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.SeedDetail getSeedDetail(Long seedId) {
 		Seed seed = getSeedOrThrow(seedId);
 		seedCacheService.increaseViewCounts(seedId);
@@ -268,7 +266,6 @@ public class SeedService {
 				.build();
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetFilteredSeeds getFilteredSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 														  String seedType, SeedFilteringRequest request) {
 		Sort.Direction direction = getSortDirection(isAsc);
@@ -317,7 +314,6 @@ public class SeedService {
 				.build();
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetFilteredSeeds getFilteredCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 														  String seedType, Long categoryId, SeedFilteringRequest request) {
 		Sort.Direction direction = getSortDirection(isAsc);
@@ -366,7 +362,6 @@ public class SeedService {
 				.build();
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
 		Filter filter = filterRepository.findById(filterId)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
