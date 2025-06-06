@@ -1,7 +1,6 @@
 package com.adoonge.seedzip.seed.service;
 
 import com.adoonge.seedzip.bookmark.repository.SeedBookmarkRepository;
-import com.adoonge.seedzip.bookmark.service.BookmarkService;
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.filter.domain.Filter;
@@ -38,12 +37,10 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -103,34 +100,10 @@ public class SeedService {
 			seedList = seedRepository.findByMember(member, pageable);
 		}
 
-		if (seedList.isEmpty())
+		if(seedList.isEmpty()){
 			return null;
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-			.page(seedList.getNumber())
-			.size(seedList.getSize())
-			.totalPages(seedList.getTotalPages())
-			.totalElements(seedList.getTotalElements())
-			.isLast(seedList.isLast())
-			.build();
-
-		return SeedResponse.GetAllSeeds.builder()
-			.nickname(member.getNickname())
-			.seedInfoList(seedInfoList)
-			.pageInfo(pageInfo)
-			.build();
+		}
+		return buildGetAllSeedsResponse(member, seedList);
 	}
 
 	public SeedResponse.GetAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
@@ -153,34 +126,10 @@ public class SeedService {
 			seedList = seedRepository.findBySeedIdIn(seedIds, pageable);
 		}
 
-		if (seedList.isEmpty())
+		if (seedList.isEmpty()){
 			return null;
-
-		// seedId 리스트 추출
-		seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-			.page(seedList.getNumber())
-			.size(seedList.getSize())
-			.totalPages(seedList.getTotalPages())
-			.totalElements(seedList.getTotalElements())
-			.isLast(seedList.isLast())
-			.build();
-
-		return SeedResponse.GetAllSeeds.builder()
-			.nickname(member.getNickname())
-			.seedInfoList(seedInfoList)
-			.pageInfo(pageInfo)
-			.build();
+		}
+		return buildGetAllSeedsResponse(member, seedList);
 	}
 
 	@Transactional
@@ -288,32 +237,7 @@ public class SeedService {
 		if (seedList.isEmpty()){
 			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
 		}
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedList.getNumber())
-				.size(seedList.getSize())
-				.totalPages(seedList.getTotalPages())
-				.totalElements(seedList.getTotalElements())
-				.isLast(seedList.isLast())
-				.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoList)
-				.pageInfo(pageInfo)
-				.build();
+		return buildGetFilteredSeedsResponse(member, seedList);
 	}
 
 	public SeedResponse.GetFilteredSeeds getFilteredCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
@@ -336,32 +260,7 @@ public class SeedService {
 		if (seedList.isEmpty()){
 			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
 		}
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedList.getNumber())
-				.size(seedList.getSize())
-				.totalPages(seedList.getTotalPages())
-				.totalElements(seedList.getTotalElements())
-				.isLast(seedList.isLast())
-				.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoList)
-				.pageInfo(pageInfo)
-				.build();
+		return buildGetFilteredSeedsResponse(member, seedList);
 	}
 
 	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
@@ -378,34 +277,10 @@ public class SeedService {
 				filter.getStorageFormats(), filter.getFromDDay(), filter.getToDDay(), filter.getFilterId(), member.getId());
 		List<Seed> seedList = seedPage.getContent();
 
-		if (seedList.isEmpty())
+		if (seedList.isEmpty()){
 			return null;
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(seedList, seedProjectionResult, bookmarkedSeedSet);
-
-
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedPage.getNumber())
-				.size(seedPage.getSize())
-				.totalPages(seedPage.getTotalPages())
-				.totalElements(seedPage.getTotalElements())
-				.isLast(seedPage.isLast())
-				.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoWithSeedDetails)
-				.pageInfo(pageInfo)
-				.build();
+		}
+		return buildGetFilteredSeedsResponse(member, seedPage);
 	}
 
 	@Transactional
@@ -520,34 +395,10 @@ public class SeedService {
 			seedList = seedRepository.findBySeedIdIn(seedIds, pageable);
 		}
 
-		if (seedList.isEmpty())
+		if (seedList.isEmpty()){
 			return null;
-
-		// seedId 리스트 추출
-		seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedList.getNumber())
-				.size(seedList.getSize())
-				.totalPages(seedList.getTotalPages())
-				.totalElements(seedList.getTotalElements())
-				.isLast(seedList.isLast())
-				.build();
-
-		return SeedResponse.GetAllSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoList)
-				.pageInfo(pageInfo)
-				.build();
+		}
+		return buildGetAllSeedsResponse(member, seedList);
 	}
 
 	public SeedResponse.GetAllSeeds getPopularSeeds(int page, int size, Member member){
@@ -556,29 +407,58 @@ public class SeedService {
 			member, DEFAULT_VIEW_COUNT,
 			pageable);
 
-		if (popularSeeds.isEmpty())
+		if( popularSeeds.isEmpty() ) {
 			return null;
+		}
+		return buildGetAllSeedsResponse(member, popularSeeds);
+	}
 
-		List<Long> seedIds = popularSeeds.stream().map(Seed::getId).toList();
+	private SeedResponse.GetAllSeeds buildGetAllSeedsResponse(Member member, Page<Seed> seedList) {
+		// seedId 리스트 추출
+		List<Long> seedIds = seedList.stream()
+			.map(Seed::getId)
+			.toList();
+
+		// seedId 리스트로 SeedProjectionResult 생성
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
+		// 북마크된 씨드 ID 리스트를 Set으로 변환
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+		// SeedResponse.SeedInfo 리스트 생성
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
+
+		return SeedResponse.GetAllSeeds.builder()
+			.nickname(member.getNickname())
+			.seedInfoList(seedInfoList)
+			.pageInfo(fromPage(seedList))
+			.build();
+	}
+
+	private SeedResponse.GetFilteredSeeds buildGetFilteredSeedsResponse(Member member, Page<Seed> seedList) {
+		// seedId 리스트 추출
+		List<Long> seedIds = seedList.stream()
+			.map(Seed::getId)
+			.toList();
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
 		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
 
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(popularSeeds.getContent(), seedProjectionResult, bookmarkedSeedSet);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-			.page(popularSeeds.getNumber())
-			.size(popularSeeds.getSize())
-			.totalPages(popularSeeds.getTotalPages())
-			.totalElements(popularSeeds.getTotalElements())
-			.isLast(popularSeeds.isLast())
-			.build();
-
-		return SeedResponse.GetAllSeeds.builder()
+		return SeedResponse.GetFilteredSeeds.builder()
 			.nickname(member.getNickname())
 			.seedInfoList(seedInfoList)
-			.pageInfo(pageInfo)
+			.pageInfo(fromPage(seedList))
+			.build();
+	}
+
+	private static SeedResponse.PageInfo fromPage(Page<Seed> seedList) {
+		return SeedResponse.PageInfo.builder()
+			.page(seedList.getNumber())
+			.size(seedList.getSize())
+			.totalPages(seedList.getTotalPages())
+			.totalElements(seedList.getTotalElements())
+			.isLast(seedList.isLast())
 			.build();
 	}
 
