@@ -267,19 +267,19 @@ public class SeedController {
         return new ApiResponse<>(unreadSeeds);
     }
 
-    @DeleteMapping(value = "/unread")
-    @Operation(summary = "읽지 않은 씨드 선택 삭제", description = "한번도 읽지 않은 씨드 목록을 선택적으로 삭제하는 API입니다.")
+    @DeleteMapping(value = "/list")
+    @Operation(summary = "씨드 목록 선택 삭제", description = "씨드 목록을 request에 포함하여 여러개의 씨드를 선택 삭제하는 API입니다.")
     @ApiResponses(value = {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
             content = @Content(mediaType = "application/json",
                 schema = @Schema(implementation = SeedResponse.GetAllSeeds.class))),
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<Void> deleteUnreadSeeds(
+    public ApiResponse<Void> deleteSeedList(
         @RequestBody @Valid SeedDeleteListRequest request,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Member member = customUserDetails.getMember();
-        // 읽지 않은 씨드 선택 삭제
+        seedService.deleteSeedList(request, member);
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 

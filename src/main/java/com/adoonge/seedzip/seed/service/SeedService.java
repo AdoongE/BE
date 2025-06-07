@@ -18,6 +18,7 @@ import com.adoonge.seedzip.seed.dto.projection.CategorySeedProjection;
 import com.adoonge.seedzip.seed.dto.projection.FileSeedProjection;
 import com.adoonge.seedzip.seed.dto.projection.SeedProjectionResult;
 import com.adoonge.seedzip.seed.dto.projection.SeedTagProjection;
+import com.adoonge.seedzip.seed.dto.request.SeedDeleteListRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
@@ -422,6 +423,16 @@ public class SeedService {
 			return null;
 		}
 		return buildGetAllSeedsResponse(member, seedList);
+	}
+
+	@Transactional
+	public void deleteSeedList(SeedDeleteListRequest request, Member member) {
+		List<Long> seedIds = request.seedIdList();
+		if (seedIds.isEmpty())	return;
+
+		for (Long seedId : seedIds) {
+			deleteSeed(seedId, member);
+		}
 	}
 
 	private SeedResponse.GetAllSeeds buildGetAllSeedsResponse(Member member, Page<Seed> seedList) {
