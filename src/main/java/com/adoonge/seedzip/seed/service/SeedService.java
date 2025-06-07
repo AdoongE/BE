@@ -81,6 +81,7 @@ public class SeedService {
 		.collect(Collectors.toSet());
 
 	private static final Long DEFAULT_VIEW_COUNT = 3L;
+	private static final Long UNREAD_VIEW_COUNT = 0L;
 
 	public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 		String seedType) {
@@ -411,6 +412,16 @@ public class SeedService {
 			return null;
 		}
 		return buildGetAllSeedsResponse(member, popularSeeds);
+	}
+
+	public SeedResponse.GetAllSeeds getUnreadSeeds(Member member, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> seedList = seedRepository.findByMemberAndViewCount(member, UNREAD_VIEW_COUNT, pageable);
+
+		if (seedList.isEmpty()) {
+			return null;
+		}
+		return buildGetAllSeedsResponse(member, seedList);
 	}
 
 	private SeedResponse.GetAllSeeds buildGetAllSeedsResponse(Member member, Page<Seed> seedList) {

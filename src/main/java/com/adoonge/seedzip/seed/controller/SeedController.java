@@ -259,10 +259,12 @@ public class SeedController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<SeedResponse.GetAllSeeds> getUnreadSeeds(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "9") int size,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         Member member = customUserDetails.getMember();
-        // 읽지 않은 씨드 조회
-        return new ApiResponse<>(ErrorCode.REQUEST_OK);
+        SeedResponse.GetAllSeeds unreadSeeds = seedService.getUnreadSeeds(member, page, size);
+        return new ApiResponse<>(unreadSeeds);
     }
 
     @DeleteMapping(value = "/unread")

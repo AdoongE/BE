@@ -39,4 +39,6 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 	long countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
 
 	Page<Seed> findTop30ByMemberAndViewCountGreaterThanOrderByViewCountDesc(Member member, Long viewCount, Pageable pageable);
+
+	Page<Seed> findByMemberAndViewCount(Member member, Long viewCount, Pageable pageable);
 }
