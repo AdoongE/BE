@@ -299,10 +299,7 @@ public class SeedService {
 		categorySeedRepository.deleteAllBySeedId(id);
 
 		//S3에서 파일 삭제
-		List<String> fileLinks = fileRepository.findFilesBySeedId(id).stream()
-			.map(File::getLink)
-			.toList();
-		fileService.deleteFiles(seed.getSeedType(), fileLinks);
+		deleteFileFromS3(id, seed);
 
 		//파일 삭제
 		fileRepository.deleteAllBySeedId(id);
@@ -361,11 +358,7 @@ public class SeedService {
 				file.updateLink(request.seedLink());
 			}
 		} else {    // 이미지, PDF
-			List<String> fileLinks = fileRepository.findFilesBySeedId(seedId).stream()
-				.map(File::getLink)
-				.toList();
-			fileService.deleteFiles(seed.getSeedType(), fileLinks);
-
+			deleteFileFromS3(seedId, seed);
 			fileRepository.deleteAllBySeedId(seedId);
 		}
 
@@ -430,9 +423,30 @@ public class SeedService {
 		List<Long> seedIds = request.seedIdList();
 		if (seedIds.isEmpty())	return;
 
-		for (Long seedId : seedIds) {
-			deleteSeed(seedId, member);
+		List<Seed> seeds = seedRepository.findAllByIdIn(seedIds);
+		if(seedIds.size() != seeds.size()) {
+			throw SeedzipException.from(ErrorCode.SEED_ACCESS_DENIED);
 		}
+
+		// 소유자 검증 및 S3에서 파일 삭제
+		for(Seed seed : seeds) {
+			if(!seed.getMember().getId().equals(member.getId())) {
+				throw SeedzipException.from(ErrorCode.MEMBER_NOT_OWNER);
+			}
+			deleteFileFromS3(seed.getId(), seed);
+		}
+
+		categorySeedRepository.deleteAllBySeedIdIn(seedIds);
+		fileRepository.deleteAllBySeedIdIn(seedIds);
+		seedTagRepository.deleteAllBySeedIdIn(seedIds);
+		seedRepository.deleteAllByIdIn(seedIds);
+	}
+
+	private void deleteFileFromS3(Long id, Seed seed) {
+		List<String> fileLinks = fileRepository.findFilesBySeedId(id).stream()
+			.map(File::getLink)
+			.toList();
+		fileService.deleteFiles(seed.getSeedType(), fileLinks);
 	}
 
 	private SeedResponse.GetAllSeeds buildGetAllSeedsResponse(Member member, Page<Seed> seedList) {

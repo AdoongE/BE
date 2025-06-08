@@ -109,6 +109,7 @@ public enum ErrorCode {
     SEED_BOOKMARK_NOT_FOUND(HttpStatus.NOT_FOUND, "북마크된 씨드를 찾을 수 없습니다."),
     SEED_BOOKMARK_ACCESS_DENIED(HttpStatus.FORBIDDEN, "북마크된 씨드에 대한 접근 권한이 없습니다."),
     EMPTY_SEED(HttpStatus.OK, "씨드가 존재하지 않습니다."),
+    SEED_ACCESS_DENIED(HttpStatus.FORBIDDEN, "이 씨드에 대한 접근 권한이 없습니다."),
 
     // tag
     TAG_NOT_FOUND(HttpStatus.NOT_FOUND, "태그를 찾을 수 없습니다."),

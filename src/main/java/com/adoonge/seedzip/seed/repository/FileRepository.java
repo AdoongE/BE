@@ -25,5 +25,7 @@ public interface FileRepository extends JpaRepository<File, Long> {
 
     void deleteAllBySeedId(Long seedId);
 
+    void deleteAllBySeedIdIn(List<Long> seedIds);
+
     List<File> findFilesBySeedId(Long seedId);
 }
