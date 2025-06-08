@@ -14,8 +14,11 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import jakarta.transaction.Transactional;
 
+@Repository
 public interface SeedRepository extends JpaRepository<Seed, Long> {
 	Page<Seed> findByMember(Member member, Pageable pageable);
 
@@ -37,4 +40,12 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 	void incrementViews(@Param("seedId") Long seedId, @Param("count") Long count);
 
 	long countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
+
+	Page<Seed> findTop30ByMemberAndViewCountGreaterThanOrderByViewCountDesc(Member member, Long viewCount, Pageable pageable);
+
+	Page<Seed> findByMemberAndViewCount(Member member, Long viewCount, Pageable pageable);
+
+	List<Seed> findAllByIdIn(List<Long> seedIds);
+
+	void deleteAllByIdIn(List<Long> seedIds);
 }

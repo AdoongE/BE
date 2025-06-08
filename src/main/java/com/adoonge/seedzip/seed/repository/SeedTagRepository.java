@@ -24,5 +24,7 @@ public interface SeedTagRepository extends JpaRepository<SeedTag, Long> {
 
     void deleteAllBySeedId(Long seedId);
 
+    void deleteAllBySeedIdIn(List<Long> seedIds);
+
     List<SeedTag> findSeedTagsBySeedId(Long seedId);
 }

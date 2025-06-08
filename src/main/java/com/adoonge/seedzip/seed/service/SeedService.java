@@ -1,7 +1,6 @@
 package com.adoonge.seedzip.seed.service;
 
 import com.adoonge.seedzip.bookmark.repository.SeedBookmarkRepository;
-import com.adoonge.seedzip.bookmark.service.BookmarkService;
 import com.adoonge.seedzip.category.domain.Category;
 import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.filter.domain.Filter;
@@ -19,6 +18,7 @@ import com.adoonge.seedzip.seed.dto.projection.CategorySeedProjection;
 import com.adoonge.seedzip.seed.dto.projection.FileSeedProjection;
 import com.adoonge.seedzip.seed.dto.projection.SeedProjectionResult;
 import com.adoonge.seedzip.seed.dto.projection.SeedTagProjection;
+import com.adoonge.seedzip.seed.dto.request.SeedDeleteListRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
@@ -38,12 +38,10 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -59,6 +57,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Service
 @Slf4j
@@ -82,7 +81,9 @@ public class SeedService {
 		.map(DefaultTagType::getDisplayName)
 		.collect(Collectors.toSet());
 
-	@Transactional(readOnly = true)
+	private static final Long DEFAULT_VIEW_COUNT = 3L;
+	private static final Long UNREAD_VIEW_COUNT = 0L;
+
 	public SeedResponse.GetAllSeeds getAllSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 		String seedType) {
 
@@ -101,37 +102,12 @@ public class SeedService {
 			seedList = seedRepository.findByMember(member, pageable);
 		}
 
-		if (seedList.isEmpty())
-			return null;
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-			.page(seedList.getNumber())
-			.size(seedList.getSize())
-			.totalPages(seedList.getTotalPages())
-			.totalElements(seedList.getTotalElements())
-			.isLast(seedList.isLast())
-			.build();
-
-		return SeedResponse.GetAllSeeds.builder()
-			.nickname(member.getNickname())
-			.seedInfoList(seedInfoList)
-			.pageInfo(pageInfo)
-			.build();
+		if(seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetAllSeedsResponse(member, seedList);
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetAllSeeds getCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 		String seedType, long categoryId) {
 
@@ -152,34 +128,10 @@ public class SeedService {
 			seedList = seedRepository.findBySeedIdIn(seedIds, pageable);
 		}
 
-		if (seedList.isEmpty())
-			return null;
-
-		// seedId 리스트 추출
-		seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-			.page(seedList.getNumber())
-			.size(seedList.getSize())
-			.totalPages(seedList.getTotalPages())
-			.totalElements(seedList.getTotalElements())
-			.isLast(seedList.isLast())
-			.build();
-
-		return SeedResponse.GetAllSeeds.builder()
-			.nickname(member.getNickname())
-			.seedInfoList(seedInfoList)
-			.pageInfo(pageInfo)
-			.build();
+		if (seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetAllSeedsResponse(member, seedList);
 	}
 
 	@Transactional
@@ -212,18 +164,17 @@ public class SeedService {
 	@Transactional
 	public void uploadFiles(Long seedId, List<MultipartFile> files) {
 		Seed seed = seedRepository.findById(seedId).orElseThrow(
-			() -> SeedzipException.from(ErrorCode.CONTENT_NOT_FOUND)
+			() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND)
 		);
 
 		fileService.saveFiles(files, seed);
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.SeedDetail getSeedDetail(Long seedId) {
 		Seed seed = getSeedOrThrow(seedId);
 		seedCacheService.increaseViewCounts(seedId);
 		List<File> files = fileRepository.findAllBySeed(seed)
-				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND));
 
 		String seedLink = null;
 		List<String> fileLinks = null;
@@ -268,7 +219,6 @@ public class SeedService {
 				.build();
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetFilteredSeeds getFilteredSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 														  String seedType, SeedFilteringRequest request) {
 		Sort.Direction direction = getSortDirection(isAsc);
@@ -287,37 +237,11 @@ public class SeedService {
 		}
 
 		if (seedList.isEmpty()){
-			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedList.getNumber())
-				.size(seedList.getSize())
-				.totalPages(seedList.getTotalPages())
-				.totalElements(seedList.getTotalElements())
-				.isLast(seedList.isLast())
-				.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoList)
-				.pageInfo(pageInfo)
-				.build();
+		return buildGetFilteredSeedsResponse(member, seedList);
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetFilteredSeeds getFilteredCategorySeeds(Member member, int page, int size, String sortBy, boolean isAsc,
 														  String seedType, Long categoryId, SeedFilteringRequest request) {
 		Sort.Direction direction = getSortDirection(isAsc);
@@ -336,37 +260,11 @@ public class SeedService {
 		}
 
 		if (seedList.isEmpty()){
-			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
-
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedList.getNumber())
-				.size(seedList.getSize())
-				.totalPages(seedList.getTotalPages())
-				.totalElements(seedList.getTotalElements())
-				.isLast(seedList.isLast())
-				.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoList)
-				.pageInfo(pageInfo)
-				.build();
+		return buildGetFilteredSeedsResponse(member, seedList);
 	}
 
-	@Transactional(readOnly = true)
 	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
 		Filter filter = filterRepository.findById(filterId)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));
@@ -381,34 +279,10 @@ public class SeedService {
 				filter.getStorageFormats(), filter.getFromDDay(), filter.getToDDay(), filter.getFilterId(), member.getId());
 		List<Seed> seedList = seedPage.getContent();
 
-		if (seedList.isEmpty())
-			return null;
-
-		// seedId 리스트 추출
-		List<Long> seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
-
-		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
-
-		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
-
-		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoWithSeedDetails = generateResponseWithDetailFromSeedList(seedList, seedProjectionResult, bookmarkedSeedSet);
-
-
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedPage.getNumber())
-				.size(seedPage.getSize())
-				.totalPages(seedPage.getTotalPages())
-				.totalElements(seedPage.getTotalElements())
-				.isLast(seedPage.isLast())
-				.build();
-
-		return SeedResponse.GetFilteredSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoWithSeedDetails)
-				.pageInfo(pageInfo)
-				.build();
+		if (seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetFilteredSeedsResponse(member, seedPage);
 	}
 
 	@Transactional
@@ -425,10 +299,7 @@ public class SeedService {
 		categorySeedRepository.deleteAllBySeedId(id);
 
 		//S3에서 파일 삭제
-		List<String> fileLinks = fileRepository.findFilesBySeedId(id).stream()
-			.map(File::getLink)
-			.toList();
-		fileService.deleteFiles(seed.getSeedType(), fileLinks);
+		deleteFileFromS3(id, seed);
 
 		//파일 삭제
 		fileRepository.deleteAllBySeedId(id);
@@ -487,11 +358,7 @@ public class SeedService {
 				file.updateLink(request.seedLink());
 			}
 		} else {    // 이미지, PDF
-			List<String> fileLinks = fileRepository.findFilesBySeedId(seedId).stream()
-				.map(File::getLink)
-				.toList();
-			fileService.deleteFiles(seed.getSeedType(), fileLinks);
-
+			deleteFileFromS3(seedId, seed);
 			fileRepository.deleteAllBySeedId(seedId);
 		}
 
@@ -523,34 +390,112 @@ public class SeedService {
 			seedList = seedRepository.findBySeedIdIn(seedIds, pageable);
 		}
 
-		if (seedList.isEmpty())
-			return null;
+		if (seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetAllSeedsResponse(member, seedList);
+	}
 
+	public SeedResponse.GetAllSeeds getPopularSeeds(int page, int size, Member member){
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> popularSeeds = seedRepository.findTop30ByMemberAndViewCountGreaterThanOrderByViewCountDesc(
+			member, DEFAULT_VIEW_COUNT,
+			pageable);
+
+		if( popularSeeds.isEmpty() ) {
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetAllSeedsResponse(member, popularSeeds);
+	}
+
+	public SeedResponse.GetAllSeeds getUnreadSeeds(Member member, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Seed> seedList = seedRepository.findByMemberAndViewCount(member, UNREAD_VIEW_COUNT, pageable);
+
+		if (seedList.isEmpty()) {
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetAllSeedsResponse(member, seedList);
+	}
+
+	@Transactional
+	public void deleteSeedList(SeedDeleteListRequest request, Member member) {
+		List<Long> seedIds = request.seedIdList();
+		if (seedIds.isEmpty())	return;
+
+		List<Seed> seeds = seedRepository.findAllByIdIn(seedIds);
+		if(seedIds.size() != seeds.size()) {
+			throw SeedzipException.from(ErrorCode.SEED_ACCESS_DENIED);
+		}
+
+		// 소유자 검증 및 S3에서 파일 삭제
+		for(Seed seed : seeds) {
+			if(!seed.getMember().getId().equals(member.getId())) {
+				throw SeedzipException.from(ErrorCode.MEMBER_NOT_OWNER);
+			}
+			deleteFileFromS3(seed.getId(), seed);
+		}
+
+		categorySeedRepository.deleteAllBySeedIdIn(seedIds);
+		fileRepository.deleteAllBySeedIdIn(seedIds);
+		seedTagRepository.deleteAllBySeedIdIn(seedIds);
+		seedRepository.deleteAllByIdIn(seedIds);
+	}
+
+	private void deleteFileFromS3(Long id, Seed seed) {
+		List<String> fileLinks = fileRepository.findFilesBySeedId(id).stream()
+			.map(File::getLink)
+			.toList();
+		fileService.deleteFiles(seed.getSeedType(), fileLinks);
+	}
+
+	private SeedResponse.GetAllSeeds buildGetAllSeedsResponse(Member member, Page<Seed> seedList) {
 		// seedId 리스트 추출
-		seedIds = seedList.stream()
-				.map(Seed::getId)
-				.toList();
+		List<Long> seedIds = seedList.stream()
+			.map(Seed::getId)
+			.toList();
+
+		// seedId 리스트로 SeedProjectionResult 생성
+		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
+		// 북마크된 씨드 ID 리스트를 Set으로 변환
+		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
+		// SeedResponse.SeedInfo 리스트 생성
+		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
+
+		return SeedResponse.GetAllSeeds.builder()
+			.nickname(member.getNickname())
+			.seedInfoList(seedInfoList)
+			.pageInfo(fromPage(seedList))
+			.build();
+	}
+
+	private SeedResponse.GetFilteredSeeds buildGetFilteredSeedsResponse(Member member, Page<Seed> seedList) {
+		// seedId 리스트 추출
+		List<Long> seedIds = seedList.stream()
+			.map(Seed::getId)
+			.toList();
 
 		SeedProjectionResult seedProjectionResult = getSeedProjectionResult(seedIds);
 
 		Set<Long> bookmarkedSeedSet = new HashSet<>(seedBookmarkRepository.findSeedIdsByMember(member));
 
-		List<SeedResponse.SeedInfo> seedInfoList = generateResponseFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
+		List<SeedResponse.SeedInfoWithSeedDetail> seedInfoList = generateResponseWithDetailFromSeedList(seedList.getContent(), seedProjectionResult, bookmarkedSeedSet);
 
-		//페이징 정보 추가
-		SeedResponse.PageInfo pageInfo = SeedResponse.PageInfo.builder()
-				.page(seedList.getNumber())
-				.size(seedList.getSize())
-				.totalPages(seedList.getTotalPages())
-				.totalElements(seedList.getTotalElements())
-				.isLast(seedList.isLast())
-				.build();
+		return SeedResponse.GetFilteredSeeds.builder()
+			.nickname(member.getNickname())
+			.seedInfoList(seedInfoList)
+			.pageInfo(fromPage(seedList))
+			.build();
+	}
 
-		return SeedResponse.GetAllSeeds.builder()
-				.nickname(member.getNickname())
-				.seedInfoList(seedInfoList)
-				.pageInfo(pageInfo)
-				.build();
+	private static SeedResponse.PageInfo fromPage(Page<Seed> seedList) {
+		return SeedResponse.PageInfo.builder()
+			.page(seedList.getNumber())
+			.size(seedList.getSize())
+			.totalPages(seedList.getTotalPages())
+			.totalElements(seedList.getTotalElements())
+			.isLast(seedList.isLast())
+			.build();
 	}
 
 	private SeedProjectionResult getSeedProjectionResult(List<Long> seedIds) {
