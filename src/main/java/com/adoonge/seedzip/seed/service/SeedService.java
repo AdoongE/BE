@@ -103,7 +103,7 @@ public class SeedService {
 		}
 
 		if(seedList.isEmpty()){
-			return null;
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetAllSeedsResponse(member, seedList);
 	}
@@ -129,7 +129,7 @@ public class SeedService {
 		}
 
 		if (seedList.isEmpty()){
-			return null;
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetAllSeedsResponse(member, seedList);
 	}
@@ -164,7 +164,7 @@ public class SeedService {
 	@Transactional
 	public void uploadFiles(Long seedId, List<MultipartFile> files) {
 		Seed seed = seedRepository.findById(seedId).orElseThrow(
-			() -> SeedzipException.from(ErrorCode.CONTENT_NOT_FOUND)
+			() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND)
 		);
 
 		fileService.saveFiles(files, seed);
@@ -174,7 +174,7 @@ public class SeedService {
 		Seed seed = getSeedOrThrow(seedId);
 		seedCacheService.increaseViewCounts(seedId);
 		List<File> files = fileRepository.findAllBySeed(seed)
-				.orElseThrow(() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND));
+				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND));
 
 		String seedLink = null;
 		List<String> fileLinks = null;
@@ -237,7 +237,7 @@ public class SeedService {
 		}
 
 		if (seedList.isEmpty()){
-			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetFilteredSeedsResponse(member, seedList);
 	}
@@ -260,7 +260,7 @@ public class SeedService {
 		}
 
 		if (seedList.isEmpty()){
-			throw SeedzipException.from(ErrorCode.SEED_NOT_FOUND);
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetFilteredSeedsResponse(member, seedList);
 	}
@@ -280,7 +280,7 @@ public class SeedService {
 		List<Seed> seedList = seedPage.getContent();
 
 		if (seedList.isEmpty()){
-			return null;
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetFilteredSeedsResponse(member, seedPage);
 	}
@@ -398,7 +398,7 @@ public class SeedService {
 		}
 
 		if (seedList.isEmpty()){
-			return null;
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetAllSeedsResponse(member, seedList);
 	}
@@ -410,7 +410,7 @@ public class SeedService {
 			pageable);
 
 		if( popularSeeds.isEmpty() ) {
-			return null;
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetAllSeedsResponse(member, popularSeeds);
 	}
@@ -420,7 +420,7 @@ public class SeedService {
 		Page<Seed> seedList = seedRepository.findByMemberAndViewCount(member, UNREAD_VIEW_COUNT, pageable);
 
 		if (seedList.isEmpty()) {
-			return null;
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
 		}
 		return buildGetAllSeedsResponse(member, seedList);
 	}
