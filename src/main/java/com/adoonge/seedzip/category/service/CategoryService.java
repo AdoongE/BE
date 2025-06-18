@@ -69,7 +69,7 @@ public class CategoryService {
 	}
 
 	public List<CategoryResponse> getCategories(Member member) {
-		List<Category> categories = categoryRepository.findAllByMemberId(member.getId());
+		List<Category> categories = categoryRepository.findAllByMemberOrdered(member);
 
 		return categories.stream()
 			.map(CategoryResponse::fromEntity)
