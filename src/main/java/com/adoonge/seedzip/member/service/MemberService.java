@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.member.service;
 
+import com.adoonge.seedzip.category.repository.CategoryRepository;
 import java.time.LocalDate;
 
 import com.adoonge.seedzip.member.dto.response.MemberStatisticsResponse;
@@ -22,6 +23,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final SeedRepository seedRepository;
     private final SeedRepositoryCustom seedRepositoryCustom;
+    private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
     public MemberInformationResponse getMemberInformation(Member member) {
@@ -45,10 +47,13 @@ public class MemberService {
     public MemberStatisticsResponse getMemberStatistics(Member member) {
         LocalDate today = LocalDate.now();
 
+        Long totalCategoryCount = categoryRepository.countByMember(member);
+
         return MemberStatisticsResponse.from(
-            member,
-            seedRepository.countByCreatedAtBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay()),
-            seedRepositoryCustom.getSeedStatistics(member)
+                member,
+                seedRepository.countByCreatedAtBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay()),
+                seedRepositoryCustom.getSeedStatistics(member),
+                totalCategoryCount
         );
     }
 }
