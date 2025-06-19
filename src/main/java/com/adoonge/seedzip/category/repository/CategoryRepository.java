@@ -23,4 +23,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 	List<Category> findAllByMemberOrdered(@Param("member") Member member);
 
 	Optional<Category> findByMemberIdAndName(Long memberId, String name);
+
+	long countByMember(Member member);
+
 }
