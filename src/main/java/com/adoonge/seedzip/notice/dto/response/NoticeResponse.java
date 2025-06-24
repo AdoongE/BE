@@ -8,6 +8,7 @@ public record NoticeResponse(
         Long id,
         String type,
         String title,
+        String content,
         boolean isImportant,
         boolean isNew,
         String createdAt
@@ -17,6 +18,7 @@ public record NoticeResponse(
                 notice.getId(),
                 notice.getType(),
                 notice.getTitle(),
+                notice.getContent(),
                 notice.getIsImportant(),
                 notice.getCreatedAt().isAfter(LocalDateTime.now().minusDays(7)),
                 notice.getCreatedAt().format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
