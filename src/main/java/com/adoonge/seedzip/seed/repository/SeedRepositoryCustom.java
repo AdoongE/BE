@@ -21,5 +21,8 @@ public interface SeedRepositoryCustom {
         List<String> seedType, Long dDayStart, Long dDayEnd, Long filterId, Long memberId
     );
 
+    Page<Seed> findBookmarkSeedsByFiltering(Member member, Pageable pageable, SeedType seedType, String keyword);
+
+
     SeedStatisticsDTO getSeedStatistics(Member member);
 }

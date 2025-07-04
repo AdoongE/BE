@@ -265,6 +265,29 @@ public class SeedService {
 		return buildGetFilteredSeedsResponse(member, seedList);
 	}
 
+	public SeedResponse.GetFilteredSeeds getFilteredBookmarkSeeds(Member member, int page, int size, String sortBy, boolean isAsc,
+																  String seedType, String keyword) {
+		Sort.Direction direction = getSortDirection(isAsc);
+		String sortField = getSortField(sortBy);
+		SeedType parsedSeedType = parseSeedType(seedType);
+
+		//페이징을 위한 Pageable 객체
+		Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortField));
+
+		//페이징으로 얻어온 Seed 리스트
+		Page<Seed> seedList;
+		if (seedType != null) {
+			seedList = seedRepositoryCustom.findBookmarkSeedsByFiltering(member, pageable, parsedSeedType, keyword);
+		} else {
+			seedList = seedRepositoryCustom.findBookmarkSeedsByFiltering(member, pageable, null, keyword);
+		}
+
+		if (seedList.isEmpty()){
+			throw SeedzipException.from(ErrorCode.EMPTY_SEED);
+		}
+		return buildGetFilteredSeedsResponse(member, seedList);
+	}
+
 	public SeedResponse.GetFilteredSeeds getCustomFilterSeeds(Member member, int page, int size, Long filterId) {
 		Filter filter = filterRepository.findById(filterId)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILTER_NOT_FOUND));

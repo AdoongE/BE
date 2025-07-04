@@ -196,6 +196,30 @@ public class SeedController {
         return new ApiResponse<>(filteredSeeds);
     }
 
+    @PostMapping("/filtering/bookmark")
+    @Operation(summary = "즐겨찾기(북마크) 씨드 검색 API", description = "즐겨찾기(북마크) 한 씨드를 검색하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = SeedResponse.GetFilteredSeeds.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.GetFilteredSeeds> getFilteredBookmarkSeeds(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "9") int size,
+            @RequestParam(defaultValue = "latest") String sortBy, // latest or name
+            @RequestParam(defaultValue = "false") boolean isAsc,
+            @RequestParam(required = false) String seedType,
+            @RequestParam String keyword,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
+        Member member = customUserDetails.getMember();
+
+        GetFilteredSeeds filteredSeeds = seedService.getFilteredBookmarkSeeds(member, page, size, sortBy, isAsc, seedType, keyword);
+
+        return new ApiResponse<>(filteredSeeds);
+    }
+
     @DeleteMapping("/{seedId}")
     @Operation(summary = "씨드 삭제 API", description = "씨드 삭제 API입니다.")
     @ApiResponses(value = {

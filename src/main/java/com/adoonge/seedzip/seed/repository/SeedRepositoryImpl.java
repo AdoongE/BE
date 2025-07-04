@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.seed.repository;
 
+import com.adoonge.seedzip.bookmark.domain.QSeedBookmark;
 import com.adoonge.seedzip.filter.domain.QFilterTag;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
@@ -41,6 +42,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 	QTag tag = QTag.tag;
 	QCategorySeed categorySeed = QCategorySeed.categorySeed;
 	QFilterTag filterTag = QFilterTag.filterTag;
+	QSeedBookmark seedBookmark = QSeedBookmark.seedBookmark;
 
 	@Override
 	public SeedStatisticsDTO getSeedStatistics(Member member) {
@@ -134,6 +136,34 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 	}
 
 	@Override
+	public Page<Seed> findBookmarkSeedsByFiltering(Member member, Pageable pageable, SeedType seedType,
+												   String keyword) {
+
+		BooleanExpression condition = seedBookmark.member.eq(member);
+
+		condition = safeAnd(condition, filteringByKeyword(keyword));
+		condition = safeAnd(condition, filteringBySeedType(seedType));
+
+		List<Seed> content = queryFactory
+				.select(seedBookmark.seed)
+				.from(seedBookmark)
+				.join(seedBookmark.seed, seed)
+				.where(condition)
+				.offset(pageable.getOffset())
+				.limit(pageable.getPageSize())
+				.orderBy(getOrderSpecifiers(pageable.getSort()))
+				.fetch();
+
+		Long total = queryFactory
+				.select(seedBookmark.count())
+				.from(seedBookmark)
+				.join(seedBookmark.seed, seed)
+				.where(condition)
+				.fetchOne();
+
+		return new PageImpl<>(content, pageable, total != null ? total : 0);	}
+
+	@Override
 	public Page<Seed> findSeedsByCustomFilter(Pageable pageable, LocalDate startDate, LocalDate endDate,
 		List<String> seedType, Long dDayStart, Long dDayEnd, Long filterId, Long memberID) {
 
@@ -180,6 +210,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 
 		return new PageImpl<>(seeds, pageable, total != null ? total : 0);
 	}
+
 
 	//Category 필터 조건
 	private BooleanExpression filteringByCategory(Long categoryId) {
