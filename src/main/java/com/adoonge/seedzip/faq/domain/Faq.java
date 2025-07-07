@@ -36,7 +36,7 @@ public class Faq {
     private String question;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
     @Column(nullable = false)
