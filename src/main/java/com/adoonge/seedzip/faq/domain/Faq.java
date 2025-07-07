@@ -36,10 +36,10 @@ public class Faq {
     private String question;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String answer;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private Integer orderIndex;  // 정렬 순서 (Q1, Q2 등)
 
     public void update(FaqUpdateRequest request) {
