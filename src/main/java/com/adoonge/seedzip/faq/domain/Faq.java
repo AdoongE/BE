@@ -39,7 +39,7 @@ public class Faq {
     @Column(nullable = false)
     private String answer;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private Integer orderIndex;  // 정렬 순서 (Q1, Q2 등)
 
     public void update(FaqUpdateRequest request) {
