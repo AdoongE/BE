@@ -72,6 +72,10 @@ springdoc:
   api-docs:
     path: /v1/api-docs
 
+swagger:
+  server:
+    url: ${SWAGGER_URL}
+
 kakao:
   api:
     key: ${KAKAO_API_KEY}
