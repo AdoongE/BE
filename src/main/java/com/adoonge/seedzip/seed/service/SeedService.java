@@ -138,28 +138,28 @@ public class SeedService {
 
 	@Transactional
 	public SeedResponse.SeedInfoSimple uploadSeed(SeedRequest seedRequest, Member member) {
-		if(seedRequest.seedType() == SeedType.LINK && seedRequest.seedLink() == null) {
+		if(seedRequest.type() == SeedType.LINK && seedRequest.link() == null) {
 			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
 		}
 
 		Seed seed = saveSeed(seedRequest, member);
 
 		// 태그 및 카테고리 저장
-		saveSeedTags(seedRequest.tags(), member, seed);
-		if(seedRequest.boardCategories() == null) {
+		saveSeedTags(seedRequest.tagNames(), member, seed);
+		if(seedRequest.categoryNames() == null) {
 			saveSeedDefaultCategory(member, seed);
 		} else {
-			saveSeedCategories(seedRequest.boardCategories(), member, seed);
+			saveSeedCategories(seedRequest.categoryNames(), member, seed);
 		}
 
-		if (seedRequest.seedType() == SeedType.LINK) {
-			fileService.saveLink(seedRequest.seedLink(), seed);
+		if (seedRequest.type() == SeedType.LINK) {
+			fileService.saveLink(seedRequest.link(), seed);
 		}
 
 		return SeedResponse.SeedInfoSimple
 			.builder()
-			.seedId(seed.getId())
-			.seedName(seed.getSeedName())
+			.id(seed.getId())
+			.name(seed.getSeedName())
 			.build();
 	}
 
@@ -208,17 +208,17 @@ public class SeedService {
 		List<String> tagNames = seedTagRepository.findTagNamesBySeed(seed);
 
 		return SeedResponse.SeedDetail.builder()
-				.seedId(seed.getId())
-				.seedType(seed.getSeedType())
-				.seedName(seed.getSeedName())
-				.seedLink(seedLink)
+				.id(seed.getId())
+				.type(seed.getSeedType())
+				.name(seed.getSeedName())
+				.link(seedLink)
 				.fileLinks(fileLinks)
-				.titles(titles)
+				.fileTitles(titles)
 				.thumbnailImage(thumbnailImage)
 				.categoryNames(categoryNames)
 				.tagNames(tagNames)
 				.dDay(seed.getDDay())
-				.seedDetail(seed.getSeedDetail())
+				.detail(seed.getSeedDetail())
 				.build();
 	}
 
@@ -344,12 +344,12 @@ public class SeedService {
 	@Transactional
 	public SeedResponse.SeedInfoSimple updateSeed(SeedUpdateRequest request,
 		Long seedId, Member member) {
-		if(request.seedType() == SeedType.LINK && request.seedLink() == null) {
+		if(request.type() == SeedType.LINK && request.link() == null) {
 			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
 		}
 
 		Seed seed = getSeedOrThrow(seedId);
-		if(!request.seedType().equals(seed.getSeedType())) {
+		if(!request.type().equals(seed.getSeedType())) {
 			throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
 		}
 
@@ -359,14 +359,14 @@ public class SeedService {
 		}
 
 		// 기본 필드 수정
-		if (!Objects.equals(seed.getSeedName(), request.seedName())) {
-			seed.updateSeedName(request.seedName());
+		if (!Objects.equals(seed.getSeedName(), request.name())) {
+			seed.updateSeedName(request.name());
 		}
 		if (!Objects.equals(seed.getDDay(), request.dDay())) {
 			seed.updateDDay(request.dDay());
 		}
-		if (!Objects.equals(seed.getSeedDetail(), request.seedDetail())) {
-			seed.updateSeedDetail(request.seedDetail());
+		if (!Objects.equals(seed.getSeedDetail(), request.detail())) {
+			seed.updateSeedDetail(request.detail());
 		}
 		if (!Objects.equals(seed.getThumbnailIdx(), request.thumbnailImage())) {
 			seed.updateThumbnailIdx(request.thumbnailImage());
@@ -374,18 +374,18 @@ public class SeedService {
 
 		// 태그
 		seedTagRepository.deleteAllBySeedId(seedId);
-		saveSeedTags(request.tags(), member, seed);
+		saveSeedTags(request.tagNames(), member, seed);
 
 		// 카테고리
 		categorySeedRepository.deleteAllBySeedId(seedId);
-		saveSeedCategories(request.boardCategories(), member, seed);
+		saveSeedCategories(request.categoryNames(), member, seed);
 
 		if (seed.getSeedType().equals(SeedType.LINK)) {
 			File file = fileRepository.findBySeed(seed).orElseThrow(
 				() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND)
 			);
-			if (!Objects.equals(file.getLink(), request.seedLink())) {
-				file.updateLink(request.seedLink());
+			if (!Objects.equals(file.getLink(), request.link())) {
+				file.updateLink(request.link());
 			}
 		} else {    // 이미지, PDF
 			deleteFileFromS3(seedId, seed);
@@ -394,8 +394,8 @@ public class SeedService {
 
 		Seed updatedSeed = seedRepository.save(seed);
 		return SeedResponse.SeedInfoSimple.builder()
-			.seedId(updatedSeed.getId())
-			.seedName(updatedSeed.getSeedName())
+			.id(updatedSeed.getId())
+			.name(updatedSeed.getSeedName())
 			.build();
 	}
 
@@ -450,7 +450,7 @@ public class SeedService {
 
 	@Transactional
 	public void deleteSeedList(SeedDeleteListRequest request, Member member) {
-		List<Long> seedIds = request.seedIdList();
+		List<Long> seedIds = request.ids();
 		if (seedIds.isEmpty())	return;
 
 		List<Seed> seeds = seedRepository.findAllByIdIn(seedIds);
@@ -554,11 +554,11 @@ public class SeedService {
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
-			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
-			.seedDetail(seedRequest.seedDetail())
+			.name(seedRequest.name() == null ? LocalDate.now().toString() : seedRequest.name())
+			.detail(seedRequest.detail())
 			.thumbnailImage(seedRequest.thumbnailImage() == null ? 0 : seedRequest.thumbnailImage())
 			.dDay(seedRequest.dDay())
-			.seedType(seedRequest.seedType())
+			.type(seedRequest.type())
 			.member(member)
 			.build();
 

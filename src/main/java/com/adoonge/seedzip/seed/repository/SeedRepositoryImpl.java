@@ -79,7 +79,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 	@Override
 	public Page<Seed> findSeedsByFiltering(Member member, Pageable pageable, SeedType seedType,
 		SeedFilteringRequest request) {
-		List<String> tagNames = request.tags();
+		List<String> tagNames = request.tagNames();
 		String keyword = request.keyword();
 
 		BooleanExpression condition = seed.member.eq(member);
@@ -108,7 +108,7 @@ public class SeedRepositoryImpl implements SeedRepositoryCustom {
 	@Override
 	public Page<Seed> findCategorySeedsByFiltering(Member member, Pageable pageable, SeedType seedType, Long categoryId,
 		SeedFilteringRequest request) {
-		List<String> tagNames = request.tags();
+		List<String> tagNames = request.tagNames();
 		String keyword = request.keyword();
 
 		BooleanExpression condition = seed.member.eq(member);
