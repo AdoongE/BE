@@ -23,10 +23,10 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
-@RestController
-@RequestMapping("/api/v2/simplification")
+//@RestController
+//@RequestMapping("/api/v2/simplification")
 @RequiredArgsConstructor
-@Tag(name = "SimplificationController V2", description = "제목, 요약, 태그 간략화 관련 API V2")
+//@Tag(name = "SimplificationController V2", description = "제목, 요약, 태그 간략화 관련 API V2")
 public class SimplificationControllerV2 {
 
 	private final SimplificationService simplificationService;
