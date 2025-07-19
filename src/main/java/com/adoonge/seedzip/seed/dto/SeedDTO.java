@@ -11,21 +11,21 @@ import lombok.Builder;
 
 @Builder
 public record SeedDTO(
-	@NotNull SeedType type,
-	@NotNull String name,
+	@NotNull SeedType seedType,
+	@NotNull String seedName,
 	Long thumbnailImage,    // 없으면 null
 	LocalDate dDay,    // 없으면 null
-	String detail,   // 없으면 null
+	String seedDetail,   // 없으면 null
 	Member member
 ) {
 
 	public Seed toEntity() {
 		return Seed.builder()
-			.seedName(name)
+			.seedName(seedName)
 			.dDay(dDay)
-			.seedDetail(detail)
+			.seedDetail(seedDetail)
 			.thumbnailIdx(thumbnailImage)
-			.seedType(type)
+			.seedType(seedType)
 			.member(member)
 			.build();
 	}

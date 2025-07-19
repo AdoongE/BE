@@ -138,7 +138,7 @@ public class SeedService {
 
 	@Transactional
 	public SeedResponse.SeedInfoSimple uploadSeed(SeedRequest seedRequest, Member member) {
-		if(seedRequest.type() == SeedType.LINK && seedRequest.link() == null) {
+		if(seedRequest.seedType() == SeedType.LINK && seedRequest.seedLink() == null) {
 			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
 		}
 
@@ -152,14 +152,14 @@ public class SeedService {
 			saveSeedCategories(seedRequest.categoryNames(), member, seed);
 		}
 
-		if (seedRequest.type() == SeedType.LINK) {
-			fileService.saveLink(seedRequest.link(), seed);
+		if (seedRequest.seedType() == SeedType.LINK) {
+			fileService.saveLink(seedRequest.seedLink(), seed);
 		}
 
 		return SeedResponse.SeedInfoSimple
 			.builder()
-			.id(seed.getId())
-			.name(seed.getSeedName())
+			.seedId(seed.getId())
+			.seedName(seed.getSeedName())
 			.build();
 	}
 
@@ -208,17 +208,17 @@ public class SeedService {
 		List<String> tagNames = seedTagRepository.findTagNamesBySeed(seed);
 
 		return SeedResponse.SeedDetail.builder()
-				.id(seed.getId())
-				.type(seed.getSeedType())
-				.name(seed.getSeedName())
-				.link(seedLink)
+				.seedId(seed.getId())
+				.seedType(seed.getSeedType())
+				.seedName(seed.getSeedName())
+				.seedLink(seedLink)
 				.fileLinks(fileLinks)
-				.fileTitles(titles)
+				.titles(titles)
 				.thumbnailImage(thumbnailImage)
-				.categoryNames(categoryNames)
-				.tagNames(tagNames)
+				.categoryName(categoryNames)
+				.tagName(tagNames)
 				.dDay(seed.getDDay())
-				.detail(seed.getSeedDetail())
+				.seedDetail(seed.getSeedDetail())
 				.build();
 	}
 
@@ -344,12 +344,12 @@ public class SeedService {
 	@Transactional
 	public SeedResponse.SeedInfoSimple updateSeed(SeedUpdateRequest request,
 		Long seedId, Member member) {
-		if(request.type() == SeedType.LINK && request.link() == null) {
+		if(request.seedType() == SeedType.LINK && request.seedLink() == null) {
 			throw SeedzipException.from(ErrorCode.EMPTY_LINK);
 		}
 
 		Seed seed = getSeedOrThrow(seedId);
-		if(!request.type().equals(seed.getSeedType())) {
+		if(!request.seedType().equals(seed.getSeedType())) {
 			throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
 		}
 
@@ -359,14 +359,14 @@ public class SeedService {
 		}
 
 		// 기본 필드 수정
-		if (!Objects.equals(seed.getSeedName(), request.name())) {
-			seed.updateSeedName(request.name());
+		if (!Objects.equals(seed.getSeedName(), request.seedName())) {
+			seed.updateSeedName(request.seedName());
 		}
 		if (!Objects.equals(seed.getDDay(), request.dDay())) {
 			seed.updateDDay(request.dDay());
 		}
-		if (!Objects.equals(seed.getSeedDetail(), request.detail())) {
-			seed.updateSeedDetail(request.detail());
+		if (!Objects.equals(seed.getSeedDetail(), request.seedDetail())) {
+			seed.updateSeedDetail(request.seedDetail());
 		}
 		if (!Objects.equals(seed.getThumbnailIdx(), request.thumbnailImage())) {
 			seed.updateThumbnailIdx(request.thumbnailImage());
@@ -384,8 +384,8 @@ public class SeedService {
 			File file = fileRepository.findBySeed(seed).orElseThrow(
 				() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND)
 			);
-			if (!Objects.equals(file.getLink(), request.link())) {
-				file.updateLink(request.link());
+			if (!Objects.equals(file.getLink(), request.seedLink())) {
+				file.updateLink(request.seedLink());
 			}
 		} else {    // 이미지, PDF
 			deleteFileFromS3(seedId, seed);
@@ -394,8 +394,8 @@ public class SeedService {
 
 		Seed updatedSeed = seedRepository.save(seed);
 		return SeedResponse.SeedInfoSimple.builder()
-			.id(updatedSeed.getId())
-			.name(updatedSeed.getSeedName())
+			.seedId(updatedSeed.getId())
+			.seedName(updatedSeed.getSeedName())
 			.build();
 	}
 
@@ -450,7 +450,7 @@ public class SeedService {
 
 	@Transactional
 	public void deleteSeedList(SeedDeleteListRequest request, Member member) {
-		List<Long> seedIds = request.ids();
+		List<Long> seedIds = request.seedIdList();
 		if (seedIds.isEmpty())	return;
 
 		List<Seed> seeds = seedRepository.findAllByIdIn(seedIds);
@@ -554,11 +554,11 @@ public class SeedService {
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
-			.name(seedRequest.name() == null ? LocalDate.now().toString() : seedRequest.name())
-			.detail(seedRequest.detail())
+			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
+			.seedDetail(seedRequest.seedDetail())
 			.thumbnailImage(seedRequest.thumbnailImage() == null ? 0 : seedRequest.thumbnailImage())
 			.dDay(seedRequest.dDay())
-			.type(seedRequest.type())
+			.seedType(seedRequest.seedType())
 			.member(member)
 			.build();
 
