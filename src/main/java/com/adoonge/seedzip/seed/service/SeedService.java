@@ -145,11 +145,11 @@ public class SeedService {
 		Seed seed = saveSeed(seedRequest, member);
 
 		// 태그 및 카테고리 저장
-		saveSeedTags(seedRequest.tags(), member, seed);
-		if(seedRequest.boardCategories() == null) {
+		saveSeedTags(seedRequest.tagName(), member, seed);
+		if(seedRequest.categoryName() == null) {
 			saveSeedDefaultCategory(member, seed);
 		} else {
-			saveSeedCategories(seedRequest.boardCategories(), member, seed);
+			saveSeedCategories(seedRequest.categoryName(), member, seed);
 		}
 
 		if (seedRequest.seedType() == SeedType.LINK) {
@@ -215,8 +215,8 @@ public class SeedService {
 				.fileLinks(fileLinks)
 				.titles(titles)
 				.thumbnailImage(thumbnailImage)
-				.categoryNames(categoryNames)
-				.tagNames(tagNames)
+				.categoryName(categoryNames)
+				.tagName(tagNames)
 				.dDay(seed.getDDay())
 				.seedDetail(seed.getSeedDetail())
 				.build();
@@ -374,11 +374,11 @@ public class SeedService {
 
 		// 태그
 		seedTagRepository.deleteAllBySeedId(seedId);
-		saveSeedTags(request.tags(), member, seed);
+		saveSeedTags(request.tagName(), member, seed);
 
 		// 카테고리
 		categorySeedRepository.deleteAllBySeedId(seedId);
-		saveSeedCategories(request.boardCategories(), member, seed);
+		saveSeedCategories(request.categoryName(), member, seed);
 
 		if (seed.getSeedType().equals(SeedType.LINK)) {
 			File file = fileRepository.findBySeed(seed).orElseThrow(

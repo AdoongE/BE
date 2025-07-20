@@ -66,8 +66,15 @@ springdoc:
   show-login-endpoint: true
   swagger-ui:
     path: /swagger-ui.html
+    groups-order: desc
+    tags_sorter: alpha
+    operations_sorter: method # delete - get - patch - post - put 정렬
   api-docs:
     path: /v1/api-docs
+
+swagger:
+  server:
+    url: ${SWAGGER_URL}
 
 kakao:
   api:

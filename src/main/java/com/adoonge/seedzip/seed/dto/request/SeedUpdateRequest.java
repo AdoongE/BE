@@ -10,10 +10,10 @@ import jakarta.validation.constraints.Size;
 public record SeedUpdateRequest(
 	@NotNull SeedType seedType,
 	String seedName,    // 없으면 null
-	@NotNull String[] boardCategories,
+	@NotNull String[] categoryName, // 없으면 null
 	Long thumbnailImage,    // 없으면 null
 	String seedLink, // link만 해당, 나머지 null
-	@NotNull @Size(min = 2, message = "태그는 최소 2개 이상 입력해야 합니다.") String[] tags,
+	@NotNull @Size(min = 2, message = "태그는 최소 2개 이상 입력해야 합니다.") String[] tagName,
 	LocalDate dDay,    // 없으면 null
 	String seedDetail    // 없으면 null
 ) {

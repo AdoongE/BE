@@ -14,8 +14,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
-    @Value("${server.url}")
-    private String serverUrl;
+    @Value("${swagger.server.url}")
+    private String swaggerServerUrl;
+
     @Bean
     public OpenAPI openAPI() {
         String jwt = "JWT";
@@ -28,8 +29,11 @@ public class SwaggerConfig {
         );
 
         ArrayList<Server> servers = new ArrayList<>();
-        servers.add(new Server().url("https://"+serverUrl).description("AdoongE Server"));
-        servers.add(new Server().url("http://localhost:8080").description("Local Server"));
+        if(swaggerServerUrl.contains("localhost")){
+            servers.add(new Server().url(swaggerServerUrl).description("Local Server"));
+        }else{
+            servers.add(new Server().url("https://"+swaggerServerUrl).description("AdoongE Server"));
+        }
 
         return new OpenAPI()
                 .components(new Components())
