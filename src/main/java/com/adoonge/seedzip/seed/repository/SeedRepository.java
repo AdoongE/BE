@@ -48,4 +48,13 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 	List<Seed> findAllByIdIn(List<Long> seedIds);
 
 	void deleteAllByIdIn(List<Long> seedIds);
+
+	@Modifying
+	@Query("""
+		UPDATE Seed s
+		SET s.viewCount = s.viewCount + 1,
+		    s.version   = s.version + 1
+		WHERE s.id = :id AND s.version = :version
+		""")
+	int increaseViewCount(@Param("id") Long id, @Param("version") Long version);
 }

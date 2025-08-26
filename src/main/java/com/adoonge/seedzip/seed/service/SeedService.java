@@ -174,8 +174,15 @@ public class SeedService {
 	@Transactional
 	public SeedResponse.SeedDetail getSeedDetail(Long seedId) {
 		Seed seed = getSeedOrThrow(seedId);
-		seed.incrementViewCount();
-		seedRepository.save(seed);
+
+		// 최대 3회 재시도
+		for (int i = 0; i < 3; i++) {
+			int updated = seedRepository.increaseViewCount(seedId, seed.getVersion());
+			if (updated > 0) break; // 성공
+			// 실패면 최신 버전 재조회 후 재시도
+			seed = getSeedOrThrow(seedId);
+		}
+
 		List<File> files = fileRepository.findAllBySeed(seed)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND));
 
