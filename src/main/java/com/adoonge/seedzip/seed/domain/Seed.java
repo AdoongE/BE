@@ -77,8 +77,6 @@ public class Seed extends BaseEntity {
     @OneToMany(mappedBy = "seed", fetch = FetchType.LAZY)
     private Set<CategorySeed> categorySeeds = new HashSet<>();
 
-
-
     public void updateSeedName(String seedName) {
         this.seedName = seedName;
     }
@@ -94,10 +92,5 @@ public class Seed extends BaseEntity {
     public void updateThumbnailIdx(Long thumbnailIdx) {
         this.thumbnailIdx = thumbnailIdx;
     }
-
-    public void incrementViewCount() {
-        this.viewCount++;
-    }
-
 
 }
