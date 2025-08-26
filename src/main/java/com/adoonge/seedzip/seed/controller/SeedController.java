@@ -299,10 +299,11 @@ public class SeedController {
         @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
     public ApiResponse<Void> deleteSeedList(
-        @RequestBody @Valid SeedDeleteListRequest request,
+        @RequestParam List<Long> ids,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+
         Member member = customUserDetails.getMember();
-        seedService.deleteSeedList(request, member);
+        seedService.deleteSeedList(ids, member);
         return new ApiResponse<>(ErrorCode.REQUEST_OK);
     }
 

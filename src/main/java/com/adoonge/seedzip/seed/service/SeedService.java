@@ -456,12 +456,11 @@ public class SeedService {
 	}
 
 	@Transactional
-	public void deleteSeedList(SeedDeleteListRequest request, Member member) {
-		List<Long> seedIds = request.seedIdList();
-		if (seedIds.isEmpty())	return;
+	public void deleteSeedList(List<Long> ids, Member member) {
+		if (ids.isEmpty())	return;
 
-		List<Seed> seeds = seedRepository.findAllByIdIn(seedIds);
-		if(seedIds.size() != seeds.size()) {
+		List<Seed> seeds = seedRepository.findAllByIdIn(ids);
+		if(ids.size() != seeds.size()) {
 			throw SeedzipException.from(ErrorCode.SEED_ACCESS_DENIED);
 		}
 
@@ -473,10 +472,10 @@ public class SeedService {
 			deleteFileFromS3(seed.getId(), seed);
 		}
 
-		categorySeedRepository.deleteAllBySeedIdIn(seedIds);
-		fileRepository.deleteAllBySeedIdIn(seedIds);
-		seedTagRepository.deleteAllBySeedIdIn(seedIds);
-		seedRepository.deleteAllByIdIn(seedIds);
+		categorySeedRepository.deleteAllBySeedIdIn(ids);
+		fileRepository.deleteAllBySeedIdIn(ids);
+		seedTagRepository.deleteAllBySeedIdIn(ids);
+		seedRepository.deleteAllByIdIn(ids);
 	}
 
 	private void deleteFileFromS3(Long id, Seed seed) {
