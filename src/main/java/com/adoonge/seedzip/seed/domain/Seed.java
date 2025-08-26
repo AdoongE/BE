@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -59,6 +60,9 @@ public class Seed extends BaseEntity {
     @Column(name = "view_count", nullable = false)
     private long viewCount = 0L; // 조회수
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     @OnDelete(action = OnDeleteAction.CASCADE) // Member 삭제 시 Content도 삭제
@@ -72,7 +76,6 @@ public class Seed extends BaseEntity {
 
     @OneToMany(mappedBy = "seed", fetch = FetchType.LAZY)
     private Set<CategorySeed> categorySeeds = new HashSet<>();
-
 
     public void updateSeedName(String seedName) {
         this.seedName = seedName;

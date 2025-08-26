@@ -64,7 +64,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class SeedService {
 
 	private final FileService fileService;
-	private final SeedCacheService seedCacheService;
 
 	private final SeedRepository seedRepository;
 	private final FileRepository fileRepository;
@@ -172,10 +171,18 @@ public class SeedService {
 		fileService.saveFiles(files, seed);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional
 	public SeedResponse.SeedDetail getSeedDetail(Long seedId) {
 		Seed seed = getSeedOrThrow(seedId);
-		seedCacheService.increaseViewCounts(seedId);
+
+		// 최대 3회 재시도
+		for (int i = 0; i < 3; i++) {
+			int updated = seedRepository.increaseViewCount(seedId, seed.getVersion());
+			if (updated > 0) break; // 성공
+			// 실패면 최신 버전 재조회 후 재시도
+			seed = getSeedOrThrow(seedId);
+		}
+
 		List<File> files = fileRepository.findAllBySeed(seed)
 				.orElseThrow(() -> SeedzipException.from(ErrorCode.FILE_NOT_FOUND));
 
@@ -449,12 +456,11 @@ public class SeedService {
 	}
 
 	@Transactional
-	public void deleteSeedList(SeedDeleteListRequest request, Member member) {
-		List<Long> seedIds = request.seedIdList();
-		if (seedIds.isEmpty())	return;
+	public void deleteSeedList(List<Long> ids, Member member) {
+		if (ids.isEmpty())	return;
 
-		List<Seed> seeds = seedRepository.findAllByIdIn(seedIds);
-		if(seedIds.size() != seeds.size()) {
+		List<Seed> seeds = seedRepository.findAllByIdIn(ids);
+		if(ids.size() != seeds.size()) {
 			throw SeedzipException.from(ErrorCode.SEED_ACCESS_DENIED);
 		}
 
@@ -466,10 +472,10 @@ public class SeedService {
 			deleteFileFromS3(seed.getId(), seed);
 		}
 
-		categorySeedRepository.deleteAllBySeedIdIn(seedIds);
-		fileRepository.deleteAllBySeedIdIn(seedIds);
-		seedTagRepository.deleteAllBySeedIdIn(seedIds);
-		seedRepository.deleteAllByIdIn(seedIds);
+		categorySeedRepository.deleteAllBySeedIdIn(ids);
+		fileRepository.deleteAllBySeedIdIn(ids);
+		seedTagRepository.deleteAllBySeedIdIn(ids);
+		seedRepository.deleteAllByIdIn(ids);
 	}
 
 	private void deleteFileFromS3(Long id, Seed seed) {
