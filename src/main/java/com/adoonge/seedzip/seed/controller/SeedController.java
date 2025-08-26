@@ -96,10 +96,9 @@ public class SeedController {
                             schema = @Schema(implementation = SeedResponse.SeedDetail.class))),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
     })
-    public ApiResponse<SeedResponse.SeedDetail> getSeedDetail(@PathVariable("seedId") Long seedId,
-                                                                          @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-
-        Member member = customUserDetails.getMember();
+    public ApiResponse<SeedResponse.SeedDetail> getSeedDetail(
+        @PathVariable("seedId") Long seedId,
+        @AuthenticationPrincipal CustomUserDetails customUserDetails) {
 
         return new ApiResponse<>(seedService.getSeedDetail(seedId));
     }

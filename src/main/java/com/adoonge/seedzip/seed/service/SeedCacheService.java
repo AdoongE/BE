@@ -17,10 +17,6 @@ public class SeedCacheService {
 		this.redisTemplate = redisTemplate;
 	}
 
-	public void increaseViewCounts(Long seedId) {
-		redisTemplate.opsForHash().increment(SEED_VIEWS_KEY, seedId.toString(), 1);
-	}
-
 	public Map<Object, Object> getAllViewCounts() {
 		return redisTemplate.opsForHash().entries(SEED_VIEWS_KEY);
 	}
