@@ -30,10 +30,9 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 	@Query("SELECT s FROM Seed s WHERE s.id IN :seedIds AND s.seedType = :seedType")
 	Page<Seed> findBySeedIdInAndSeedType(List<Long> seedIds, SeedType seedType, Pageable pageable);
 
-	@Transactional
-	@Modifying
+	@Modifying(flushAutomatically = true, clearAutomatically = true)
 	@Query("DELETE FROM Seed s WHERE NOT EXISTS (SELECT 1 FROM CategorySeed cs WHERE cs.seed.id = s.id)")
-	default void deleteUnreferencedContents() {}
+	void deleteUnreferencedContents();
 
 	@Modifying
 	@Query("UPDATE Seed s SET s.viewCount = s.viewCount + :count WHERE s.id = :seedId")
