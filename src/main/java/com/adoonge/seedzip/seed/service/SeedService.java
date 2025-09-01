@@ -560,7 +560,7 @@ public class SeedService {
 
 	private Seed saveSeed(SeedRequest seedRequest, Member member) {
 		SeedDTO seedDTO = SeedDTO.builder()
-			.seedName(seedRequest.seedName() == null ? LocalDate.now().toString() : seedRequest.seedName())
+			.seedName(seedRequest.seedName() == null || seedRequest.seedName().isEmpty() ? LocalDate.now().toString() : seedRequest.seedName())
 			.seedDetail(seedRequest.seedDetail())
 			.thumbnailImage(seedRequest.thumbnailImage() == null ? 0 : seedRequest.thumbnailImage())
 			.dDay(seedRequest.dDay())
