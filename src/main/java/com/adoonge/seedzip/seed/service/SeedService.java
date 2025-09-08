@@ -33,6 +33,7 @@ import com.adoonge.seedzip.tag.domain.UsedDefaultTag;
 import com.adoonge.seedzip.tag.domain.type.DefaultTagType;
 import com.adoonge.seedzip.tag.repository.TagRepository;
 import com.adoonge.seedzip.tag.repository.UsedDefaultTagRepository;
+import com.amazonaws.services.dynamodbv2.xspec.S;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -164,6 +165,16 @@ public class SeedService {
 
 	@Transactional
 	public void uploadFiles(Long seedId, List<MultipartFile> files) {
+		for(MultipartFile file : files){
+			String contentType = file.getContentType();
+			if (contentType == null ||
+				!(contentType.equalsIgnoreCase("image/png") ||
+					contentType.equalsIgnoreCase("image/jpg") ||
+					contentType.equalsIgnoreCase("image/jpeg"))) {
+				throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
+			}
+		}
+
 		Seed seed = seedRepository.findById(seedId).orElseThrow(
 			() -> SeedzipException.from(ErrorCode.SEED_NOT_FOUND)
 		);
