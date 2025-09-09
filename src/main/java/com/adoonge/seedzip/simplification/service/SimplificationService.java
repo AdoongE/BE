@@ -1,5 +1,7 @@
 package com.adoonge.seedzip.simplification.service;
 
+import static com.adoonge.seedzip.global.exception.ErrorCode.*;
+
 import com.adoonge.seedzip.global.service.S3Service;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
@@ -77,7 +79,21 @@ public class SimplificationService {
         } catch (IOException e) {
             throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
         }
-        String imageUrl = "data:image/jpeg;base64," + base64Image;
+
+        // MIME 타입 확인
+        String contentType = file.getContentType();
+        if (contentType == null) {
+            throw SeedzipException.from(SEED_TYPE_NOT_SUPPORTED);
+        }
+
+        // jpg/jpeg/png만 허용
+        if (!(contentType.equalsIgnoreCase("image/jpeg") ||
+            contentType.equalsIgnoreCase("image/jpg") ||
+            contentType.equalsIgnoreCase("image/png"))) {
+            throw SeedzipException.from(SEED_TYPE_NOT_SUPPORTED);}
+
+        String imageUrl = "data:" + contentType + ";base64," + base64Image;
+
         ChatGPTRequest request = ChatGPTRequest.createImageRequest(apiModel, 500, imageUrl);
         ChatGPTResponse chatGPTResponse =  template.postForObject(apiUrl, request, ChatGPTResponse.class);
 
