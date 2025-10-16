@@ -1,8 +1,8 @@
 package com.adoonge.seedzip.seed.controller;
 
-import com.adoonge.seedzip.seed.dto.request.SeedDeleteListRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequestForApp;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse.GetFilteredSeeds;
 import java.util.List;
 
@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -253,6 +254,22 @@ public class SeedController {
         SeedResponse.SeedInfoSimple seedInfoSimple = seedService.updateSeed(request, seedId, member);
 
         return new ApiResponse<>(seedInfoSimple);
+    }
+
+    @PatchMapping("/app/{seedId}")
+    @Operation(summary = "앱용 씨드 수정 API", description = "앱용 씨드 내용을 수정하는 API입니다.")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "성공적으로 업로드됨",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = SeedResponse.SeedInfoSimple.class))),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "서버 오류")
+    })
+    public ApiResponse<SeedResponse.SeedInfoSimple> modifySeedForApp(
+            @PathVariable("seedId") Long seedId,
+            @RequestBody @Valid SeedUpdateRequestForApp request,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Member member = customUserDetails.getMember();
+        return new ApiResponse<>(seedService.updateSeedForApp(request, seedId, member));
     }
 
     @GetMapping(value = "/popular")

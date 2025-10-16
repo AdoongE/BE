@@ -22,6 +22,7 @@ import com.adoonge.seedzip.seed.dto.request.SeedDeleteListRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedFilteringRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedRequest;
 import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequest;
+import com.adoonge.seedzip.seed.dto.request.SeedUpdateRequestForApp;
 import com.adoonge.seedzip.seed.dto.response.SeedResponse;
 import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.FileRepository;
@@ -417,6 +418,47 @@ public class SeedService {
 			.seedName(updatedSeed.getSeedName())
 			.build();
 	}
+
+	@Transactional
+	public SeedResponse.SeedInfoSimple updateSeedForApp(SeedUpdateRequestForApp request,
+														Long seedId, Member member) {
+		Seed seed = getSeedOrThrow(seedId);
+
+		if (!seed.getMember().getId().equals(member.getId())) {
+			throw SeedzipException.from(ErrorCode.MEMBER_NOT_OWNER);
+		}
+
+		if (!request.seedType().equals(seed.getSeedType())) {
+			throw SeedzipException.from(ErrorCode.SEED_TYPE_NOT_SUPPORTED);
+		}
+
+		// 기본 필드 수정
+		if (!Objects.equals(seed.getSeedName(), request.seedName())) {
+			seed.updateSeedName(request.seedName());
+		}
+		if (!Objects.equals(seed.getDDay(), request.dDay())) {
+			seed.updateDDay(request.dDay());
+		}
+		if (!Objects.equals(seed.getSeedDetail(), request.seedDetail())) {
+			seed.updateSeedDetail(request.seedDetail());
+		}
+
+		// 태그, 카테고리 갱신
+		seedTagRepository.deleteAllBySeedId(seedId);
+		saveSeedTags(request.tagName(), member, seed);
+
+		categorySeedRepository.deleteAllBySeedId(seedId);
+		saveSeedCategories(request.categoryName(), member, seed);
+
+		// 🚫 파일 삭제나 링크 수정 없음
+
+		Seed updatedSeed = seedRepository.save(seed);
+		return SeedResponse.SeedInfoSimple.builder()
+				.seedId(updatedSeed.getId())
+				.seedName(updatedSeed.getSeedName())
+				.build();
+	}
+
 
 	//북마크된 씨드 조회
 	@Transactional
