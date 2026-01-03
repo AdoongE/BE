@@ -98,7 +98,16 @@ public class AuthService {
             throw SeedzipException.from(ErrorCode.INVALID_CREDENTIALS);
         }
 
-        generateToken(basicLoginRequest.email(), response);
+        UsernamePasswordAuthenticationToken authenticationToken =
+            new UsernamePasswordAuthenticationToken(
+                basicLoginRequest.email(),
+                basicLoginRequest.password()
+            );
+
+        Authentication authentication =
+            authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+
+        jwtTokenService.generateToken(authentication, response);
 
         return new ApiResponse<>(
             BasicLoginResponse.builder()
