@@ -43,16 +43,23 @@ public class ApiResponse<T> {
     // Page 타입 생성자
     public ApiResponse(Page<T> page) {
         this.status = new Status(ErrorCode.REQUEST_OK);
-        this.metadata = new Metadata(page.getContent().size(), page.getPageable(), page.hasNext());
+        this.metadata = new Metadata(
+            page.getTotalElements(),
+            page.getContent().size(),
+            page.getPageable(),
+            page.hasNext());
         this.results = page.getContent();
     }
 
     // Slice 타입 생성자
-    public ApiResponse(Slice<T> slice) {
-        this.status = new Status(ErrorCode.REQUEST_OK);
-        this.metadata = new Metadata(slice.getContent().size(), slice.getPageable(), slice.hasNext());
-        this.results = slice.getContent();
-    }
+    // public ApiResponse(Slice<T> slice) {
+    //     this.status = new Status(ErrorCode.REQUEST_OK);
+    //     this.metadata = new Metadata(
+    //         slice.getContent().size(),
+    //         slice.getPageable(),
+    //         slice.hasNext());
+    //     this.results = slice.getContent();
+    // }
 
     // 오류 코드 생성자
     public ApiResponse(ErrorCode errorCode) {
@@ -66,6 +73,7 @@ public class ApiResponse<T> {
 
     @Getter
     private static class Metadata {
+        private long totalElementCount = 0;
         private int resultCount = 0;
         @JsonInclude(Include.NON_NULL) // 값이 설정되지 않으면 JSON 응답에서 제외
         private Pageable pageable;
@@ -78,7 +86,8 @@ public class ApiResponse<T> {
         }
 
         // Page용 메타데이터 생성자
-        public Metadata(int resultCount, Pageable pageable, boolean hasNext) {
+        public Metadata(long totalElementCount, int resultCount, Pageable pageable, boolean hasNext) {
+            this.totalElementCount = totalElementCount;
             this.resultCount = resultCount;
             this.pageable = pageable;
             this.hasNext = hasNext;
