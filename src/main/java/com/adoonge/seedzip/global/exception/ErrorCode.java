@@ -1,5 +1,7 @@
 package com.adoonge.seedzip.global.exception;
 
+import java.util.Arrays;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +36,7 @@ public enum ErrorCode {
     OPEN_ID_PROVIDER_NOT_RESPONSE(HttpStatus.INTERNAL_SERVER_ERROR, "OpenID 제공자 서버에 문제가 발생했습니다."),
     OAUTH2_INVALID_CODE(HttpStatus.BAD_REQUEST, "올바르지 않은 인가 코드입니다."),
     INVALID_SOCIAL_CODE(HttpStatus.BAD_REQUEST, "잘못된 소셜코드입니다."),
+    INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "잘못된 자격 증명입니다."),
     GET_KAKAO_ACCESS_TOKEN_FAILED(HttpStatus.BAD_GATEWAY, "카카오 엑세스 토큰 발급에 실패했습니다."),
     GET_KAKAO_UNIQUE_ID_FAILED(HttpStatus.BAD_GATEWAY, "카카오 유저 정보 흭득에 실패했습니다."),
     GET_NAVER_ACCESS_TOKEN_FAILED(HttpStatus.BAD_GATEWAY, "네이버 엑세스 토큰 발급에 실패했습니다."),
@@ -77,6 +80,10 @@ public enum ErrorCode {
 
 
     //validation
+    EMAIL_REQUIRED(HttpStatus.BAD_REQUEST, "이메일은 필수입니다."),
+    EMAIL_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "유효한 이메일 형식이어야 합니다."),
+    PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "비밀번호는 필수입니다."),
+    PASSWORD_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "비밀번호는 영문자와 숫자를 포함한 8~20자여야 합니다."),
     NICKNAME_REQUIRED(HttpStatus.BAD_REQUEST, "닉네임은 필수입니다."),
     NICKNAME_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "닉네임은 한글, 영문, 숫자, 공백 포함 10자 이내로 작성해야 합니다."),
     BIRTHDAY_REQUIRED(HttpStatus.BAD_REQUEST, "생년월일은 필수입니다."),
@@ -154,12 +161,19 @@ public enum ErrorCode {
     private final String message;
 
     // 메시지를 기반으로 ErrorCode를 찾는 정적 메서드
+    // public static ErrorCode fromMessage(String message) {
+    //     for (ErrorCode errorCode : ErrorCode.values()) {
+    //         if (errorCode.getMessage().equals(message)) {
+    //             return errorCode;
+    //         }
+    //     }
+    //     throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+    // }
+
     public static ErrorCode fromMessage(String message) {
-        for (ErrorCode errorCode : ErrorCode.values()) {
-            if (errorCode.getMessage().equals(message)) {
-                return errorCode;
-            }
-        }
-        throw SeedzipException.from(ErrorCode.INTERNAL_SEVER_ERROR);
+        return Arrays.stream(values())
+            .filter(code -> code.getMessage().equals(message))
+            .findFirst()
+            .orElse(ErrorCode.INVALID_REQUEST); // ⭐ default
     }
 }
