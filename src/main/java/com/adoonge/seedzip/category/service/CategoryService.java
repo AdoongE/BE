@@ -13,6 +13,7 @@ import com.adoonge.seedzip.category.repository.CategoryRepository;
 import com.adoonge.seedzip.global.exception.ErrorCode;
 import com.adoonge.seedzip.global.exception.SeedzipException;
 import com.adoonge.seedzip.member.domain.Member;
+import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.SeedRepository;
 
 import lombok.AccessLevel;
@@ -27,6 +28,7 @@ public class CategoryService {
 
 	private final CategoryRepository categoryRepository;
 	private final SeedRepository seedRepository;
+	private final CategorySeedRepository categorySeedRepository;
 
 	private static final String DEFAULT_CATEGORY_NAME = "미분류";
 
@@ -72,7 +74,10 @@ public class CategoryService {
 		List<Category> categories = categoryRepository.findAllByMemberOrdered(member);
 
 		return categories.stream()
-			.map(CategoryResponse::fromEntity)
+			.map( category -> {
+				Long seedCount = categorySeedRepository.countByCategoryCategoryId(category.getCategoryId());
+				return CategoryResponse.fromEntityWithCount(category, seedCount);
+			})
 			.toList();
 	}
 

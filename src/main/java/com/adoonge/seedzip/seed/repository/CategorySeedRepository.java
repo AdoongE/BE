@@ -28,4 +28,6 @@ public interface CategorySeedRepository extends JpaRepository<CategorySeed, Long
     void deleteAllBySeedId(Long seedId);
 
     void deleteAllBySeedIdIn(List<Long> seedIds);
+
+    long countByCategoryCategoryId(Long categoryId);
 }
