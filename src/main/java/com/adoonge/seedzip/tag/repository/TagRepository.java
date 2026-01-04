@@ -1,5 +1,6 @@
 package com.adoonge.seedzip.tag.repository;
 
+import com.adoonge.seedzip.member.domain.Member;
 import com.adoonge.seedzip.tag.domain.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -15,7 +16,5 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     Optional<Tag> findByTagNameAndMemberId(String name, Long memberId);
 
-    Void deleteByTagNameAndMemberId(String name, Long memberId);
-
-    List<Tag> findAllByIsDefaultTrue();
+    void deleteAllByMember(Member member);
 }

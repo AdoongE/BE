@@ -56,4 +56,8 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 		WHERE s.id = :id AND s.version = :version
 		""")
 	int increaseViewCount(@Param("id") Long id, @Param("version") Long version);
+
+	void deleteAllByMember(Member member);
+
+	List<Seed> findAllByMember(Member member);
 }
