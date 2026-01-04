@@ -6,11 +6,14 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.adoonge.seedzip.filter.domain.Filter;
+import com.adoonge.seedzip.member.domain.Member;
 
 public interface FilterRepository extends JpaRepository<Filter, Long> {
 
 	List<Filter> findAllByMemberId(Long memberId);
 
 	Optional<Filter> findByFilterIdAndMemberId(Long filterId, Long MemberId);
+
+	void deleteAllByMember(Member member);
 
 }

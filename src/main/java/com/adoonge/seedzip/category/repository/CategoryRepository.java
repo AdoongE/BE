@@ -26,4 +26,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
 	long countByMember(Member member);
 
+	void deleteAllByMember(Member member);
+
 }
