@@ -3,6 +3,7 @@ package com.adoonge.seedzip.bookmark.service;
 import com.adoonge.seedzip.bookmark.domain.SeedBookmark;
 import com.adoonge.seedzip.bookmark.repository.SeedBookmarkRepository;
 import com.adoonge.seedzip.seed.domain.Seed;
+import com.adoonge.seedzip.seed.repository.CategorySeedRepository;
 import com.adoonge.seedzip.seed.repository.SeedRepository;
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class BookmarkService {
 
 	private final CategoryBookmarkRepository categoryBookmarkRepository;
 	private final CategoryRepository categoryRepository;
+	private final CategorySeedRepository categorySeedRepository;
 	private final SeedBookmarkRepository seedBookmarkRepository;
 	private final SeedRepository seedRepository;
 
@@ -65,9 +67,13 @@ public class BookmarkService {
 		List<CategoryBookmark> categoryBookmarks = categoryBookmarkRepository.findAllByMemberId(member.getId());
 
 		return categoryBookmarks.stream()
-			.map(CategoryBookmarkResponse::fromEntity)
+			.map( category -> {
+				Long seedCount = categorySeedRepository.countByCategoryCategoryId(category.getCategory().getCategoryId());
+				return CategoryBookmarkResponse.fromEntityWithCount(category, seedCount);
+			})
 			.toList();
 	}
+
 
 	@Transactional
 	public void addSeedBookmark(Long seedId, Member member) {
