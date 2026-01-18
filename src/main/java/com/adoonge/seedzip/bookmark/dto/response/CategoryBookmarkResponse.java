@@ -10,7 +10,8 @@ public record CategoryBookmarkResponse(
 	Long categoryId,
 	String name,
 	Boolean isPublic,
-	Long memberId
+	Long memberId,
+	Long seedCount
 ) {
 	public static CategoryBookmarkResponse fromEntity(CategoryBookmark categoryBookmark) {
 		return CategoryBookmarkResponse.builder()
@@ -19,6 +20,17 @@ public record CategoryBookmarkResponse(
 			.name(categoryBookmark.getCategory().getName())
 			.isPublic(categoryBookmark.getCategory().getIsPublic())
 			.memberId(categoryBookmark.getMember().getId())
+			.build();
+	}
+
+	public static CategoryBookmarkResponse fromEntityWithCount(CategoryBookmark categoryBookmark, Long seedCount) {
+		return CategoryBookmarkResponse.builder()
+			.bookmarkId(categoryBookmark.getId())
+			.categoryId(categoryBookmark.getCategory().getCategoryId())
+			.name(categoryBookmark.getCategory().getName())
+			.isPublic(categoryBookmark.getCategory().getIsPublic())
+			.memberId(categoryBookmark.getMember().getId())
+			.seedCount(seedCount)
 			.build();
 	}
 }
