@@ -48,6 +48,7 @@ public class Member extends BaseEntity{
     private LocalDate birthday;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Gender gender;
 
     private String occupation;
