@@ -65,7 +65,7 @@ public class MemberService {
 
         return MemberStatisticsResponse.from(
                 member,
-                seedRepository.countByCreatedAtBetween(today.atStartOfDay(), today.plusDays(1).atStartOfDay()),
+                seedRepository.countByCreatedAtBetweenAndMember(today.atStartOfDay(), today.plusDays(1).atStartOfDay(), member),
                 seedRepositoryCustom.getSeedStatistics(member),
                 totalCategoryCount
         );
