@@ -38,7 +38,7 @@ public interface SeedRepository extends JpaRepository<Seed, Long> {
 	@Query("UPDATE Seed s SET s.viewCount = s.viewCount + :count WHERE s.id = :seedId")
 	void incrementViews(@Param("seedId") Long seedId, @Param("count") Long count);
 
-	long countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
+	long countByCreatedAtBetweenAndMember(LocalDateTime from, LocalDateTime to, Member member);
 
 	Page<Seed> findTop30ByMemberAndViewCountGreaterThanOrderByViewCountDesc(Member member, Long viewCount, Pageable pageable);
 
