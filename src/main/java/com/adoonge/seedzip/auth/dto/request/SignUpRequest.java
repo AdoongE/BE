@@ -30,6 +30,7 @@ public class SignUpRequest {
     @PastOrPresent(message = "생년월일은 과거 또는 오늘 날짜여야 합니다.")
     private LocalDate birthday;
 
+    @NotNull(message = "성별은 필수입니다.")
     private Gender gender;
 
     private String occupation;
